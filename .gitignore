@@ -1,0 +1,8 @@
+.ssh/
+logs/
+tmp/
+.composer/
+*.zip
+*.log
+.DS_Store
+Thumbs.db
