@@ -1,0 +1,141 @@
+<?php
+if(!isset($_SESSION))
+{
+session_start();
+}
+?>
+
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<title>Look8US :Business Directory Kota, Rajasthan , India, Online Business Directory Kota,  Yellow Pages  kota Rajasthan , Trusted & Verified Businesses, Exporters, Manufacturers, Suppliers Directory, B2B Business Directory </title>
+<meta name="description" content="Look8us.com from Kota Rajasthan is Your local Business Directory , yellow pages  Business Directory. Business Details, Contacts, Products, Services & Verified Businesses, Exporters, Manufacturers, Suppliers Directory">
+<meta name="keywords" content=" Look8us.com , yellow pages Kota Rajasthan , business directory Kota Rajasthan india,business search engine, indian business directory, online business directory, Indian manufacturers, suppliers, Indian exporters directory, b2b portal, b2b business directory,manufacturer, importers, traders, dealers, buyers, ">
+ <link rel="stylesheet" type="text/css" href="akc.css" />
+
+</head>
+
+<body topmargin="0" leftmargin="0" rightmargin="0" bottommargin="2" background="images/bg.png">
+
+
+<div align="center">
+<?php include("header.php"); ?>
+<table border="0" width="100%" height="100" cellpadding="0" style="border-collapse: collapse">
+	<tr>
+		<td bgcolor="#D2D2D2">
+		<div align="center">
+			<table border="0" width="1010" id="table33" style="border-collapse: collapse" height="40" cellpadding="0">
+				<tr>
+					<td><font size="6">&nbsp;</font><font color="#333333" size="5">Event 
+					&amp; Activity </font></td>
+				</tr>
+			</table>
+		</div>
+		</td>
+	</tr>
+</table>
+	<table border="0" width="1020" id="table1" style="border-collapse: collapse" bordercolor="#F2F2F2" bgcolor="#FFFFFF" cellpadding="0">
+		<tr>
+			<td valign="top">
+			<div align="center">
+			<table border="0" width="100%" id="table2" cellpadding="0" style="border-collapse: collapse" bordercolor="#FFFFCC">
+				
+				<tr>
+					<td valign="top">
+					<table border="0" width="100%" id="table8" cellpadding="0" style="border-collapse: collapse">
+						<tr>
+							<td  valign="top" bgcolor="#FFFFFF">
+							<table border="0" width="100%" id="table10" cellpadding="0" style="border-collapse: collapse" height="415" >
+								<tr>
+									
+									<td align="left" valign="top">
+									
+									&nbsp;<div align="center">
+								<table   border="0" width="96%" id="table34">
+																
+							<?php 
+		 $st="Select * from activity  where eid=".$_GET["id"] ;
+		 		 $result=mysql_query($st,$con);
+		 		 $i=1;
+		if ($row=mysql_fetch_array($result))
+			{
+			?>
+								<tr>
+									<td width="29%">
+									<p style="line-height: 20px">
+									<font color="#0033CC"><b>Event Date :</b>&nbsp;<?php echo $row["edate"]; ?>&nbsp;&nbsp;
+									</font><font color="#000000">
+									<br><b><font size="2">Subject&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+									:
+									</font></b><font size="2"><?php echo $row["eventhead"]; ?>
+									<br><b>Detail&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :</b> <?php echo $row["eventdetail"]; ?>&nbsp;
+									</font></font>
+									
+									<br>
+									<br>
+									
+									<?php
+									if($row['eimg']<>"-")
+									{
+									?>
+									
+									<img src="User/logo/<?php echo $row['eimg']; ?>">
+									<?php
+									}
+									?>
+									
+									
+									</td>
+									
+								</tr>
+								
+								<?php
+								
+								}
+								?>
+
+								
+
+							</table></div>
+									</td>
+								</tr>
+								<tr>
+									
+									<td align="left" valign="top">
+									
+									&nbsp;</td>
+								</tr>
+								<tr>
+									
+									<td align="left" valign="top">
+									
+									&nbsp;</td>
+								</tr>
+								<tr>
+									
+									<td align="left" valign="top">
+									
+									&nbsp;</td>
+								</tr>
+							</table>
+							</td>
+						</tr>
+						</table>
+					</td>
+				</tr>
+			</table>
+			</div>
+			</td>
+		</tr>
+	</table>
+</div>
+
+<div align="center">
+	<?php include("footer.php"); ?>
+</div>
+
+</body>
+
+</html>

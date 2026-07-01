@@ -1,0 +1,38 @@
+<html>
+
+<head>
+<script type="text/javascript">
+
+function showImage()
+{
+var elem = document.getElementById('testimage');
+elem.style.display = 'block';
+setTimeout("hideImage()", 4000);
+}
+
+function hideImage()
+{
+var elem = document.getElementById('testimage');
+elem.style.display = 'none';
+}
+</script>
+<style type="text/css">
+
+#testimage
+{
+width:500px; /* width of image **/
+height:500px; /* or height of image**/
+position:absolute;
+top:100px; /* or whereever y*/
+left: 100px; /* or wherever x */
+display:none;
+background-image: url(logo.jpg);
+}
+</style>
+
+</head>
+<body onload="showImage();">
+<div id="testimage" />
+
+</body>
+</html> 

@@ -1,0 +1,771 @@
+
+/* end Header  */
+
+/* main */
+.demoTest
+{
+  position:fixed; z-index:5; right:0px; top:200px; width:40px; height:150px; border-top-left-radius:5px; border-bottom-left-radius:5px;
+  background:#39F; color:#000000; background-image:url(free.png); background-position:center; background-repeat:no-repeat;  background-size:20px 120px;
+  -moz-transition:    background 0.4s;
+ -ms-transition:     background 0.4s;
+ -o-transition:      background 0.4s;
+  transition:        background 0.4s;
+}
+.demoTest:hover
+{
+	background:#67B3FE;background-image:url(free.png);background-position:center; background-repeat:no-repeat;
+	background-size:20px 130px;
+}
+
+.main 
+{
+	width:100%;
+	min-width:1024px;
+	background:#FFFFFF;
+}
+.main .row1
+{ width:1024px; padding:10px;}
+.main .row1 .colwide
+{
+	width:1024px;
+	text-align:justify;
+	font-size:14px;
+	color:#666666;
+	font-family:verdana;
+}
+.main .row1 .colwide h3
+{ font-size:16px; color:#FF6600; font-weight:normal; font-family:verdana;}
+.main .row1 .colwide .AboutusJavaCol
+{
+	background:rgba(230,248,252,1.0); box-shadow:#999 1px 1px 2px 2px; border-radius:10px; overflow:hidden !important; width:900px; margin-top:20px; padding:10px;
+}
+.main .row1 .colwide .AboutusJavaCol .col2222 .toggle
+{display: none; text-align:justify;
+}
+.main .row1 .colwide .AboutusJavaCol  .col1 ul{margin-top:10px;}
+.main .row1 .colwide .AboutusJavaCol  .col1 ul li{list-style:none; padding:10px; text-align:left; border-bottom:1px solid #666;}
+.main .row1 .colwide .AboutusJavaCol  .col1 ul li a{  text-decoration:none; color:#333; font-family:verdana; font-size:14px; -moz-transition:    color 0.4s;
+ -ms-transition:     color 0.4s;
+ -o-transition:      color 0.4s;
+  transition:        color 0.4s}
+.main .row1 .colwide .AboutusJavaCol  .col1 ul li a:hover{ color:#FF6600;}
+.main .row1 .colwide .AboutusJavaCol  .col1
+{
+	width:300px;
+	float:left;
+}
+.main .row1 .colwide .AboutusJavaCol .col2222
+{
+		width:550px;
+		margin-left:20px;
+		float:left;
+}
+
+.main .row1 .col1
+{
+	width:600px;
+	float:left;
+}
+
+.main .row1 .col2
+{
+	width:400px;
+	float:left;
+}
+.main .row1 .col2 .round_border_box
+{
+	width:300px;
+	border-radius:8px;
+	overflow:hidden;
+	border:1px #0099FF solid;
+	margin-top:20px;
+}
+
+.main .row1 .col3
+{ width:1024px;  border-top:#09C 1px solid;}
+.main .row1 .col3 .scroller
+{ margin:20px; overflow:hidden;}
+.main .row1 .col3 .scroller li
+{float:left; margin-left:10px; list-style:none; text-align:center;}
+.main .row1 .col3 .scroller li .img
+{ border-radius:10px; overflow:hidden;}
+
+.main .row1 .col1 .welcome_text
+{    font-size:14px;
+font-family:verdana;
+	text-align:justify;
+	color:#666;
+}
+.main .row1 .col1 .welcome_text h1
+{    font-size:16px;
+font-family:verdana;
+	color:#FF6600;
+	font-weight:100;
+}
+.main .row1 .col1 .eExm
+{
+	margin-top:10px;
+}
+.main .row1 .col1 .eExm .title
+{
+	background:#126395;
+	color:#FFf;
+	text-align:left;
+	padding-left:10px;
+	padding-top:1px;
+	font-size:20px;
+	padding-bottom:2px;
+	height:auto;
+}
+.main .row1 .col1 .eExm .img
+{   margin:10px;
+	width:220px;
+	height:180px;
+	overflow:hidden;
+	margin-left:40px;
+	border-radius:3px;
+	border:0px solid #666;
+	box-shadow:#999 0.5px 1px 2px 2px;
+	background-repeat:no-repeat;
+	background-position:center;
+	background-size:220px 180px;
+	float:left;
+}
+.main .row1 .col1 .eExm .img .text
+{
+	border-top:1px #000000 solid;
+	width:220px;
+	height:40px;
+	background:rgba(255,255,255,0.4);
+	margin-top:140px;
+	padding-top:5px; font-weight:bolder;
+}
+
+/* footer  */
+
+
+
+@media only screen and (max-width : 768px)
+{
+
+/* end Header  */
+
+/* main */
+.main 
+{
+	width:100%;
+	min-width:620px;
+}
+.main .row1
+{ width:600px; padding:0px; }
+
+.main .row1 .colwide
+{
+	width:570px;
+	font-size:14px;
+	padding:10px;
+	
+}
+.main .row1 .colwide h3
+{ font-size:16px;}
+.main .row1 .colwide .AboutusJavaCol
+{
+	 width:600px; margin-top:20px; padding:10px;
+}
+.main .row1 .colwide .AboutusJavaCol  .col1 ul{margin-top:10px;}
+.main .row1 .colwide .AboutusJavaCol  .col1 ul li{ padding:10px;}
+.main .row1 .colwide .AboutusJavaCol  .col1 ul li a{ font-size:14px; }
+.main .row1 .colwide .AboutusJavaCol  .col1{	width:200px;}
+.main .row1 .colwide .AboutusJavaCol .col2222
+{		width:380px;margin-left:3px;}
+.main .row1 .col1
+{
+	width:100%;
+}
+.main .row1 .col1 .welcome_text
+{    font-size:14px; color:#666; margin:10px;}
+.main .row1 .col2
+{	display:none !important;visibility:hidden;}
+.main .row1 .col3
+{ display:none;}
+.main .row1 .col3 .scroller li .img
+{ border-radius:10px; overflow:hidden;}
+.main .row1 .col1 .eExm .img
+{   margin:10px;
+	width:180px;
+	height:140px;
+	overflow:hidden;
+	margin-left:80px;
+	
+	border:0px solid #666;
+	box-shadow:#999 0.5px 1px 2px 2px;
+	background-repeat:no-repeat;
+	background-position:center;
+	background-size:180px 140px;
+	float:left;
+}
+.main .row1 .col1 .eExm .img .text
+{
+	border-top:1px #000000 solid;
+	width:180px;
+	height:40px;
+	background:rgba(255,255,255,0.4);
+	margin-top:110px;
+	padding-top:5px;
+}
+
+/* footer  */
+
+
+	
+}
+
+
+@media only screen and (max-width : 600px)
+{
+
+/* Header  */
+
+
+/* end Header  */
+
+/* main */
+
+.main 
+{
+	width:100%;
+	min-width:580px;
+}
+.main .row1
+{ width:500px; padding:0px;}
+.main .row1 .colwide
+{
+     width:510px;
+	font-size:12px;
+	padding:0px;
+	
+}
+.main .row1 .colwide h3
+{ font-size:14px; }
+.main .row1 .colwide .AboutusJavaCol
+{
+width:490px; margin-top:20px; padding:5px;
+}
+.main .row1 .colwide .AboutusJavaCol .col2222 .toggle
+{display: block; text-align:justify;
+}
+.main .row1 .colwide .AboutusJavaCol  .col1
+{
+	display:none;
+}
+.main .row1 .colwide .AboutusJavaCol .col2222
+{
+		width:480px;
+		margin-left:0px;
+		float:left;
+}
+
+
+.main .row1 .col1
+{
+	width:100%;
+}
+.main .row1 .col1 .welcome_text
+{    font-size:14px;
+font-family:verdana;
+	text-align:justify;
+	color:#666;
+	margin:10px;
+}
+
+
+
+.main .row1 .col2
+{
+	display:none;
+}
+
+
+.main .row1 .col3
+{ display:none;}
+
+.main .row1 .col3 .scroller li .img
+{ border-radius:10px; overflow:hidden;}
+
+
+
+
+
+.main .row1 .col1 .eExm .img
+{   margin:10px;
+	width:150px;
+	height:110px;
+	margin-left:60px;
+	background-size:150px 110px;
+}
+.main .row1 .col1 .eExm .img .text
+{
+	width:150px;
+	height:30px;
+	margin-top:80px;
+	padding-top:5px;
+}
+
+/* footer  */
+
+}
+
+
+
+@media only screen and (max-width : 568px)
+{
+.main 
+{	width:100%;	min-width:548px;}
+.main .row1
+{ width:470px; padding:0px;}
+.main .row1 .colwide
+{     width:480px;	font-size:12px;	padding:0px;	}
+.main .row1 .colwide h3
+{ font-size:14px; }
+.main .row1 .colwide .AboutusJavaCol
+{
+width:460px; margin-top:20px; padding:5px;
+}
+.main .row1 .colwide .AboutusJavaCol .col2222 .toggle
+{display: block; text-align:justify;
+}
+.main .row1 .colwide .AboutusJavaCol  .col1
+{
+	display:none;
+}
+.main .row1 .colwide .AboutusJavaCol .col2222
+{
+		width:450px;
+		margin-left:0px;
+		float:left;
+}
+
+
+.main .row1 .col1
+{
+	width:100%;
+}
+.main .row1 .col1 .welcome_text
+{    font-size:14px;
+font-family:verdana;
+	text-align:justify;
+	color:#666;
+	margin:10px;
+}
+
+
+
+.main .row1 .col2
+{
+	display:none;
+}
+
+
+.main .row1 .col3
+{ display:none;}
+
+.main .row1 .col3 .scroller li .img
+{ border-radius:10px; overflow:hidden;}
+
+
+
+
+
+.main .row1 .col1 .eExm .img
+{   margin:10px;
+	width:150px;
+	height:110px;
+	margin-left:60px;
+	background-size:150px 110px;
+}
+.main .row1 .col1 .eExm .img .text
+{
+	width:150px;
+	height:30px;
+	margin-top:80px;
+	padding-top:5px;
+}
+
+/* footer  */
+
+}
+
+
+
+
+
+
+@media only screen and (max-width : 480px)
+{
+/* Header  */
+
+/* end Header  */
+
+/* main */
+.demoTest
+{
+  position:fixed; z-index:5; right:0px; top:200px; width:40px; height:150px; border-top-left-radius:5px; border-bottom-left-radius:5px;
+  background:rgba(103,179,254,0.5); color:#000000; background-image:url(free.png); background-position:center; background-repeat:no-repeat;  background-size:20px 120px;
+  -moz-transition:    background 0.4s;
+ -ms-transition:     background 0.4s;
+ -o-transition:      background 0.4s;
+  transition:        background 0.4s;
+}
+
+.main 
+{
+	width:100%;
+	min-width:440px;
+}
+.main .row1
+{ width:440px; padding:0px;}
+.main .row1 .col1
+{
+	width:100%;
+}
+.main .row1 .colwide
+{
+     width:400px;
+	font-size:12px;
+	padding:3px;
+	
+}
+.main .row1 .colwide h3
+{ font-size:14px; }
+.main .row1 .colwide .AboutusJavaCol
+{
+ border-radius:10px; width:390px; margin-top:20px; padding:3px;
+}
+.main .row1 .colwide .AboutusJavaCol .col2222 .toggle
+{display: block; text-align:justify;
+}
+.main .row1 .colwide .AboutusJavaCol  .col1
+{
+	display:none;
+}
+.main .row1 .colwide .AboutusJavaCol .col2222
+{
+		width:385px;
+		margin-left:0px;
+		float:left;
+}
+
+
+.main .row1 .col1 .welcome_text
+{    font-size:14px;
+	margin:10px;
+}
+.main .row1 .col1 .eExm .title
+{
+	padding-top:3px;
+	font-size:20px;
+	height:30px;
+}
+
+.main .row1 .col2
+{
+	display:none !important; visibility:hidden !important;
+}
+.main .row1 .col3
+{ display:none !important; visibility:hidden !important;}
+.main .row1 .col3 .scroller li .img
+{ border-radius:10px;}
+.main .row1 .col1 .eExm .img
+{   margin:10px;
+	width:130px;
+	height:110px;
+	margin-left:60px;
+	background-size:130px 100px;
+}
+.main .row1 .col1 .eExm .img .text
+{
+
+	width:130px;
+	height:25px;
+	font-size:14px;	margin-top:90px;
+	padding-top:0px;
+}
+
+/* footer  */
+
+
+}
+
+
+
+
+
+@media only screen and (max-width : 384px)
+{
+/* Header  */
+
+/* end Header  */
+
+/* main */
+.main 
+{
+	width:100%;
+	min-width:348px;
+}
+.main .row1
+{ width:348px; padding:0px;}
+.main .row1 .col1
+{
+	width:100%;
+}
+.main .row1 .colwide
+{
+     width:348px;
+	font-size:12px;
+	padding:3px;
+	
+}
+.main .row1 .colwide h3
+{ font-size:14px; }
+.main .row1 .colwide .AboutusJavaCol
+{
+ border-radius:10px; width:340px; margin-top:20px; padding:3px;
+}
+.main .row1 .colwide .AboutusJavaCol .col2222 .toggle
+{display: block; text-align:justify;
+}
+.main .row1 .colwide .AboutusJavaCol  .col1
+{
+	display:none;
+}
+.main .row1 .colwide .AboutusJavaCol .col2222
+{
+		width:335px;
+		margin-left:0px;
+		float:left;
+}
+
+
+.main .row1 .col1 .welcome_text
+{    font-size:14px;
+	margin:10px;
+}
+.main .row1 .col1 .eExm .title
+{
+	padding-top:3px;
+	font-size:20px;
+	height:30px;
+}
+
+.main .row1 .col2
+{
+	display:none !important; visibility:hidden !important;
+}
+.main .row1 .col3
+{ display:none !important; visibility:hidden !important;}
+.main .row1 .col3 .scroller li .img
+{ border-radius:10px;}
+.main .row1 .col1 .eExm .img
+{   margin:8px;
+	width:110px;
+	height:90px;
+	margin-left:40px;
+	background-size:110px 90px;
+}
+.main .row1 .col1 .eExm .img .text
+{
+
+	width:110px;
+	height:25px;
+	font-size:14px;	margin-top:70px;
+	padding-top:0px;
+}
+
+/* footer  */
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+@media only screen and (max-width : 320px)
+{
+/* Header  */
+
+/* end Header  */
+
+/* main */
+.main 
+{
+	width:100%;
+	min-width:300px;
+}
+.main .row1
+{ width:300px; padding:0px;}
+
+.main .row1 .colwide
+{
+     width:290px;
+	font-size:12px;
+	padding:3px;
+	
+}
+.main .row1 .colwide h3
+{ font-size:14px; }
+.main .row1 .colwide .AboutusJavaCol
+{
+ border-radius:10px; width:280px; margin-top:20px; padding:5px;
+}
+.main .row1 .colwide .AboutusJavaCol .col2222 .toggle
+{display: block; text-align:justify;
+}
+.main .row1 .colwide .AboutusJavaCol  .col1
+{
+	display:none;
+}
+.main .row1 .colwide .AboutusJavaCol .col2222
+{
+		width:280px;
+		margin-left:0px;
+		float:left;
+}
+
+
+
+
+.main .row1 .col1 .eExm
+{
+	margin-top:0px;
+}
+
+.main .row1 .col1 .eExm .Ecenter
+{
+	margin-left:0px;
+}
+.main .row1 .col1 .eExm .title
+{
+	padding-top:1px;
+	font-size:16px;
+	height:25px;
+	margin-top:0px;
+}
+.main .row1 .col1 .welcome_text
+{    font-size:12px;
+font-family:verdana;
+	text-align:justify;
+	color:#666;
+}
+.main .row1 .col1 .welcome_text a
+{font-size:12px;
+}
+.main .row1 .col1 .welcome_text h1
+{    font-size:14px;
+}
+.main .row1 .col1 .eExm .img
+{   
+margin-top:10px;
+    margin-left:40px;
+	width:90px;
+	height:70px;
+	background-size:100px 70px;
+}
+.main .row1 .col1 .eExm .img .text
+{
+	width:90px;
+	height:25px;
+	font-size:14px;	margin-top:50px;
+	padding-top:0px;
+}
+
+/* footer  */
+
+
+
+}
+
+
+@media only screen and (max-width : 240px)
+{
+/* Header  */
+
+/* end Header  */
+
+/* main */
+
+
+.main 
+{
+	width:100%;
+	min-width:210px;
+	background:#FFFFFF;
+}
+.main .row1
+{ width:210px; padding:0px;}
+.main .row1 .col1
+{
+	width:100%;
+}
+.main .row1 .col1 .eExm .Ecenter
+{
+	margin-left:20px;
+}
+.main .row1 .col1 .welcome_text
+{    font-size:12px;
+font-family:verdana;
+	text-align:justify;
+	color:#666;
+	margin:10px;
+}
+.main .row1 .col1 .eExm .title
+{
+	padding-top:2px;
+	font-size:18px;
+	height:25px;
+}
+
+.main .row1 .col2
+{
+	display:none;
+}
+.main .row1 .col3
+{ display:none;}
+.main .row1 .col3 .scroller li .img
+{ border-radius:10px; overflow:hidden;}
+.main .row1 .col1 .eExm .img
+{   margin:10px;
+	width:90px;
+	height:70px;
+	overflow:hidden;
+	margin-left:40px;
+	
+	border:0px solid #666;
+	box-shadow:#999 0.5px 1px 2px 2px;
+	background-repeat:no-repeat;
+	background-position:center;
+	background-size:100px 70px;
+	float:left;
+}
+.main .row1 .col1 .eExm .img .text
+{
+	border-top:1px #000000 solid;
+	width:90px;
+	height:25px;
+	font-size:14px;
+	background:#FFFFFF;
+	margin-top:50px;
+	padding-top:0px;
+}
+
+/* footer  */
+
+
+}

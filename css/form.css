@@ -1,0 +1,193 @@
+.error
+{ width:300px; height:20px; color:#FFFFFF; display:none; padding:5px; background:rgba(255,0,0,0.5); border:0px; border-radius:5px;}
+.Textbox
+{
+	border:1px solid #09C; border-radius:5px;
+	height:30px;
+	font-size:16px;
+	width:240px;
+	color:#333333;
+	font-family:verdana;
+}
+label
+{
+	margin:15px;
+}
+.TextArea
+{
+	border:1px solid #09C; border-radius:5px;
+	height:150px;
+	font-size:24px;
+	width:500px;
+	resize:none;
+	color:#333333;
+	font-family:verdana;
+}
+
+.DateOfBirth
+{
+	 width: 80px;
+   height: 30px;
+   overflow: hidden;
+   padding:0px;
+   padding-top:0px;
+   background: url(../images/arrow.png) no-repeat right #fff;
+  border:1px solid #09C; border-radius:5px;
+}
+.DateOfBirth select
+{
+	 background: transparent;
+   width: 145px;
+   padding: 5px;
+   font-size: 14px;
+   line-height: 1;
+   border: 0;
+   border-radius: 0;
+   height: 30px;
+   -webkit-appearance: none;
+}
+
+.drop_down
+{
+	 width: 220px;
+   height: 30px;
+   overflow: hidden;
+   padding:0px;
+   padding-top:0px;
+   background: url(../images/arrow.png) no-repeat right #fff;
+  border:1px solid #09C; border-radius:5px;
+}
+.drop_down select
+{
+	 background: transparent;
+   width: 268px;
+   padding: 5px;
+   font-size: 14px;
+   line-height: 1;
+   border: 0;
+   border-radius: 0;
+   height: 30px;
+   -webkit-appearance: none;
+}
+.submitBttn
+{  border:0px;
+	border-radius:5px; background:#36AFE2; color:#FFF;
+	font-size:16px;
+	padding:5px;
+	-webkit-transition: background 0.4s;
+ -moz-transition:    background 0.4s;
+ -ms-transition:     background 0.4s;
+ -o-transition:      background 0.4s;
+  transition:        background 0.4s;
+  margin:5px;
+}
+.submitBttn:hover
+{background:#91D2F0;}
+.submitBttn2
+{  border:0px;
+	border-radius:5px; background:#36AFE2; color:#FFF;
+	font-size:16px;
+	padding:5px;
+	-webkit-transition: background 0.4s;
+ -moz-transition:    background 0.4s;
+ -ms-transition:     background 0.4s;
+ -o-transition:      background 0.4s;
+  transition:        background 0.4s;
+  margin:5px;
+}
+.submitBttn2:hover
+{background:#91D2F0;}
+.forgot
+{
+	color:#000000;
+	text-decoration:none;
+	font-family:verdana;
+	font-size:12px;
+}
+div.fb1 {
+margin-bottom: 10px;
+background-position: center top;
+background-repeat: no-repeat;
+height: 48px;
+width: 282px;
+}
+
+#fb {
+background-image: url('../fb.gif');
+}
+#fb:hover {
+background-image: url('../fb1.gif');
+}
+
+@media only screen and (max-width : 480px)
+{
+	.TextArea
+{
+	height:200px;
+	font-size:18px;
+	width:400px;
+}
+.submitBttn2
+{ width:94%;}	
+.Textbox
+{ width:94%;}
+}
+@media only screen and (max-width : 384px)
+{
+	.TextArea
+{
+	height:250px;
+	font-size:14px;
+	width:300px;
+}
+#fb {
+background-image: url('../fb.gif');
+}
+#fb:hover {
+background-image: url('../fb1.gif');
+}
+
+}
+@media only screen and (max-width : 320px)
+{
+	.TextArea
+{
+	height:250px;
+	font-size:14px;
+	width:240px;
+}
+#fb {
+background-image: url('../fb.gif');
+}
+#fb:hover {
+background-image: url('../fb1.gif');
+}
+
+}
+@media only screen and (max-width : 240px)
+{
+	.TextArea
+{
+	height:210px;
+	font-size:14px;
+	width:170px;
+}
+#fb {
+background-image: url('../fb.gif');
+}
+#fb:hover {
+background-image: url('../fb1.gif');
+}
+.drop_down
+{ width:170px;}
+.Textbox
+{ width:180px;
+}
+.DateOfBirth
+{ width:63px;
+}
+.submitBttn
+{ width:96%; 
+}
+
+}
