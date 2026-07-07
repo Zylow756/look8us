@@ -1,7 +1,12 @@
 <?php
-if(!isset($_SESSION))
-{
-session_start();
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
 }
 ?>
 
@@ -9,7 +14,7 @@ session_start();
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Look8US :Business Directory Kota, Rajasthan , India, Online Business Directory Kota,  Yellow Pages  kota Rajasthan , Trusted & Verified Businesses, Exporters, Manufacturers, Suppliers Directory, B2B Business Directory </title>
 <meta name="description" content="Look8us.com from Kota Rajasthan is Your local Business Directory , yellow pages  Business Directory. Business Details, Contacts, Products, Services & Verified Businesses, Exporters, Manufacturers, Suppliers Directory">
 <meta name="keywords" content=" Look8us.com ,Search job kota, best job offer , apply job, goverment jobs, job portal , online job portal, online business directory, IT job in kota, marketing job in kota ">
@@ -26,7 +31,7 @@ session_start();
 
 
 <div align="center">
-<?php include("header.php"); ?>
+<?php require_once "header.php"; ?>
 <table border="0" width="100%" height="100" cellpadding="0" style="border-collapse: collapse">
 	<tr>
 		<td bgcolor="#D2D2D2">
@@ -90,52 +95,55 @@ $st="Select * from postcv order by cid DESC";
 
 //echo $st;
 $i=1;
-$result=mysql_query($st,$con);
+$result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
 
-	while ($row=mysql_fetch_array($result))
+	while ($row=mysqli_fetch_assoc($result))
 	{	
 	
 	?>						
 						<table   width="94%" id="table5" border="0" style="border-collapse: collapse"    >
 								<tr>
 									<td width="21%" valign="top">
-									<p style="line-height: 150%; margin-left:5px; margin-right:5px; margin-top:5px">Post Date: <b> <?php echo $row["pdate"]; ?></b><br>Location : <?php echo $row["city"]; ?>
+									<p style="line-height: 150%; margin-left:5px; margin-right:5px; margin-top:5px">Post Date: <b> <?php echo htmlspecialchars($row["pdate"]); ?></b><br>Location : <?php echo htmlspecialchars($row["city"]); ?>
 
 									</td>
 									<td width="69%">
 									<table border="0" width="100%" id="table35" style="border-collapse: collapse">
 										<tr>
 											<td width="24" height="26">&nbsp;</td>
-											<td height="26"><b><?php echo $row["cate"]; ?></b></td>
+											<td height="26"><b><?php echo htmlspecialchars($row["cate"]); ?></b></td>
 										</tr>
 										<tr>
 											<td width="24" height="26">&nbsp;</td>
-											<td height="26"><b><font size="2"><?php echo $row["atitle"]; ?></font></b></td>
+											<td height="26"><b><font size="2"><?php echo htmlspecialchars($row["atitle"]); ?></font></b></td>
 										</tr>
 										<tr>
 											<td width="24" height="26">&nbsp;</td>
-											<td height="26"><font size="2"><?php echo $row["discr"]; ?></font></td>
+											<td height="26"><font size="2"><?php echo htmlspecialchars($row["discr"]); ?></font></td>
 										</tr>
 										<tr>
 											<td width="24" height="26">&nbsp;</td>
-											<td height="26"><font size="2"><?php echo $row["jtype"]; ?></font></td>
+											<td height="26"><font size="2"><?php echo htmlspecialchars($row["jtype"]); ?></font></td>
 										</tr>
 										<tr>
 											<td width="24" height="26">&nbsp;</td>
 											<td height="26">
-											<font size="2">City: <?php echo $row["city"]; ?></font>
+											<font size="2">City: <?php echo htmlspecialchars($row["city"]); ?></font>
 											&nbsp;&nbsp;&nbsp;</td>
 										</tr>
 										<tr>
 											<td width="24" height="26">&nbsp;</td>
 											<td height="26">
-											<font size="2">Experience : &nbsp;<?php echo $row["exper"]; ?> </font>
+											<font size="2">Experience : &nbsp;<?php echo htmlspecialchars($row["exper"]); ?> </font>
 											</td>
 										</tr>
 										</table>
 									</td>
 									<td width="9%">
-									&nbsp;<a class="a5" href="viewSeeKerDetail.php?id=<?php echo $row['cid']; ?>" >View</a></td>
+									&nbsp;<a class="a5" href="viewSeeKerDetail.php?id=<?php echo htmlspecialchars($row['cid']); ?>" >View</a></td>
 								</tr>
 			
 				
@@ -188,7 +196,7 @@ $result=mysql_query($st,$con);
 </div>
 
 <div align="center">
-	<?php include("footer.php"); ?>
+	<?php require_once "footer.php"; ?>
 </div>
 
 </body>

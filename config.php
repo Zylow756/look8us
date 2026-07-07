@@ -3,16 +3,27 @@
 
 //define('CLIENT_LONG_PASSWORD', 1);
 
-//mysql_connect('[your server]', '[your username]', '[your password]', false, CLIENT_LONG_PASSWORD);
-//$con = mysql_connect('69.175.21.58:3307', 'look8us', '*Akc123', false, CLIENT_LONG_PASSWORD)or die ("error AQ akc");
+//mysqli_connect('[your server]', '[your username]', '[your password]', false, CLIENT_LONG_PASSWORD);
+//$con = mysqli_connect('69.175.21.58:3307', 'look8us', '*Akc123', false, CLIENT_LONG_PASSWORD)or die ("error AQ akc");
 
 
-// $con = mysql_connect("localhost:3306","look8us","*look8us123") or die ("error Q akc");
-// mysql_select_db("onlndir", $con) or die ("error in select : akc");
+// $con = mysqli_connect("localhost:3306","look8us","*look8us123") or die ("error Q akc");
+// mysqli_select_db("onlndir", $con) or die ("error in select : akc");
 
 
-$con = mysql_connect("localhost","biagklvj_websoftguest","@Akc12345#") or die ("error Q akc");
-mysql_select_db("biagklvj_websofts_look8us", $con) or die ("error in select : akc");
+//$con = mysqli_connect("localhost","biagklvj_websoftguest","@Akc12345#") or die ("error Q akc");
+//mysqli_select_db($con, "biagklvj_websofts_look8us") or die ("error in select : akc");
+
+$host = "localhost";
+$user = "root";
+$password = "";
+$database = "biagklvj_websoftguest";
+$con = mysqli_connect($host, $user, $password, $database);
+mysqli_select_db($con, $database) or die ("error in select : akc");
+if (!$con) {
+    die("Connection failed: " . mysqli_connect_error());
+}
+mysqli_set_charset($con, "utf8mb4");
 
 
 $path="http://Look8us.com/" ;
@@ -34,8 +45,8 @@ $PAYU_BASE_URL = "https://secure.payu.in";   // Live
 
 $path="http://localhost/onlnDir/" ;
 
-$con = mysql_connect("localhost","root","") or die ("error akc");
-mysql_select_db("onlndir", $con) or die ("error in select : akc");
+$con = mysqli_connect("localhost","root","") or die ("error akc");
+mysqli_select_db($con, "onlndir") or die ("error in select : akc");
 */
 
 

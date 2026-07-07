@@ -1,8 +1,19 @@
+<?php
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
+?>
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Online Directory : Admin Panel</title>
  <link rel="stylesheet" type="text/css" href="../akc.css" />
 
@@ -22,15 +33,12 @@ background-color: #70828F
 </head>
 
 <?php
-session_start();
-include("../config.php"); 
-
 $msg=0;
 			
 if (isset( $_GET["id"]))
 {
 $s="delete from memberdetail where mdid=".$_GET['id'] ;
-mysql_query($s,$con);
+mysqli_query($con,$s);
 $msg=1;
 }
 
@@ -46,7 +54,7 @@ $msg=1;
 <div align="center">
 	<table border="0" width="980" id="table1" style="border-collapse: collapse" bordercolor="#E2E2E2" cellpadding="0">
 		<tr>
-			<td height="50" align="center" valign="top">	<?php  include("../header.php"); ?>		</td>		</tr>
+			<td height="50" align="center" valign="top">	<?php  require_once "../header.php"; ?>		</td>		</tr>
 		<tr>
 			<td height="12" align="center" valign="top" bgcolor="#697779">			
 					</td>
@@ -78,13 +86,16 @@ $msg=1;
 								
 							<?php 
 		 $st="Select * from memberdetail,category,catedetail where memberdetail.cateid=category.cateid and memberdetail.catdid=catedetail.catdid and  mid=".$_SESSION["mid"];
-		 		 $result=mysql_query($st,$con);
-		while ($row=mysql_fetch_array($result))
+		 		 $result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
+		while ($row=mysqli_fetch_assoc($result))
 			{
 			?>
 								<tr>
-									<td width="89">&nbsp;&nbsp;<?php echo $row["cname"]; ?></td>
-									<td width="88">&nbsp;<?php echo $row["cdname"]; ?></td>
+									<td width="89">&nbsp;&nbsp;<?php echo htmlspecialchars($row["cname"]); ?></td>
+									<td width="88">&nbsp;<?php echo htmlspecialchars($row["cdname"]); ?></td>
 									<td width="88">&nbsp;<?php echo "<a class='a3' href='viewUserCate.php?id=".$row['mdid']."'>Delete</a>"; ?></td>
 								</tr>
 								
@@ -105,7 +116,7 @@ $msg=1;
 			</td>
 		</tr>
 		<tr>
-			<td height="57" align="center" valign="top">			<?php  include("../footer.php"); ?></td>
+			<td height="57" align="center" valign="top">			<?php  require_once "../footer.php"; ?></td>
 		</tr>
 	</table>
 </div>

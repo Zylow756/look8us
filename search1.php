@@ -1,7 +1,12 @@
 <?php
-if(!isset($_SESSION))
-{
-session_start();
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
 }
 ?>
 
@@ -9,7 +14,7 @@ session_start();
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Look8US :Business Directory Kota, Rajasthan , India, Online Business Directory Kota,  Yellow Pages  kota Rajasthan , Trusted & Verified Businesses, Exporters, Manufacturers, Suppliers Directory, B2B Business Directory </title>
 <meta name="description" content="Look8us.com from Kota Rajasthan is Your local Business Directory , yellow pages  Business Directory. Business Details, Contacts, Products, Services & Verified Businesses, Exporters, Manufacturers, Suppliers Directory">
 <meta name="keywords" content=" Look8us.com , yellow pages Kota Rajasthan , business directory Kota Rajasthan india,business search engine, indian business directory, online business directory, Indian manufacturers, suppliers, Indian exporters directory, b2b portal, b2b business directory,manufacturer, importers, traders, dealers, buyers, ">
@@ -31,7 +36,7 @@ session_start();
 
 
 <div align="center">
-<?php include("header.php"); ?>
+<?php require_once "header.php"; ?>
 <table border="0" width="100%" height="100" cellpadding="0" style="border-collapse: collapse">
 	<tr>
 		<td bgcolor="#D2D2D2">
@@ -72,7 +77,7 @@ session_start();
 							<td height="47" bgcolor="#F4F4F4" width="148">
 							<font size="2">&nbsp; Enter Company Name </font></td>
 							<td height="47" bgcolor="#F4F4F4">
-	<input type="text" class="txtbox" id="q" size="38" name="q" value='<?php if (isset($_GET["q"])){ echo $_GET["q"];} ?>' >&nbsp; 
+	<input type="text" class="txtbox" id="q" size="38" name="q" value='<?php if (isset($_GET["q"])){ $q = $_GET["q"] ?? '';} ?>' >&nbsp; 
 	<input type="submit" name="submit1" style="width: 100px; height: 26" id="submit1" value="Search" ></td>
 						</tr>
 						</table>
@@ -106,21 +111,24 @@ if (isset($_GET["q"]))
 
 //echo $st;
 $i=1;
-$result=mysql_query($st,$con);
+$result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
 
-	while ($row=mysql_fetch_array($result))
+	while ($row=mysqli_fetch_assoc($result))
 	{	
 	
 	?>
 				
 								<tr>
 									<td height="29" width="8%">&nbsp;<?php echo $i; ?></td>
-									<td height="29" width="17%">&nbsp;<?php echo $row["compname"]; ?></td>
-									<td height="29" width="16%">&nbsp;<?php echo $row["mname"]; ?></td>
-									<td height="29" width="8%" style="text-align: center">&nbsp;<?php 	echo $row["address"];  ?></td>
-									<td height="29" width="8%" style="text-align: center">&nbsp;<?php echo $row["area"]; ?></td>
-									<td height="29" width="8%" style="text-align: center">&nbsp;<?php echo $row["city"]; ?></td>
-									<td height="29" width="8%" style="text-align: center">&nbsp;<?php echo $row["mobile"]; ?></td>
+									<td height="29" width="17%">&nbsp;<?php echo htmlspecialchars($row["compname"]); ?></td>
+									<td height="29" width="16%">&nbsp;<?php echo htmlspecialchars($row["mname"]); ?></td>
+									<td height="29" width="8%" style="text-align: center">&nbsp;<?php 	echo htmlspecialchars($row["address"]);  ?></td>
+									<td height="29" width="8%" style="text-align: center">&nbsp;<?php echo htmlspecialchars($row["area"]); ?></td>
+									<td height="29" width="8%" style="text-align: center">&nbsp;<?php echo htmlspecialchars($row["city"]); ?></td>
+									<td height="29" width="8%" style="text-align: center">&nbsp;<?php echo htmlspecialchars($row["mobile"]); ?></td>
 								</tr>
 								
 								<?php
@@ -158,7 +166,7 @@ $result=mysql_query($st,$con);
 </div>
 
 <div align="center">
-	<?php include("footer.php"); ?>
+	<?php require_once "footer.php"; ?>
 </div>
 
 </body>

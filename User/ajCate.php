@@ -1,19 +1,30 @@
+ <?php
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
+?>
  <option  value='0'>Please Select</option>
  
  <?php 
-
-include("../config.php");
-
 $st="Select * from catedetail where cateid=".$_POST["sid"]." order by cdname";
 //$st='Select * from subsubject where sid='.$_POST["sid"].' order by subname';
-$result=mysql_query($st,$con);
+$result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
 
  
 
-	while ($row=mysql_fetch_array($result))
+	while ($row=mysqli_fetch_assoc($result))
 	{
 	?>
-		<option value='<?php echo $row["catdid"]; ?>' > <?php echo $row["cdname"]; ?></option>
+		<option value='<?php echo htmlspecialchars($row["catdid"]); ?>' > <?php echo htmlspecialchars($row["cdname"]); ?></option>
 				
 	<?php
 	}

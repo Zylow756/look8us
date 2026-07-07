@@ -1,7 +1,12 @@
 <?php
-if(!isset($_SESSION))
-{
-session_start();
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
 }
 ?>
 
@@ -9,7 +14,7 @@ session_start();
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Online Directory Service</title>
  <link rel="stylesheet" type="text/css" href="../akc.css" />
 
@@ -30,7 +35,7 @@ session_start();
 
 
 <div align="center">
-<?php include("../header.php"); ?>
+<?php require_once "../header.php"; ?>
 <table border="0" width="100%" height="100" cellpadding="0" style="border-collapse: collapse">
 	<tr>
 		<td bgcolor="#D2D2D2">
@@ -300,7 +305,7 @@ session_start();
 </div>
 
 <div align="center">
-	<?php include("../footer.php"); ?>
+	<?php require_once "../footer.php"; ?>
 </div>
 
 </body>

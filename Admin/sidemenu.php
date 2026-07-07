@@ -1,10 +1,25 @@
+<?php
+require_once "config.php";
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
+
+if (!isset($_SESSION['user']) || $_SESSION['user'] == "") {
+    header("Location: index.php?r=0");
+    exit;
+}
+?>
 
 <div align="center">
 	<table  border="0" width="100%" id="table1"  class="table3" style="border-collapse: collapse" cellpadding="0">
 		<tr>
 			<td height="25" align="left" bgcolor="#000000" >
-			&nbsp;<a href="<?php echo $path; ?>admin/home.php" class="a2" >Admin Home</a>
+			&nbsp;<a href="<?php echo $path ?? ''; ?>admin/home.php" class="a2" >Admin Home</a>
 		
 			</td>
 		</tr>
@@ -93,7 +108,7 @@
 			<td height="25" style="border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-style: dotted; border-bottom-width: 1px">&nbsp;<a class="a" href="ViewFranchise.php">View Franchise </a> </td>
 		</tr>
 		<tr>
-			<td height="25" style="border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-style: dotted; border-bottom-width: 1px">&nbsp;<a class="a" href="paymenthistory.php">Payment History</a></td>
+			<td height="25" style="border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-style: dotted; border-bottom-width: 1px">&nbsp;<a class="a" href="Paymenthistory.php">Payment History</a></td>
 		</tr>
 		<tr>
 			<td height="25" style="border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-style: dotted; border-bottom-width: 1px">&nbsp;<a class="a" href="DuePayment.php">Due Expiry</a></td>

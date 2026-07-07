@@ -1,8 +1,20 @@
+<?php
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
+?>
+
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>New Page 1</title>
 </head>
 
@@ -10,9 +22,6 @@
 
 <p><font color="#FF0000" size="5"><b>Cancel</b></font></p>
 <?php 
-
-include("../config.php");
-
 $MERCHANT_KEY = $cMERCHANT_KEY;
 $SALT = $cSALT;
 $PAYU_BASE_URL = $cPAYU_BASE_URL;
@@ -23,10 +32,10 @@ $SALT = $cSALT;
 $PAYU_BASE_URL = $cPAYU_BASE_URL;
 
 
-echo $_POST['mihpayid']; 
+$mihpayid = $_POST['mihpayid'] ?? ''; 
 echo "<br>";
 
-$posted = array();
+$posted = [];
 if(!empty($_POST))
  {
     //print_r($_POST);
@@ -87,7 +96,7 @@ echo $SALT;
 if ($hashr==$posted['hash'])
 	{
 		$st="update payreq set mihpayid='".$posted['mihpayid']."',addedon='".$posted['addedon']."',status='".$posted['status']."',amountr='".$posted['amount']."',emailr='".$posted['email']."' where txnid='".$posted['txnid']."'";
-		mysql_query($st,$con);
+		mysqli_query($con,$st);
 		
 		//echo $st;
 		

@@ -1,13 +1,16 @@
-<?php include("config.php"); 
+<?php
+require_once "config.php";
 
-
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
 //session_set_cookie_params(0,"/",".Look8us .com");
 
 
-if(!isset($_SESSION))
-{
-session_start();
-}
 ?>
 
 <table  border="0" width="100%" id="table7" style="border-collapse: collapse" height="44" cellpadding="0" bgcolor="#00AAE8">
@@ -112,7 +115,7 @@ Welcome<font color="#CCCCCC">,</font><font color="#0000FF">&nbsp;<b><?php echo u
 					<td width="20%"  rowspan="2" align="right">
 					
 					&nbsp;</td>
-					<td valign="bottom" height="20" valign="bottom"><?php include("menu1.php");  ?>
+					<td valign="bottom" height="20" valign="bottom"><?php require_once "menu1.php";  ?>
 					
 					</td>
 				</tr></table></div></td>

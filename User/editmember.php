@@ -1,8 +1,13 @@
-
-
 <?php
+require_once "config.php";
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
 
 if (isset($_SESSION['user']))
  {	if ($_SESSION['user']=="")
@@ -18,7 +23,7 @@ else
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Online Directory : Admin Panel</title>
  <link rel="stylesheet" type="text/css" href="../akc.css" />
 
@@ -42,8 +47,6 @@ background-color: #70828F
 </head>
 
 <?php
-include("../config.php"); 
-
 $msg=0;
 			
 if (isset( $_POST["submit"]))
@@ -51,7 +54,7 @@ if (isset( $_POST["submit"]))
 $s="update member  set mname='". ucwords($_POST['mname']). "',compname='". ucwords($_POST['compname']). "',tagline='". $_POST['tagline']. "',shopno='". $_POST['shopno']. "',address='". ucwords($_POST['address']). "',area='". ucwords($_POST['area']). "',city='". ucwords($_POST['city']). "',state1='". ucwords($_POST['state1']). "',pin='". $_POST['pincode']. "',phone='". $_POST['phone']. "',phone1='". $_POST['phone0']. "',mobile='".$_POST["mobile"]."',mobile1='". $_POST['mobile0']. "',web='".$_POST['website']."',estyear='".$_POST['establish']."' where mid=".$_SESSION["mid"] ;
 //$s="update member  set mname='". $_POST['mname']. "',compname='". $_POST['compname']. "',tagline='". $_POST['tagline']. "',shopno='". $_POST['shopno']. "',address='". $_POST['address']. "',area='". $_POST['area']. "',city='". $_POST['city']. "',state1='". $_POST['state1']. "',pin='". $_POST['pincode']. "',phone='". $_POST['phone']. "',phone1='". $_POST['phone0']. "',mobile='".$_POST["mobile"]."',mobile1='". $_POST['mobile0']. "',web='".$_POST['website']."',remark='". $_POST['remark']. "',remark1='". $_POST['remark0']. "',estyear='".$_POST['establish']."' where mid=".$_SESSION["mid"] ;
 
-mysql_query($s,$con);
+mysqli_query($con,$s);
 //echo $s;
 $msg=1;
 }
@@ -68,7 +71,7 @@ $msg=1;
 <div align="center">
 	<table border="0" width="980" id="table1" style="border-collapse: collapse" bordercolor="#E2E2E2" cellpadding="0">
 		<tr>
-			<td height="50" align="center" valign="top">	<?php  include("../header.php"); ?>		</td>		</tr>
+			<td height="50" align="center" valign="top">	<?php  require_once "../header.php"; ?>		</td>		</tr>
 		<tr>
 			<td height="12" align="center" valign="top" bgcolor="#697779">			
 					</td>
@@ -90,8 +93,11 @@ $msg=1;
 							
 			<?php 
 		$st="Select * from member where mid=".$_SESSION["mid"];
-		$result=mysql_query($st,$con);
-		if ($row=mysql_fetch_array($result))
+		$result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
+		if ($row=mysqli_fetch_assoc($result))
 		{
 		?>
 			
@@ -103,97 +109,97 @@ $msg=1;
 <tr>
 	<td width="295" height="25" align="right">Company/Firm/Shop Name</td>
 	<td width="257" height="25" align="center">
-	<input class="txtbox" type="text" name="compname" id="compname" tabindex="2" value="<?php echo $row['compname']; ?>"  size="1"/></td>
+	<input class="txtbox" type="text" name="compname" id="compname" tabindex="2" value="<?php echo htmlspecialchars($row['compname']); ?>"  size="1"/></td>
 	<td height="25" width="458">
 	&nbsp;</td>
 				</tr>
 <tr><td width="295" height="25" align="right">Owner/Contact Person Name</td>
 	<td width="257" height="25" align="center">
-	<input class="txtbox" type="text" name="mname" id="mname" tabindex="1" value="<?php echo $row['mname'];  ?>"  size="1"/></td>
+	<input class="txtbox" type="text" name="mname" id="mname" tabindex="1" value="<?php echo htmlspecialchars($row['mname']);  ?>"  size="1"/></td>
 	<td height="25" width="458">
 	&nbsp;</td>
 				</tr>
 <tr><td width="295" height="25" align="right">Company Tag line if any </td>
 	<td width="257" height="25" align="center">
 	
-	<input class="txtbox" type="text" name="tagline" id="tagline" tabindex="2" value="<?php  echo $row['tagline'];  ?>"  size="1"/></td></tr>
+	<input class="txtbox" type="text" name="tagline" id="tagline" tabindex="2" value="<?php  echo htmlspecialchars($row['tagline']);  ?>"  size="1"/></td></tr>
 <tr>
 	<td width="295" height="25" align="right">Shop No./Plot No</td>
 	<td width="257" height="25" align="center">
-	<input  class="txtbox" type="text" name="shopno" id="shopno" tabindex="3" value="<?php  echo $row['shopno'];  ?>"  size="1"/></td>
+	<input  class="txtbox" type="text" name="shopno" id="shopno" tabindex="3" value="<?php  echo htmlspecialchars($row['shopno']);  ?>"  size="1"/></td>
 	<td height="25" valign="top" width="458">
 	&nbsp;</td>
 </tr>
 <tr>
 	<td width="295" height="25" align="right">Address</td>
 	<td width="257" height="25" align="center">
-	<input  class="txtbox" type="text" name="address" id="address" tabindex="3" value="<?php  echo $row['address'];   ?>"  size="1"/></td>
+	<input  class="txtbox" type="text" name="address" id="address" tabindex="3" value="<?php  echo htmlspecialchars($row['address']);   ?>"  size="1"/></td>
 	<td height="25" valign="top" width="458">
 	&nbsp;</td>
 </tr>
 <tr>
 	<td width="295" height="25" align="right">Area</td>
 	<td width="257" height="25" align="center">
-	<input  class="txtbox" type="text" name="area" id="area" tabindex="3" value="<?php  echo $row['area'];   ?>"  size="1"/></td>
+	<input  class="txtbox" type="text" name="area" id="area" tabindex="3" value="<?php  echo htmlspecialchars($row['area']);   ?>"  size="1"/></td>
 	<td height="25" valign="top" width="458">
 	&nbsp;</td>
 </tr>
 <tr>
 	<td width="295" height="25" align="right">City</td>
 	<td width="257" height="25" align="center">
-	<input  class="txtbox" type="text" name="city" id="city" tabindex="4" value="<?php echo $row['city'];  ?>"  size="1"/></td>
+	<input  class="txtbox" type="text" name="city" id="city" tabindex="4" value="<?php echo htmlspecialchars($row['city']);  ?>"  size="1"/></td>
 	<td height="25" valign="top" width="458">
 	&nbsp;</td>
 </tr>
 <tr><td width="295" height="30" align="right">State</td>
 	<td width="257" height="30" align="center">
-	<input  class="txtbox" type="text" name="state1" value="<?php  echo $row['state1'];  ?>"  id="state1" tabindex="9" size="1"/></td>
+	<input  class="txtbox" type="text" name="state1" value="<?php  echo htmlspecialchars($row['state1']);  ?>"  id="state1" tabindex="9" size="1"/></td>
 	<td height="30" valign="top" width="458">
 	&nbsp;</td></tr>
 <tr><td width="295" height="30" align="right">Pin</td>
 	<td width="257" height="30" align="center">
-	<input  class="txtbox" type="text" name="pincode" id="pincode" tabindex="3" value="<?php  echo $row['pin'];   ?>"  size="1"/></td>
+	<input  class="txtbox" type="text" name="pincode" id="pincode" tabindex="3" value="<?php  echo htmlspecialchars($row['pin']);   ?>"  size="1"/></td>
 	<td height="30" valign="top" width="458">
 	&nbsp;</td></tr>
 				<tr>
 					<td width="295" height="30" align="right">Phone Number</td>
 					<td width="257" height="30" align="center">
-	<input  class="txtbox" type="text" name="phone" id="phone" value="<?php echo $row['phone'];  ?>"  tabindex="10" size="1"/></td>
+	<input  class="txtbox" type="text" name="phone" id="phone" value="<?php echo htmlspecialchars($row['phone']);  ?>"  tabindex="10" size="1"/></td>
 	<td height="30" valign="top" width="458">
 	&nbsp;</td>
 				</tr>
 				<tr>
 					<td width="295" height="30" align="right">Phone Number-2</td>
 					<td width="257" height="30" align="center">
-	<input  class="txtbox" type="text" name="phone0" id="phone0" value="<?php  echo $row['phone1'];  ?>"  tabindex="10" size="1"/></td>
+	<input  class="txtbox" type="text" name="phone0" id="phone0" value="<?php  echo htmlspecialchars($row['phone1']);  ?>"  tabindex="10" size="1"/></td>
 	<td height="30" valign="top" width="458">
 	&nbsp;</td>
 				</tr>
 <tr><td width="295" height="30" align="right">Mobile Number</td>
 	<td width="257" height="30" align="center">
-	<input  class="txtbox" type="text" name="mobile" id="mobile" value="<?php  echo $row['mobile'];    ?>" tabindex="10" size="1"/></td>
+	<input  class="txtbox" type="text" name="mobile" id="mobile" value="<?php  echo htmlspecialchars($row['mobile']);    ?>" tabindex="10" size="1"/></td>
 	<td height="30" valign="top" width="458">
 	&nbsp;</td></tr>
 				<tr>
 					<td width="295" height="30" align="right">Mobile Number-2</td>
 					<td width="257" height="30" align="center">
-	<input  class="txtbox" type="text" name="mobile0" id="mobile0" value="<?php echo $row['mobile1'];    ?>" size="1"/></td>
+	<input  class="txtbox" type="text" name="mobile0" id="mobile0" value="<?php echo htmlspecialchars($row['mobile1']);    ?>" size="1"/></td>
 	<td height="30" valign="top" width="458">
 	&nbsp;</td>
 				</tr>
 <tr><td width="295" height="30" align="right">Email ID</td>
 	<td width="257" height="30" align="center">
-	<input class="txtbox" type="text" name="txtmail" readonly id="txttmail" value="<?php  echo $row['email'];     ?>"  tabindex="4" size="1" /></td>
+	<input class="txtbox" type="text" name="txtmail" readonly id="txttmail" value="<?php  echo htmlspecialchars($row['email']);     ?>"  tabindex="4" size="1" /></td>
 	<td height="30" width="458">
 	&nbsp;Can't Update (User ID)</td></tr>
 <tr><td width="295" height="30" align="right">Website</td>
 	<td width="257" height="30" align="center">
-	<input  class="txtbox" type="text" name="website" id="website" tabindex="3" value="<?php  echo $row['web'];   ?>"  size="1"/></td>
+	<input  class="txtbox" type="text" name="website" id="website" tabindex="3" value="<?php  echo htmlspecialchars($row['web']);   ?>"  size="1"/></td>
 	<td height="30" valign="top" width="458">
 	&nbsp;</td></tr>
 <tr><td width="295" height="9" align="right">Establishment Year</td>
 	<td width="257" height="9" align="center">
-	<input  class="txtbox" type="text" name="establish" id="establish" tabindex="3" value="<?php echo $row['estyear'];   ?>"  size="1"/></td>
+	<input  class="txtbox" type="text" name="establish" id="establish" tabindex="3" value="<?php echo htmlspecialchars($row['estyear']);   ?>"  size="1"/></td>
 	<td height="9" valign="top" width="458">
 	</td></tr>
 <tr><td width="295" height="63">&nbsp;</td>
@@ -222,7 +228,7 @@ $msg=1;
 			</td>
 		</tr>
 		<tr>
-			<td height="57" align="center" valign="top">			<?php  include("../footer.php"); ?></td>
+			<td height="57" align="center" valign="top">			<?php  require_once "../footer.php"; ?></td>
 		</tr>
 	</table>
 </div>

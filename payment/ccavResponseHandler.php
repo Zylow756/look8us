@@ -1,4 +1,13 @@
 <?php
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
 
 function add_date($original_date,$d,$m,$y)
 {
@@ -8,7 +17,6 @@ function add_date($original_date,$d,$m,$y)
 }
 
  include('Crypto.php');
-include("../config.php");
 
 
 	error_reporting(0);
@@ -49,12 +57,12 @@ include("../config.php");
 				// echo "<br>Thank you for shopping with us. Your credit card has been charged and your transaction is successful. We will be shipping your order to you soon.";
 					
 				$st="insert into payrec values(NULL,'".$tracking_id."','".date(d-M-Y)."','".$order_status."','".$order_id."','".$billing_email."','".$billing_name."','".$billing_tel."','".$amount."','".$merchant_param2."','".$payment_mode."','".date("d-m-Y")."',".$merchant_param3.",'0','0',".$merchant_param1.")";
-				mysql_query($st,$con);
+				mysqli_query($con,$st);
 			
 				//echo $st;
 				
 				$st="update payreq set mihpayid='".$tracking_id."',addedon='".date(d-M-Y)."',status='".$order_status."',amountr='".$amount."',emailr='".$billing_email."' where txnid='".$order_id."'";
-				mysql_query($st,$con);
+				mysqli_query($con,$st);
 				
 				//echo $st;
 			
@@ -72,7 +80,7 @@ include("../config.php");
 					$ag2=add_date($ag1, $d,"0","0");
 				
 					$st="update member set mplan='".$merchant_param2."', mdate='".$ag1."', x='".date("d-m-Y")."', z='".$ag2."',expdate='".$ag2."'  where mid=".$merchant_param3;
-					mysql_query($st,$con);
+					mysqli_query($con,$st);
 					
 					//echo $st;
 			//========================================================================================
@@ -84,7 +92,7 @@ include("../config.php");
 	else if($order_status==="Aborted")
 		{
 			$st="update payreq set mihpayid='".$tracking_id."',addedon='".date(d-M-Y)."',status='".$order_status."',amountr='".$amount."',emailr='".$billing_email."' where txnid='".$order_id."'";
-			mysql_query($st,$con);
+			mysqli_query($con,$st);
 			
 			header("location: subscribeError.php");
 			//	echo "<br>Thank you for shopping with us.We will keep you posted regarding the status of your order through e-mail";
@@ -93,7 +101,7 @@ include("../config.php");
 	else if($order_status==="Failure")
 		{
 			$st="update payreq set mihpayid='".$tracking_id."',addedon='".date(d-M-Y)."',status='".$order_status."',amountr='".$amount."',emailr='".$billing_email."' where txnid='".$order_id."'";
-			mysql_query($st,$con);
+			mysqli_query($con,$st);
 			
 			header("location: subscribeError.php");
 		   //		echo "<br>Thank you for shopping with us.However,the transaction has been declined.";

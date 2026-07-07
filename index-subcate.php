@@ -1,8 +1,19 @@
+<?php
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
+?>
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 
 <title>Look8US :Business Directory Kota, Rajasthan , India, Online Business Directory Kota,  Yellow Pages  kota Rajasthan , Trusted & Verified Businesses, Exporters, Manufacturers, Suppliers Directory, B2B Business Directory </title>
 <meta name="description" content="Look8us.com from Kota Rajasthan is Your local Business Directory , yellow pages  Business Directory. Business Details, Contacts, Products, Services & Verified Businesses, Exporters, Manufacturers, Suppliers Directory">
@@ -62,9 +73,7 @@
 		
 </head>
 
-<?php include("config.php"); 
-
-
+<?php 
 $msg=0;
 
 	
@@ -77,7 +86,7 @@ $msg=0;
 
 <table border="0" width="100%" id="table1" style="border-collapse: collapse" bordercolor="#C0C0C0" cellpadding="0">
 	<tr>
-		<td height="20" bgcolor="#E2E2E2"><?php  include("header.php"); ?></td>
+		<td height="20" bgcolor="#E2E2E2"><?php  require_once "header.php"; ?></td>
 	</tr>
 	<tr>
 		<td align="center" valign="top">
@@ -158,9 +167,12 @@ $st="Select distinct(cdname) cdname,catdid from catedetail order by cdname";
 
 //echo $st;
 $i=1;
-$result=mysql_query($st,$con);
+$result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
 
-$num_rows = mysql_num_rows($result);
+$num_rows = mysqli_num_rows($result);
 
 $rno=round($num_rows/4);
 
@@ -184,7 +196,7 @@ $rno=round($num_rows/4);
 													
 	<?php
 	$i=1;
-	while ( ($i<$rno)&&($row=mysql_fetch_array($result)))
+	while ( ($i<$rno)&&($row=mysqli_fetch_assoc($result)))
 	{	
 ?>
 												
@@ -216,7 +228,7 @@ $rno=round($num_rows/4);
 													
 	<?php
 	$i=1;
-	while ( ($i<$rno)&&($row=mysql_fetch_array($result)))
+	while ( ($i<$rno)&&($row=mysqli_fetch_assoc($result)))
 	{	
 ?>
 												
@@ -247,7 +259,7 @@ $rno=round($num_rows/4);
 													
 	<?php
 	$i=1;
-	while ( ($i<$rno)&&($row=mysql_fetch_array($result)))
+	while ( ($i<$rno)&&($row=mysqli_fetch_assoc($result)))
 	{	
 ?>
 												
@@ -280,7 +292,7 @@ $rno=round($num_rows/4);
 													
 	<?php
 	$i=1;
-	while ( ($i<$rno)&&($row=mysql_fetch_array($result)))
+	while ( ($i<$rno)&&($row=mysqli_fetch_assoc($result)))
 	{	
 ?>
 												
@@ -344,9 +356,12 @@ $rno=round($num_rows/4);
 
 <?php
  $st="Select * from advert where astatus='H' order by aname";
- $result=mysql_query($st,$con);
+ $result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
  
- $num_rows = mysql_num_rows($result);
+ $num_rows = mysqli_num_rows($result);
  
  $i=1;						
 
@@ -368,15 +383,15 @@ if( $num_rows>0)
   
 	<?php 
 		
-		while (($i<6)&&($row=mysql_fetch_array($result)))
+		while (($i<6)&&($row=mysqli_fetch_assoc($result)))
 			{
 			if ($row['img']<>"-")
 			{
 			?>
 
 <td align="center" width="200">
-<a href="http://<?php  echo $row['website'] ; ?>" target="_blank" class="a5">
-	<img border="1" src="user/logo/<?php  echo $row['img'] ; ?>" width="180" height="145"> <?php  echo $row['aname'] ; ?>
+<a href="http://<?php  echo htmlspecialchars($row['website']) ; ?>" target="_blank" class="a5">
+	<img border="1" src="user/logo/<?php  echo htmlspecialchars($row['img']) ; ?>" width="180" height="145"> <?php  echo htmlspecialchars($row['aname']) ; ?>
 	</a>
 
     </td>
@@ -420,15 +435,15 @@ if( $num_rows>0)
   
 	<?php 
 		
-		while (($i<6)&&($row=mysql_fetch_array($result)) )
+		while (($i<6)&&($row=mysqli_fetch_assoc($result)) )
 			{
 			if ($row['img']<>"-")
 			{
 			?>
 
 <td align="center"  width="200">
-<a href="http://<?php  echo $row['website'] ; ?>" target="_blank" class="a5">
-	<img border="1" src="user/logo/<?php  echo $row['img'] ; ?>" width="180" height="145"> <?php  echo $row['aname'] ; ?>
+<a href="http://<?php  echo htmlspecialchars($row['website']) ; ?>" target="_blank" class="a5">
+	<img border="1" src="user/logo/<?php  echo htmlspecialchars($row['img']) ; ?>" width="180" height="145"> <?php  echo htmlspecialchars($row['aname']) ; ?>
 	</a>
 
     </td>
@@ -472,15 +487,15 @@ if( $num_rows>10)
   
 	<?php 
 		
-		while (($i<6)&&($row=mysql_fetch_array($result)) )
+		while (($i<6)&&($row=mysqli_fetch_assoc($result)) )
 			{
 			if ($row['img']<>"-")
 			{
 			?>
 
 <td align="center"  width="200">
-<a href="http://<?php  echo $row['website'] ; ?>" target="_blank" class="a5">
-	<img border="1" src="user/logo/<?php  echo $row['img'] ; ?>" width="180" height="145"> <?php  echo $row['aname'] ; ?>
+<a href="http://<?php  echo htmlspecialchars($row['website']) ; ?>" target="_blank" class="a5">
+	<img border="1" src="user/logo/<?php  echo htmlspecialchars($row['img']) ; ?>" width="180" height="145"> <?php  echo htmlspecialchars($row['aname']) ; ?>
 	</a>
 
     </td>
@@ -612,7 +627,7 @@ if( $num_rows>10)
 		</td>
 	</tr>
 	<tr>
-		<td bgcolor="#F5F5F5" height="20"><?php  include("footer.php"); ?></td>
+		<td bgcolor="#F5F5F5" height="20"><?php  require_once "footer.php"; ?></td>
 	</tr>
 </table>
 <a href="<?php echo $path; ?>payment/subscribe.php" class="demoTest"></a>
@@ -620,10 +635,13 @@ if( $num_rows>10)
 
 <?php 
 		 $st="Select * from homeimg order by aid desc";
-		 		 $result=mysql_query($st,$con);
+		 		 $result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
 		 		 
 		 		 $i=1;
-		$ns = mysql_num_rows($result);
+		$ns = mysqli_num_rows($result);
 
 
 
@@ -640,14 +658,14 @@ if( $num_rows>10)
 		
 <?php
 
-	if ($row=mysql_fetch_array($result))
+	if ($row=mysqli_fetch_assoc($result))
 			{
 			if ($row['img']<>"-")
 			{
 			?>
 
-<a href="http://<?php  echo $row['website'] ; ?>" target="_blank" class="a5">
-	<img border="1" src="user/logo/<?php  echo $row['img'] ; ?>" width="250" height="250"></a>
+<a href="http://<?php  echo htmlspecialchars($row['website']) ; ?>" target="_blank" class="a5">
+	<img border="1" src="user/logo/<?php  echo htmlspecialchars($row['img']) ; ?>" width="250" height="250"></a>
 <?php
 
 }
@@ -659,14 +677,14 @@ if( $num_rows>10)
 					<td height="250" align="left" valign="top" width="49%">&nbsp;
 					<?php
 
-	if ($row=mysql_fetch_array($result))
+	if ($row=mysqli_fetch_assoc($result))
 			{
 			if ($row['img']<>"-")
 			{
 			?>
 
-<a href="http://<?php  echo $row['website'] ; ?>" target="_blank" class="a5">
-	<img border="1" src="user/logo/<?php  echo $row['img'] ; ?>" width="250" height="250"></a>
+<a href="http://<?php  echo htmlspecialchars($row['website']) ; ?>" target="_blank" class="a5">
+	<img border="1" src="user/logo/<?php  echo htmlspecialchars($row['img']) ; ?>" width="250" height="250"></a>
 <?php
 
 }
@@ -688,14 +706,14 @@ if( $num_rows>10)
 					<td height="250" align="right" valign="top" width="49%">&nbsp;
 					<?php
 
-	if ($row=mysql_fetch_array($result))
+	if ($row=mysqli_fetch_assoc($result))
 			{
 			if ($row['img']<>"-")
 			{
 			?>
 
-<a href="http://<?php  echo $row['website'] ; ?>" target="_blank" class="a5">
-	<img border="1" src="user/logo/<?php  echo $row['img'] ; ?>" width="250" height="250"></a>
+<a href="http://<?php  echo htmlspecialchars($row['website']) ; ?>" target="_blank" class="a5">
+	<img border="1" src="user/logo/<?php  echo htmlspecialchars($row['img']) ; ?>" width="250" height="250"></a>
 <?php
 
 }
@@ -705,14 +723,14 @@ if( $num_rows>10)
 					<td height="250" align="center" valign="top" width="2%">&nbsp;</td>
 					<td height="250" align="left" valign="top" width="49%">&nbsp;<?php
 
-	if ($row=mysql_fetch_array($result))
+	if ($row=mysqli_fetch_assoc($result))
 			{
 			if ($row['img']<>"-")
 			{
 			?>
 
-<a href="http://<?php  echo $row['website'] ; ?>" target="_blank" class="a5">
-	<img border="1" src="user/logo/<?php  echo $row['img'] ; ?>" width="250" height="250"></a>
+<a href="http://<?php  echo htmlspecialchars($row['website']) ; ?>" target="_blank" class="a5">
+	<img border="1" src="user/logo/<?php  echo htmlspecialchars($row['img']) ; ?>" width="250" height="250"></a>
 <?php
 
 }

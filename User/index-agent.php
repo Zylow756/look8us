@@ -1,16 +1,27 @@
 <?php
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
 
 include("../thecaptcha/captcha.function.php");
 $captcha_text = 'Please tell me you\'re not a spambot';
 $error = 0;
 $flag=0;
 
-if(!isset($_SESSION))
-{
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
 }
 
-include("../config.php");
 
 if ( isset($_POST['submit']))
 {
@@ -25,23 +36,32 @@ if ( isset($_POST['submit']))
 	if ($error <= 0)
 		 {
 				$st2="Select * from member where email='".$_POST['txtmail']."'";
-				$result2=mysql_query($st2,$con);
-				if($row2=mysql_fetch_array($result2)) $flag=1;
+				$result2=mysqli_query($con,$st2);
+if (!$result2) {
+    die(mysqli_error($con));
+}
+				if($row2=mysqli_fetch_assoc($result2)) $flag=1;
 				 
 			
 		if ($flag==0)
 			{
 				
 				$st="select * from agent where acode='".$_POST['agcode']."'";
-				$ra=mysql_query($st,$con);
-				if ($rowa=mysql_fetch_array($ra))
+				$ra=mysqli_query($con,$st);
+if (!$ra) {
+    die(mysqli_error($con));
+}
+				if ($rowa=mysqli_fetch_assoc($ra))
 				{
 								
 						$t=substr($_POST['mname'],0,3);
 						
 						$st="select mid from member order by mid desc";
-						$r=mysql_query($st,$con);
-						if ($row=mysql_fetch_array($r))
+						$r=mysqli_query($con,$st);
+if (!$r) {
+    die(mysqli_error($con));
+}
+						if ($row=mysqli_fetch_assoc($r))
 						 $us=$t.$row["mid"];
 						else
 						 $us=$t."1";
@@ -51,7 +71,7 @@ if ( isset($_POST['submit']))
 						$s="insert into member  values (NULL ,'" .$us."','".$pass. "','". ucwords($_POST['mname']). "','". ucwords($_POST['compname']). "','-','-','-','-','". ucwords($_POST['city']). "','-','-','-','-','".$_POST["mobile"]."','-','".$_POST['txtmail']."','-','-','-','0','-','-',0,'-','-','".date("d-m-Y")."','-',0,'Demo','-','-','-','-','-','2000-01-01','-','-','".$_POST["agcode"]."','-','-','-')" ;
 					//	$s="insert into member  values (NULL ,'" .$us."','".$pass. "','". $_POST['mname']. "','". $_POST['compname']. "','". $_POST['tagline']. "','". $_POST['shopno']. "','". $_POST['address']. "','". $_POST['area']. "','". $_POST['city']. "','". $_POST['state1']. "','". $_POST['pincode']. "','". $_POST['phone']. "','". $_POST['phone0']. "','".$_POST["mobile"]."','". $_POST['mobile0']. "','".$_POST['txtmail']."','".$_POST['website']."','". $_POST['remark']. "','". $_POST['remark0']. "','0','-','-',0,'".$_POST['establish']."','-','-','-',0,'Demo','-','-','-','-','-','-','-')" ;
 		
-						mysql_query($s,$con);
+						mysqli_query($con,$s);
 						
 					 		$_SESSION['user']=$_POST['txtmail'];
 							$_SESSION['mtyp']="0";
@@ -85,7 +105,7 @@ if ( isset($_POST['submit']))
 <html>
 
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Online Directory</title>
  <link rel="stylesheet" type="text/css" href="../akc.css" />
 
@@ -227,7 +247,7 @@ return true;
 
 <table border="0" width="100%" id="table1" style="border-collapse: collapse" bordercolor="#C0C0C0" cellpadding="0">
 	<tr>
-		<td height="20" bgcolor="#E2E2E2"><?php  include("../header.php"); ?></td>
+		<td height="20" bgcolor="#E2E2E2"><?php  require_once "../header.php"; ?></td>
 	</tr>
 	<tr>
 		<td align="center" >
@@ -247,7 +267,7 @@ return true;
 <tr><td width="396" height="40" align="right"><font color="#0000FF"><b>Agent Code&nbsp;&nbsp; 
 	</b></font> </td>
 	<td width="233" height="40" align="center">
-	<input class="txtbox" type="text" name="agcode" id="agcode" tabindex="1" value="<?php if (isset($_POST['agcode'])) echo $_POST['agcode']; else echo 'Agent Code';  ?>"  onfocus="if(this.value=='Agent Code'){this.value='';}" onblur="if(this.value==''){this.value='Agent Code';}" size="1"/></td>
+	<input class="txtbox" type="text" name="agcode" id="agcode" tabindex="1" value="<?php if (isset($_POST['agcode'])) $agcode = $_POST['agcode'] ?? ''; echo $agcode; else echo 'Agent Code';  ?>"  onfocus="if(this.value=='Agent Code'){this.value='';}" onblur="if(this.value==''){this.value='Agent Code';}" size="1"/></td>
 	<td height="40" width="381">
 	&nbsp;</td>
 	
@@ -255,34 +275,34 @@ return true;
 <tr>
 	<td width="396" height="40" align="right"><font color="#333333">Company/Firm/Shop Name</font></td>
 	<td width="233" height="40" align="center">
-	<input class="txtbox" type="text" name="compname" id="compname" tabindex="2" value="<?php if (isset($_POST['compname'])) echo $_POST['compname']; else echo 'Company Name';  ?>"  onfocus="if(this.value=='Company Name'){this.value='';}" onblur="if(this.value==''){this.value='Company Name';}" size="1"/></td>
+	<input class="txtbox" type="text" name="compname" id="compname" tabindex="2" value="<?php if (isset($_POST['compname'])) $compname = $_POST['compname'] ?? ''; echo $compname; else echo 'Company Name';  ?>"  onfocus="if(this.value=='Company Name'){this.value='';}" onblur="if(this.value==''){this.value='Company Name';}" size="1"/></td>
 	<td height="40" width="381">
 	&nbsp;</td>
 				</tr>
 <tr><td width="396" height="40" align="right"><font color="#333333">Owner/Contact Person </font></td>
 	<td width="233" height="40" align="center">
-	<input class="txtbox" type="text" name="mname" id="mname" tabindex="3" value="<?php if (isset($_POST['mname'])) echo $_POST['mname']; else echo 'Member Name';  ?>" onfocus="if(this.value=='Member Name'){this.value='';}" onblur="if(this.value==''){this.value='Member Name';}" size="1"/></td>
+	<input class="txtbox" type="text" name="mname" id="mname" tabindex="3" value="<?php if (isset($_POST['mname'])) $mname = $_POST['mname'] ?? ''; echo $mname; else echo 'Member Name';  ?>" onfocus="if(this.value=='Member Name'){this.value='';}" onblur="if(this.value==''){this.value='Member Name';}" size="1"/></td>
 	<td height="40" width="381">
 	&nbsp;</td>
 				</tr>
 <tr>
 	<td width="396" height="40" align="right"><font color="#333333">City</font></td>
 	<td width="233" height="40" align="center">
-	<input  class="txtbox" type="text" name="city" id="city" tabindex="4" value="<?php if (isset($_POST['city'])) echo $_POST['city']; else echo 'City';  ?>" onfocus="if(this.value=='City'){this.value='';}" onblur="if(this.value==''){this.value='City';}" size="1"/></td>
+	<input  class="txtbox" type="text" name="city" id="city" tabindex="4" value="<?php if (isset($_POST['city'])) $city = $_POST['city'] ?? ''; echo $city; else echo 'City';  ?>" onfocus="if(this.value=='City'){this.value='';}" onblur="if(this.value==''){this.value='City';}" size="1"/></td>
 	<td height="40" valign="top" width="381">
 	&nbsp;</td>
 </tr>
 <tr>
 	<td width="396" height="40" align="right"><font color="#333333">Mobile Number</font></td>
 	<td width="233" height="40" align="center">
-	<input  class="txtbox" type="text" name="mobile" id="mobile" value="<?php if (isset($_POST['mobile'])) echo $_POST['mobile'];  else echo 'Mobile';  ?>" onfocus="if(this.value=='Mobile'){this.value='';}" onblur="if(this.value==''){this.value='Mobile';}" tabindex="5" size="1"/></td>
+	<input  class="txtbox" type="text" name="mobile" id="mobile" value="<?php if (isset($_POST['mobile'])) $mobile = $_POST['mobile'] ?? ''; echo $mobile;  else echo 'Mobile';  ?>" onfocus="if(this.value=='Mobile'){this.value='';}" onblur="if(this.value==''){this.value='Mobile';}" tabindex="5" size="1"/></td>
 	<td height="40" valign="top" width="381">
 	&nbsp;</td>
 </tr>
 <tr>
 	<td width="396" height="40" align="right"><font color="#333333">Email ID</font></td>
 	<td width="233" height="40" align="center">
-	<input class="txtbox" type="text" name="txtmail" id="txttmail" value="<?php if (isset($_POST['txtmail'])) echo $_POST['txtmail'];   else echo 'Email ID';  ?>" onfocus="if(this.value=='Email ID'){this.value='';}" onblur="if(this.value==''){this.value='Email ID';}" tabindex="6" /></td>
+	<input class="txtbox" type="text" name="txtmail" id="txttmail" value="<?php if (isset($_POST['txtmail'])) $txtmail = $_POST['txtmail'] ?? ''; echo $txtmail;   else echo 'Email ID';  ?>" onfocus="if(this.value=='Email ID'){this.value='';}" onblur="if(this.value==''){this.value='Email ID';}" tabindex="6" /></td>
 	<td height="40" valign="top" width="381">
 	<p class="p1">Valid Email Id .</p> <?php if ($flag==1) echo "<h5>This E-Mail ID already Register !</h5>"; ?></td>
 </tr>
@@ -337,7 +357,7 @@ return true;
 		</td>
 	</tr>
 	<tr>
-		<td bgcolor="#F5F5F5" height="20"><?php  include("../footer.php"); ?></td>
+		<td bgcolor="#F5F5F5" height="20"><?php  require_once "../footer.php"; ?></td>
 	</tr>
 </table>
 

@@ -1,16 +1,13 @@
 <?php
+require_once "config.php";
 
-session_start();
-
-
-if ( isset($_SESSION['user']))
- {
-   if($_SESSION['user']=="") 
- 	header("location: index.php?r=0"); 
- }
-else
- 		header("location: index.php?r=0"); 
-
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
   
  ?>
  
@@ -20,7 +17,7 @@ else
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Online Directory : Admin Panel</title>
  <link rel="stylesheet" type="text/css" href="../akc.css" />
 
@@ -68,31 +65,35 @@ return true;
 </script>
 </head>
 
-<?php include("../config.php");
-
-
+<?php 
 $msg=0;
 
 if (isset($_POST["submit"]))
 {
 
-if (( ($_FILES["photoimg"]["type"] == "image/jpeg") || ($_FILES["photoimg"]["type"] == "image/gif")) && ($_FILES["photoimg"]["size"] < 41100000))
+if (( ($_FILES["photoimg"]["type"] == "image/jpeg") || ($_FILES["photoimg"]["type"] == "image/gif")) && ($_FILES["photoimg"]["size"] < 5 * 1024 * 1024))
 {
 
 $name = $_FILES['photoimg']['name'];
-list($txt, $ext) = explode(".", $name);
+$ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
 
 //$fp=date('d')."_".date('M')."_".date('Y')."_".date('h')."_".date('i')."_".date('s')."_".substr(str_replace(" ", "_", $txt),0,5).".".$ext;                    
-$fp = date('d')."_".date('M')."_".date('Y')."_".time()."_".substr(str_replace(" ", "_", $txt),0,5).".jpg";
-
-move_uploaded_file($_FILES["photoimg"]["tmp_name"],"../user/logo/".$fp);
+$fp = uniqid().".".$ext;
+if (!is_dir("../user/logo")) {
+    mkdir("../user/logo", 0755, true);
+}
+if (!move_uploaded_file($_FILES["photoimg"]["tmp_name"],"../user/logo/".$fp)) {
+    die("Image upload failed.");
+}
 
 //echo $_FILES["photoimg"]["type"];
 //echo "<br>";
 //echo $fp;
 
-$st="insert into ecate values (NULL ,'". $_POST["cname"]. "','".$fp. "','". $_POST["remark"]. "','0')" ;
-mysql_query($st,$con);
+$stmt = $con->prepare("INSERT INTO ecate (catename, img, remark, status) VALUES (?, ?, ?, ?)");
+$status = 0;
+$stmt->bind_param("sssi", $_POST['cname'], $fp, $_POST['remark'], $status);
+$stmt->execute();
 //echo $st;
 $msg=1;
 	
@@ -114,7 +115,7 @@ $msg=2;
 <div align="center">
 	<table border="0" width="980" id="table1" style="border-collapse: collapse" bordercolor="#E2E2E2" cellpadding="0">
 		<tr>
-			<td height="50" align="center" valign="top">	<?php  include("../header.php"); ?>		</td>		</tr>
+			<td height="50" align="center" valign="top">	<?php  require_once "../header.php"; ?>		</td>		</tr>
 		<tr>
 			<td height="12" align="center" valign="top" bgcolor="#697779">			
 					</td>
@@ -123,7 +124,7 @@ $msg=2;
 			<td>
 			<table border="0" width="100%" id="table2" style="border-collapse: collapse" bordercolor="#CCCCCC" height="206" cellpadding="0">
 				<tr>
-					<td width="228" valign="top" bgcolor="#EEEEEE">			<?php if ($_SESSION["id"]!="") include("sidemenu.php"); ?></td>
+					<td width="228" valign="top" bgcolor="#EEEEEE">			<?php if (!empty($_SESSION['id'])) include("sidemenu.php"); ?></td>
 					<td align="center" valign="top" bgcolor="#FFFFFF">
 					<h1>Create New e-commerce category</h1>
 					<p>
@@ -152,8 +153,15 @@ function FrontPage_Form1_Validator(theForm)
 						
 
 <tr>
-	<td width="116" height="50">Category Name</td><td width="286" height="50">
-	&nbsp;<!--webbot bot="Validation" s-display-name="Category Name" b-value-required="TRUE" --><input  class="txtbox" type="text" name="cname" id="cname" tabindex="4" value="Category Name" onfocus="if(this.value=='Category Name'){this.value='';}" onblur="if(this.value==''){this.value='Category Name';}" size="1"/></td>
+	<td width="116" height="50">Category Name</td>
+	<td width="286" height="50">
+	&nbsp;<!--webbot bot="Validation" s-display-name="Category Name" b-value-required="TRUE" -->
+	<input
+    type="text"
+    name="cname"
+    class="txtbox"
+    placeholder="Category Name"
+    required></td>
 </tr>
 <tr>
 	<td width="116" height="30">Remark</td><td width="286" height="30">
@@ -162,7 +170,7 @@ function FrontPage_Form1_Validator(theForm)
 <tr>
 	<td width="116" height="39">Category Images</td><td width="286" height="39">
 		
-<input type="file" name="photoimg" size="27"></td>
+<input type="file" name="photoimg" size="27" required></td>
 </tr>
 <tr><td width="116" height="38">&nbsp;</td><td width="286" height="38">
 	<input  class="subbox" type="submit" value="Submit" name="submit"/>
@@ -187,13 +195,16 @@ function FrontPage_Form1_Validator(theForm)
 								
 		<?php 
 		 $st="Select * from ecate order by catename";
-		 		 $result=mysql_query($st,$con);
-		while ($row=mysql_fetch_array($result))
+		 		 $result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
+		while ($row=mysqli_fetch_assoc($result))
 			{
 			?>
 						<tr>
 									<td width="353">&nbsp;&nbsp;
-									<a href="vieweCate.php?id=<?php echo $row['ecateid']; ?>" class="a2" ><?php echo $row["catename"]; ?></a>
+									<a href="vieweCate.php?id=<?php echo htmlspecialchars($row['ecateid']); ?>" class="a2" ><?php echo htmlspecialchars($row["catename"]); ?></a>
 									
 									
 									</td>
@@ -213,7 +224,7 @@ function FrontPage_Form1_Validator(theForm)
 			</td>
 		</tr>
 		<tr>
-			<td height="57" align="center" valign="top">			<?php  include("../footer.php"); ?></td>
+			<td height="57" align="center" valign="top">			<?php  require_once "../footer.php"; ?></td>
 		</tr>
 	</table>
 </div>

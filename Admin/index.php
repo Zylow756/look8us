@@ -1,7 +1,18 @@
+<?php
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
+?>
 <html>
 
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Online Directory : Admin Panel</title>
  <link rel="stylesheet" type="text/css" href="../akc.css" />
 
@@ -11,25 +22,11 @@ body
 {
 background-image:url('../img/bg.png');
 background-repeat:repeat-x;
-background-color: #70828F;;
+background-color: #70828F;
 } 
-
-<?php
-
-echo base64_decode("REFTMTIz");
-
-?>
-
-
 </style>
-
-
-
-
 <script type="text/javascript" src="scripts/jquery.min.js"></script>
 <script type="text/javascript" src="scripts/jquery.form.js"></script>
-
-
 <script type="text/javascript" >
  $(document).ready(function()
   { 
@@ -48,7 +45,7 @@ $('#sname').click('change', function()
   */
       
       
- $("#acode").click('click',function()
+ $("#acode").click(function () 
   {
      
     	/* 
@@ -105,7 +102,7 @@ $('#sname').click('change', function()
 		<tr>
 			<td height="50" align="center" valign="top">
 			
-			<?php  include("../header.php"); ?>
+			<?php  require_once "../header.php"; ?>
 </td>
 		</tr>
 		<tr>
@@ -130,20 +127,20 @@ $('#sname').click('change', function()
 									<td width="26%" height="58" valign="bottom">
 									<font color="#333333" size="2">User Name</font></td>
 									<td height="58" valign="bottom" width="65%">
-									<input type="text" name="t1" id="t1"  class="txtbox" size="27" onfocus="if(this.value=='Your User Name'){this.value='';}" onblur="if(this.value==''){this.value='Your User Name';}"  >  </td>
+									<input type="text" name="t1" id="t1"  class="txtbox" size="27" onfocus="if(this.value=='Your User Name'){this.value='';}" onblur="if(this.value==''){this.value='Your User Name';}"  required >  </td>
 								</tr>
 								<tr>
 									<td width="7%" height="24">&nbsp;</td>
 									<td width="26%" height="24">
 									<font color="#333333" size="2">Password</font></td>
-									<td height="24" width="65%"><input type="password" name="t2" class="txtbox1" >  </td>
+									<td height="24" width="65%"><input type="password" name="t2" class="txtbox1" required >  </td>
 								</tr>
 								<tr>
 									<td width="7%" height="23">&nbsp;</td>
 									<td width="26%" height="23">
 									<font size="2">Access Code</font></td>
 									<td height="23" width="65%">
-									<input type="text" name="t3" class="txtbox4" size="27" onfocus="if(this.value=='Code'){this.value='';}" onblur="if(this.value==''){this.value='Code';}"  >
+									<input type="text" name="t3" class="txtbox4" size="27" onfocus="if(this.value=='Code'){this.value='';}" onblur="if(this.value==''){this.value='Code';}" required >
 									<span id="gen" style="font-weight: 400">.
 									</span><span id="gen1" style="font-weight: 300; font-size:8pt;">-</span>
 									</td>
@@ -156,7 +153,7 @@ $('#sname').click('change', function()
 								</tr>
 								<tr>
 									<td width="7%" height="22">&nbsp;</td>
-									<td colspan="2" height="22">&nbsp;&nbsp;<?php  if (isset($_GET["r"])) echo "Invalid User Name OR Password<br><font size='1' face='Arial' color='#FF0000'>(Please Note User Name & Password is Case Sensitive)</font>"; ?> 
+									<td colspan="2" height="22">&nbsp;&nbsp;<?php  if (!empty($_GET['r'])) echo "Invalid User Name OR Password<br><font size='1' face='Arial' color='#FF0000'>(Please Note User Name & Password is Case Sensitive)</font>"; ?> 
 									</td>
 								</tr>
 								<tr>
@@ -186,7 +183,7 @@ $('#sname').click('change', function()
 			</td>
 		</tr>
 		<tr>
-			<td align="center" valign="top">			<?php  include("../footer.php"); ?></td>
+			<td align="center" valign="top">			<?php  require_once "../footer.php"; ?></td>
 		</tr>
 	</table>
 </div>

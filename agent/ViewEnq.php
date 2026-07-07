@@ -1,10 +1,20 @@
+<?php
+require_once "config.php";
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
+?>
 
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Online Directory : Admin Panel</title>
  <link rel="stylesheet" type="text/css" href="../akc.css" />
 
@@ -35,9 +45,6 @@ background-color: #70828F;;
 </head>
 
 <?php
-session_start();
-include("../config.php"); 
-
 $msg=0;
 			
 ?>
@@ -48,7 +55,7 @@ $msg=0;
 <div  class="disable-text-selection" align="center">
 	<table border="0" width="980" id="table1" style="border-collapse: collapse" bordercolor="#E2E2E2" cellpadding="0">
 		<tr>
-			<td height="50" align="center" valign="top">	<?php  include("../header.php"); ?>		</td>		</tr>
+			<td height="50" align="center" valign="top">	<?php  require_once "../header.php"; ?>		</td>		</tr>
 		<tr>
 			<td height="12" align="center" valign="top" bgcolor="#697779">			
 					</td>
@@ -68,7 +75,7 @@ $msg=0;
 
 Enter Company Name or Mobile No
 
-<input type="text" name="pname" size="16" value="<?php if (isset($_POST['pname'])) echo $_POST['pname']; ?>"  >
+<input type="text" name="pname" size="16" value="<?php if (isset($_POST['pname'])) $pname = $_POST['pname'] ?? ''; echo $pname; ?>"  >
 <input type="submit" value="Show" name="submit"> <br>&nbsp;<?php
 					
 					if (isset($_SESSION["aid"]))
@@ -111,29 +118,32 @@ else
 //echo $st;
 
 $i=1;
-$result=mysql_query($st,$con);
+$result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
 
-$num_rows = mysql_num_rows($result);
+$num_rows = mysqli_num_rows($result);
 
-	while ($row=mysql_fetch_array($result))
+	while ($row=mysqli_fetch_assoc($result))
 	{	
 	
 	?>
 				
 								<tr>
 									<td height="29"  style="text-align: center">&nbsp;<?php echo $num_rows; ?></td>
-									<td height="29"  style="text-align: center">&nbsp;<?php echo $row["edate"]; ?></td>
+									<td height="29"  style="text-align: center">&nbsp;<?php echo htmlspecialchars($row["edate"]); ?></td>
 									<td height="29" >&nbsp;
-									<?php echo "<a class='a5' href='EditEnq.php?id=".$row['eid']."'>"; ?> <?php echo $row["ename"]; ?></a>
+									<?php echo "<a class='a5' href='EditEnq.php?id=".$row['eid']."'>"; ?> <?php echo htmlspecialchars($row["ename"]); ?></a>
 									</td>
-									<td height="29" >&nbsp;<?php echo $row["cate"]; ?></td>
-									<td height="29" >&nbsp;<?php echo $row["mobile"]; ?></td>
-									<td height="29" >&nbsp;<?php echo $row["email"]; ?></td>
-									<td height="29" >&nbsp;<?php echo $row["address"]; ?></td>
-									<td height="29" >&nbsp;<?php echo $row["area"]; ?></td>
-									<td height="29" >&nbsp;<?php echo $row["cdate"]; ?></td>
-									<td height="29" >&nbsp;<?php echo $row["ndate"]; ?></td>
-									<td height="29" >&nbsp;<a href="PostFeedback.php?eid=<?php echo $row['eid']; ?>" class="a2" ><?php echo $row["estatus"]; ?></a></td>
+									<td height="29" >&nbsp;<?php echo htmlspecialchars($row["cate"]); ?></td>
+									<td height="29" >&nbsp;<?php echo htmlspecialchars($row["mobile"]); ?></td>
+									<td height="29" >&nbsp;<?php echo htmlspecialchars($row["email"]); ?></td>
+									<td height="29" >&nbsp;<?php echo htmlspecialchars($row["address"]); ?></td>
+									<td height="29" >&nbsp;<?php echo htmlspecialchars($row["area"]); ?></td>
+									<td height="29" >&nbsp;<?php echo htmlspecialchars($row["cdate"]); ?></td>
+									<td height="29" >&nbsp;<?php echo htmlspecialchars($row["ndate"]); ?></td>
+									<td height="29" >&nbsp;<a href="PostFeedback.php?eid=<?php echo htmlspecialchars($row['eid']); ?>" class="a2" ><?php echo htmlspecialchars($row["estatus"]); ?></a></td>
 								</tr>
 								
 								<?php
@@ -155,7 +165,7 @@ $num_rows = mysql_num_rows($result);
 			</td>
 		</tr>
 		<tr>
-			<td height="57" align="center" valign="top">			<?php  include("../footer.php"); ?></td>
+			<td height="57" align="center" valign="top">			<?php  require_once "../footer.php"; ?></td>
 		</tr>
 	</table>
 </div>

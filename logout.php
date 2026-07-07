@@ -1,8 +1,19 @@
+<?php
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
+?>
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Login : Admin Panel</title>
  <link rel="stylesheet" type="text/css" href="akc.css" />
 
@@ -41,7 +52,7 @@ session_destroy();
 <div align="center">
 	<table border="0" width="100%" id="table1" style="border-collapse: collapse" bordercolor="#CCCCCC" cellpadding="0">
 		<tr>
-			<td height="84" align="center" valign="top">			<?php  include("header.php"); ?></td>
+			<td height="84" align="center" valign="top">			<?php  require_once "header.php"; ?></td>
 		</tr>
 		<tr>
 			<td>
@@ -58,7 +69,7 @@ session_destroy();
 			</td>
 		</tr>
 		<tr>
-			<td height="31" align="center" valign="top">			<?php  include("footer.php"); ?></td>
+			<td height="31" align="center" valign="top">			<?php  require_once "footer.php"; ?></td>
 		</tr>
 	</table>
 </div>

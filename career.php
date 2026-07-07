@@ -1,22 +1,28 @@
 <?php
+require_once "config.php";
 
-include("thecaptcha/captcha.function.php");
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
+
+require_once "thecaptcha/captcha.function.php";
 $captcha_text = 'Please tell me you\'re not a spambot';
 $error = 0;
 $flag=0;
 
 
-if(!isset($_SESSION))
-{
-session_start();
-}
+
 ?>
 
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Look8US :Business Directory Kota, Rajasthan , India, Online Business Directory Kota,  Yellow Pages  kota Rajasthan , Trusted & Verified Businesses, Exporters, Manufacturers, Suppliers Directory, B2B Business Directory </title>
 <meta name="description" content="Look8us.com from Kota Rajasthan is Your local Business Directory , yellow pages  Business Directory. Business Details, Contacts, Products, Services & Verified Businesses, Exporters, Manufacturers, Suppliers Directory">
 <meta name="keywords" content=" Look8us.com , yellow pages Kota Rajasthan , business directory Kota Rajasthan india,business search engine, indian business directory, online business directory, Indian manufacturers, suppliers, Indian exporters directory, b2b portal, b2b business directory,manufacturer, importers, traders, dealers, buyers, ">
@@ -24,7 +30,7 @@ session_start();
  <link rel="stylesheet" type="text/css" href="akc.css" />
 
 
-<?php include("config.php");
+<?php 
 
 $msg=0;
 
@@ -67,7 +73,7 @@ if (isset($_POST["submit"]))
 						//echo $fp;
 						
 						$st="insert into cv values (NULL ,'". $_POST["rname"]. "','". $_POST["mobile"]. "','". $_POST["email"]. "','". $_POST["post"]. "','". $_POST["city"]. "','". $_POST["qual"]. "','". $_POST["expr"]. "','". $fp ."','".date("d-m-Y")."')" ;
-						mysql_query($st,$con);
+						mysqli_query($con,$st);
 						//echo $st;
 						$msg=1;
 							
@@ -97,7 +103,7 @@ if (isset($_POST["submit"]))
 
 
 <div align="center">
-<?php include("header.php"); ?>
+<?php require_once "header.php"; ?>
 <table border="0" width="100%" height="100" cellpadding="0" style="border-collapse: collapse">
 	<tr>
 		<td bgcolor="#D2D2D2">
@@ -332,7 +338,7 @@ if (isset($_POST["submit"]))
 </div>
 
 <div align="center">
-	<?php include("footer.php"); ?>
+	<?php require_once "footer.php"; ?>
 </div>
 
 </body>

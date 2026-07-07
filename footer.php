@@ -1,4 +1,14 @@
- 
+<?php
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
+?>
 	<head>
 	<link rel="stylesheet" type="text/css" href="akc.css" />
 
@@ -72,7 +82,7 @@ alt="free web stats"></a></div></noscript>
 						&nbsp;&nbsp;&nbsp; </font></td>
 			<td align="left" height="27" bgcolor="#000000" width="24%">
 			<font color="#C9C9C9">Copyright <a href="Admin/index.php">
-			<span style="text-decoration: none"><font color="#FFFFFF">©2014</font></span></a> &nbsp;&nbsp;&nbsp; 
+			<span style="text-decoration: none"><font color="#FFFFFF">ï¿½2014</font></span></a> &nbsp;&nbsp;&nbsp; 
 			</font>
 			</td>
 		</tr>

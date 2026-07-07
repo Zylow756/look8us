@@ -1,7 +1,18 @@
+<?php
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
+?>
 <html>
 
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Online Directory</title>
  <link rel="stylesheet" type="text/css" href="akc.css" />
 
@@ -32,14 +43,11 @@
 
 
 </head>
-
-<?php include("config.php"); ?>
-
 <body topmargin="0" leftmargin="0" rightmargin="0" bottommargin="0">
 
 <table border="0" width="100%" id="table1" style="border-collapse: collapse" bordercolor="#C0C0C0" cellpadding="0">
 	<tr>
-		<td height="20" bgcolor="#E2E2E2"><?php  include("header.php"); ?></td>
+		<td height="20" bgcolor="#E2E2E2"><?php  require_once "header.php"; ?></td>
 	</tr>
 	<tr>
 		<td align="center" valign="top">
@@ -123,9 +131,12 @@ $st="Select * from category order by cname";
 
 //echo $st;
 $i=1;
-$result=mysql_query($st,$con);
+$result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
 
-$num_rows = mysql_num_rows($result);
+$num_rows = mysqli_num_rows($result);
 
 $rno=round($num_rows/3);
 
@@ -149,7 +160,7 @@ $rno=round($num_rows/3);
 													
 	<?php
 	$i=1;
-	while ( ($row=mysql_fetch_array($result))&&($i<$rno))
+	while ( ($row=mysqli_fetch_assoc($result))&&($i<$rno))
 	{	
 ?>
 												
@@ -178,7 +189,7 @@ $rno=round($num_rows/3);
 													
 	<?php
 	$i=1;
-	while ( ($row=mysql_fetch_array($result))&&($i<$rno))
+	while ( ($row=mysqli_fetch_assoc($result))&&($i<$rno))
 	{	
 ?>
 												
@@ -207,7 +218,7 @@ $rno=round($num_rows/3);
 													
 	<?php
 	$i=1;
-	while ( ($row=mysql_fetch_array($result))&&($i<$rno))
+	while ( ($row=mysqli_fetch_assoc($result))&&($i<$rno))
 	{	
 ?>
 												
@@ -266,11 +277,14 @@ $rno=round($num_rows/3);
 	<option value='0' >Please Select</option>
 		<?php 
 		 $st="Select * from catedetail order by cdname";
-		 $result=mysql_query($st,$con);
-		while ($row=mysql_fetch_array($result))
+		 $result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
+		while ($row=mysqli_fetch_assoc($result))
 			{
 			?>
-		<option value='<?php echo $row["catdid"]; ?>' <?php if (isset($_POST["cdname"])){if ($_POST["cdname"]==$row["catdid"]) echo "Selected" ;} ?> > <?php echo $row["cdname"]; ?></option>
+		<option value='<?php echo htmlspecialchars($row["catdid"]); ?>' <?php if (isset($_POST["cdname"])){if ($_POST["cdname"]==$row["catdid"]) echo "Selected" ;} ?> > <?php echo htmlspecialchars($row["cdname"]); ?></option>
 			<?php
 			}
 			?>
@@ -281,33 +295,33 @@ $rno=round($num_rows/3);
 											<td width="28%">
 											<font color="#666666" size="2">&nbsp;City</font></td>
 											<td width="70%">
-	<input  class="txtbox" type="text" name="city" id="city" tabindex="4" value="<?php if (isset($_POST['city'])) echo $_POST['city']; else echo 'City';  ?>" onfocus="if(this.value=='City'){this.value='';}" onblur="if(this.value==''){this.value='City';}" size="1"/></td>
+	<input  class="txtbox" type="text" name="city" id="city" tabindex="4" value="<?php if (isset($_POST['city'])) $city = $_POST['city'] ?? ''; else echo 'City';  ?>" onfocus="if(this.value=='City'){this.value='';}" onblur="if(this.value==''){this.value='City';}" size="1"/></td>
 										</tr>
 										<tr>
 											<td width="28%">
 											<font color="#666666" size="2">
 											<span class="ksic flt tp5">&nbsp;Name</span></font></td>
 											<td width="70%">
-	<input class="txtbox" type="text" name="mname" id="mname" tabindex="1" value="<?php if (isset($_POST['mname'])) echo $_POST['mname']; else echo 'Member Name';  ?>" onfocus="if(this.value=='Member Name'){this.value='';}" onblur="if(this.value==''){this.value='Member Name';}" size="1"/></td>
+	<input class="txtbox" type="text" name="mname" id="mname" tabindex="1" value="<?php if (isset($_POST['mname'])) $mname = $_POST['mname'] ?? ''; else echo 'Member Name';  ?>" onfocus="if(this.value=='Member Name'){this.value='';}" onblur="if(this.value==''){this.value='Member Name';}" size="1"/></td>
 										</tr>
 										<tr>
 											<td width="28%">
 											<font color="#666666" size="2">&nbsp;Mobile</font></td>
 											<td width="70%">
-	<input  class="txtbox" type="text" name="mobile" id="mobile" value="<?php if (isset($_POST['mobile'])) echo $_POST['mobile'];  else echo 'Mobile';  ?>" onfocus="if(this.value=='Mobile'){this.value='';}" onblur="if(this.value==''){this.value='Mobile';}" tabindex="10" size="1"/></td>
+	<input  class="txtbox" type="text" name="mobile" id="mobile" value="<?php if (isset($_POST['mobile'])) $mobile = $_POST['mobile'] ?? ''; else echo 'Mobile';  ?>" onfocus="if(this.value=='Mobile'){this.value='';}" onblur="if(this.value==''){this.value='Mobile';}" tabindex="10" size="1"/></td>
 										</tr>
 										<tr>
 											<td width="28%">
 											<font color="#666666" size="2">&nbsp;Email
 											</font></td>
 											<td width="70%">
-	<input class="txtbox" type="text" name="txtmail" id="txttmail" value="<?php if (isset($_POST['txtmail'])) echo $_POST['txtmail'];   else echo 'Email ID';  ?>" onfocus="if(this.value=='Email ID'){this.value='';}" onblur="if(this.value==''){this.value='Email ID';}" tabindex="4" /></td>
+	<input class="txtbox" type="text" name="txtmail" id="txttmail" value="<?php if (isset($_POST['txtmail'])) $txtmail = $_POST['txtmail'] ?? ''; else echo 'Email ID';  ?>" onfocus="if(this.value=='Email ID'){this.value='';}" onblur="if(this.value==''){this.value='Email ID';}" tabindex="4" /></td>
 										</tr>
 										<tr>
 											<td width="28%">
 											<font color="#666666" size="2">&nbsp;Detail</font></td>
 											<td width="70%">
-	<input  class="txtbox" type="text" name="remark" id="remark" tabindex="3" value="<?php if (isset($_POST['remark'])) echo $_POST['remark'];  ?>"  size="1"/></td>
+	<input  class="txtbox" type="text" name="remark" id="remark" tabindex="3" value="<?php if (isset($_POST['remark'])) $remark = $_POST['remark'] ?? ''; else echo 'Message';  ?>"  size="1"/></td>
 										</tr>
 										<tr>
 											<td colspan="2" align="center">
@@ -558,7 +572,7 @@ $rno=round($num_rows/3);
 		</td>
 	</tr>
 	<tr>
-		<td bgcolor="#F5F5F5" height="20"><?php  include("footer.php"); ?></td>
+		<td bgcolor="#F5F5F5" height="20"><?php  require_once "footer.php"; ?></td>
 	</tr>
 </table>
 <a href="<?php echo $path; ?>payment/subscribe.php" class="demoTest"></a>

@@ -1,8 +1,19 @@
+<?php
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
+?>
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Online Directory : Admin Panel</title>
  <link rel="stylesheet" type="text/css" href="../akc.css" />
 
@@ -26,15 +37,13 @@ background-color: #70828F
 </head>
 
 <?php
-session_start();
-include("../config.php"); 
 
 $msg=0;
 			
 if (isset( $_POST["submit"]))
 {
 $s="update member  set ytube='".$_POST['ytube']."',facebook='".$_POST['facebook']."',twiter='".$_POST['twiter']."',linken='".$_POST['linken']."' where mid=".$_SESSION["mid"] ;
-mysql_query($s,$con);
+mysqli_query($con,$s);
 //echo $s;
 $msg=1;
 }
@@ -51,7 +60,7 @@ $msg=1;
 <div align="center">
 	<table border="0" width="980" id="table1" style="border-collapse: collapse" bordercolor="#E2E2E2" cellpadding="0">
 		<tr>
-			<td height="50" align="center" valign="top">	<?php  include("../header.php"); ?>		</td>		</tr>
+			<td height="50" align="center" valign="top">	<?php  require_once "../header.php"; ?>		</td>		</tr>
 		<tr>
 			<td height="12" align="center" valign="top" bgcolor="#697779">			
 					</td>
@@ -73,8 +82,11 @@ $msg=1;
 							
 			<?php 
 		$st="Select * from member where mid=".$_SESSION["mid"];
-		$result=mysql_query($st,$con);
-		if ($row=mysql_fetch_array($result))
+		$result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
+		if ($row=mysqli_fetch_assoc($result))
 		{
 		?>
 			
@@ -85,22 +97,22 @@ $msg=1;
 				
 <tr><td width="295" height="35" align="right">You Tube Link</td>
 	<td width="257" height="35" align="center">
-	<input  class="txtbox" type="text" name="ytube" id="establish0" tabindex="3" value="<?php echo $row['ytube'];   ?>"  size="1"/></td>
+	<input  class="txtbox" type="text" name="ytube" id="establish0" tabindex="3" value="<?php echo htmlspecialchars($row['ytube']);   ?>"  size="1"/></td>
 	<td height="35" valign="top" width="458">
 	</td></tr>
 <tr><td width="295" height="35" align="right">Facebook Link</td>
 	<td width="257" height="35" align="center">
-	<input  class="txtbox" type="text" name="facebook" id="establish1" tabindex="3" value="<?php echo $row['facebook'];   ?>"  size="1"/></td>
+	<input  class="txtbox" type="text" name="facebook" id="establish1" tabindex="3" value="<?php echo htmlspecialchars($row['facebook']);   ?>"  size="1"/></td>
 	<td height="35" valign="top" width="458">
 	</td></tr>
 <tr><td width="295" height="35" align="right">Twitter Link</td>
 	<td width="257" height="35" align="center">
-	<input  class="txtbox" type="text" name="twiter" id="establish2" tabindex="3" value="<?php echo $row['twiter'];   ?>"  size="1"/></td>
+	<input  class("txtbox" type="text" name="twiter" id="establish2" tabindex="3" value="<?php echo htmlspecialchars($row['twiter']);   ?>"  size="1"/></td>
 	<td height="35" valign="top" width="458">
 	</td></tr>
 <tr><td width="295" height="35" align="right">Linden ID</td>
 	<td width="257" height="35" align="center">
-	<input  class="txtbox" type="text" name="linken" id="establish3" tabindex="3" value="<?php echo $row['linken'];   ?>"  size="1"/></td>
+	<input  class="txtbox" type="text" name="linken" id="establish3" tabindex="3" value="<?php echo htmlspecialchars($row['linken']);   ?>"  size="1"/></td>
 	<td height="35" valign="top" width="458">
 	</td></tr>
 <tr><td width="295" height="63">&nbsp;</td>
@@ -129,7 +141,7 @@ $msg=1;
 			</td>
 		</tr>
 		<tr>
-			<td height="57" align="center" valign="top">			<?php  include("../footer.php"); ?></td>
+			<td height="57" align="center" valign="top">			<?php  require_once "../footer.php"; ?></td>
 		</tr>
 	</table>
 </div>

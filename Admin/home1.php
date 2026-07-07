@@ -1,8 +1,19 @@
+<?php
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
+?>
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Online Directory : Admin Panel</title>
  <link rel="stylesheet" type="text/css" href="../akc.css" />
 
@@ -18,35 +29,29 @@ background-color: #70828F
 </head>
 
 <?php
-session_start();
-
- 
-include("../config.php");
- 
  if(isset($_POST) and $_SERVER['REQUEST_METHOD'] == "POST")
 	{
 
-$pass=base64_encode($_POST['t2']);
-//$pass=$_POST['t2'];
-		
-$ty=$_POST['t1'];
-$t=substr($ty,0,1);
-//echo $t;
-	
-	 
-	 	$s="select * from admin  where uname='".$_POST['t1']."' and pass='".$pass."' and acode='".$_POST['t3']."'" ;
-		$r=mysql_query($s,$con);
+$username = trim($_POST['t1']);
+$password = trim($_POST['t2']);
+	 	$s="select * from admin  where uname=$username and pass=$password and acode='".$_POST['t3']."'" ;
+		$r=mysqli_query($con,$s);
+if (!$r) {
+    die(mysqli_error($con));
+}
          
-		if ($row=mysql_fetch_array($r))
+		if ($row=mysqli_fetch_assoc($r))
 			{
-				if( ($row['uname']==$_POST['t1']) and ($pass==$row['pass']) )
+				if( ($row['uname']==$username) and ($password==$row['password']) )
 				{
-					$_SESSION['user']=$_POST['t1'];
+					$_SESSION['user']=$username;
 					$_SESSION['typ']=$row['utyp'];
 					$_SESSION['id']=$row['uid'];
 					
-					$st="update admin set acode='012345' where uname='".$_POST['t1']."'";
-					mysql_query($st,$con);
+					$st="update admin set acode='012345' where uname='".$username."'";
+					if (!mysqli_query($con,$st)) {
+    die(mysqli_error($con));
+}
 		
 				}
 				else
@@ -76,9 +81,11 @@ $t=substr($ty,0,1);
 	}
 	else
 	{
-	if ($_SESSION['user']=="")
+	if (empty($_SESSION['user']))
+		{
 	header("location: index.php?r=0");
-
+exit;
+		}
 	}
 	?>
 	
@@ -87,7 +94,7 @@ $t=substr($ty,0,1);
 <div align="center">
 	<table border="0" width="980" id="table1" style="border-collapse: collapse" bordercolor="#E2E2E2" cellpadding="0">
 		<tr>
-			<td height="50" align="center" valign="top">	<?php  include("../header.php"); ?>		</td>		</tr>
+			<td height="50" align="center" valign="top">	<?php  require_once "../header.php"; ?>		</td>		</tr>
 		<tr>
 			<td height="12" align="center" valign="top" bgcolor="#697779">			
 					</td>
@@ -96,7 +103,7 @@ $t=substr($ty,0,1);
 			<td>
 			<table border="0" width="100%" id="table2" style="border-collapse: collapse" bordercolor="#CCCCCC" height="206" cellpadding="0">
 				<tr>
-					<td width="228" valign="top" bgcolor="#EEEEEE">			<?php if ($_SESSION["id"]!="") include("sidemenu.php"); ?></td>
+					<td width="228" valign="top" bgcolor="#EEEEEE">			<?php if (!empty($_SESSION['id'])) include("sidemenu.php"); ?></td>
 					<td align="center" valign="top" bgcolor="#FFFFFF">
 					&nbsp;<p>&nbsp;</p>
 					<table border="0" width="70%" id="table3" cellpadding="0" style="border-collapse: collapse" bordercolor="#697779" height="128">
@@ -118,7 +125,7 @@ $t=substr($ty,0,1);
 			</td>
 		</tr>
 		<tr>
-			<td height="57" align="center" valign="top">			<?php  include("../footer.php"); ?></td>
+			<td height="57" align="center" valign="top">			<?php  require_once "../footer.php"; ?></td>
 		</tr>
 	</table>
 </div>

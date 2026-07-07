@@ -1,3 +1,14 @@
+<?php
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
+?>
 <html>
 <head>
 <title>A Non-Seamless-kit</title>
@@ -15,9 +26,6 @@ setTimeout('document.redirect.submit();',5);
 
 include("Crypto.php") ;
 
-
-include("../config.php");
-
 $st="";
 
 if (isset($_POST["checkout"]))
@@ -25,7 +33,7 @@ if (isset($_POST["checkout"]))
 if(($_POST['merchant_id']!="")&&($_POST['merchant_param1']!="")&&($_POST['merchant_param3']!=""))
 {
 $st="insert into payreq values(NULL,'".$_POST['order_id']."','".$_POST['billing_name']."','".$_POST['billing_email']."','".$_POST['billing_tel']."','".$_POST['merchant_param1']."','".$_POST['merchant_param2']."','".$_POST['amount']."','".date("d-m-Y")."','0','0','0','0','0','".$_POST['merchant_param3']."','".$_POST['merchant_param1']."','0')";
-mysql_query($st,$con);
+mysqli_query($con,$st);
 
 }
 

@@ -1,7 +1,12 @@
 <?php
-if(!isset($_SESSION))
-{
-session_start();
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
 }
 ?>
 
@@ -9,7 +14,7 @@ session_start();
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Look8US :Business Directory Kota, Rajasthan , India, Online Business Directory Kota,  Yellow Pages  kota Rajasthan , Trusted & Verified Businesses, Exporters, Manufacturers, Suppliers Directory, B2B Business Directory </title>
 <meta name="description" content="Look8us.com from Kota Rajasthan is Your local Business Directory , yellow pages  Business Directory. Business Details, Contacts, Products, Services & Verified Businesses, Exporters, Manufacturers, Suppliers Directory">
 <meta name="keywords" content=" Look8us.com ,Search job kota, best job offer , apply job, goverment jobs, job portal , online job portal, online business directory, IT job in kota, marketing job in kota ">
@@ -17,7 +22,7 @@ session_start();
  <link rel="stylesheet" type="text/css" href="akc.css" />
 
 
-<?php include("config.php");
+<?php 
 
 $msg=0;
 
@@ -25,7 +30,7 @@ if (isset($_POST["submit"]))
 {
 
 $st="insert into postcv values (NULL ,'". $_POST["atitle"]. "','". $_POST["cate"]. "','". $_POST["discr"]. "','". $_POST["jtype"]. "','". $_POST["yname"]. "','". $_POST["mobile"]. "','". $_POST["email"]. "','". $_POST["city"]. "','". $_POST["qual"]. "','". $_POST["expr"]. "','". $_POST["expsalary"]. "','-','0','".date("d-m-Y")."')" ;
-mysql_query($st,$con);
+mysqli_query($con,$st);
 //echo $st;
 $msg=1;
 
@@ -46,7 +51,7 @@ $msg=1;
 
 
 <div align="center">
-<?php include("header.php"); ?>
+<?php require_once "header.php"; ?>
 <table border="0" width="100%" height="100" cellpadding="0" style="border-collapse: collapse">
 	<tr>
 		<td bgcolor="#D2D2D2">
@@ -345,7 +350,7 @@ function FrontPage_Form1_Validator(theForm)
 </div>
 
 <div align="center">
-	<?php include("footer.php"); ?>
+	<?php require_once "footer.php"; ?>
 </div>
 
 </body>

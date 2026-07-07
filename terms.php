@@ -1,7 +1,12 @@
 <?php
-if(!isset($_SESSION))
-{
-session_start();
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
 }
 ?>
 
@@ -9,7 +14,7 @@ session_start();
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Online Directory Service</title>
  <link rel="stylesheet" type="text/css" href="akc.css" />
 
@@ -29,7 +34,7 @@ session_start();
 
 
 <div align="center">
-<?php include("header.php"); ?>
+<?php require_once "header.php"; ?>
 <table border="0" width="100%" height="100" cellpadding="0" style="border-collapse: collapse">
 	<tr>
 		<td bgcolor="#D2D2D2">
@@ -62,7 +67,7 @@ session_start();
 Services 
 									Offered</p><br>
 									<p align="left" class="p1" style="text-align: justify"><font size="2">The services of Look8us .com are available 
-									only to the registered users (“Users”) on a 
+									only to the registered users (ï¿½Usersï¿½) on a 
 									single user basis, for a particular period 
 									of time on making the stipulated payment and 
 									abiding by the applicable terms and 
@@ -79,13 +84,13 @@ Services
 									by all the terms and conditions of the 
 									Website as contained herein. Further, by 
 									registering on the Website, you agree to:
-									<br>• make your contact details available to 
+									<br>ï¿½ make your contact details available to 
 									Look8us partners so that you may be 
 									contacted by Look8us partners for 
 									education information through email, 
-									telephone and SMS; <br>• receive promotional mails/special offers 
+									telephone and SMS; <br>ï¿½ receive promotional mails/special offers 
 									from the Website or any of its partner 
-									websites; and/ or<br>• be contacted by Look8us in accordance 
+									websites; and/ or<br>ï¿½ be contacted by Look8us in accordance 
 									with the privacy settings set by you.<br>The right to use the services of the Website 
 									is on revocable license / permission basis 
 									as per the terms and conditions contained 
@@ -339,12 +344,12 @@ Services
 									the customers. At present we have two modes 
 									of delivery - online digital download from 
 									the website and physical shipment like DVD.<br>
-									• Online digital delivery of content is 
+									ï¿½ Online digital delivery of content is 
 									through internet, i.e., downloading the 
 									subscribed course content from 
 									www.meritnation.com website to Look8us 
 									software<br>
-									• The physical delivery of the paid 
+									ï¿½ The physical delivery of the paid 
 									subscription will be shipped in 2 working 
 									days of the receipt of funds through speed 
 									post or courier like BlueDart. The delivery 
@@ -353,7 +358,7 @@ Services
 									The user may track the shipment by logging 
 									into Look8us website, in cases where the 
 									shipment agency provides such facility<br>
-									• The physical medium associated with free 
+									ï¿½ The physical medium associated with free 
 									Demo-DVD etc. is shipped by ordinary post in 
 									2 working days of receiving request<br>
 									The physical medium is shipped only to 
@@ -374,7 +379,7 @@ Services
 									Website<br>
 									<br>
 									The information/material provided on the 
-									Website is provided on an “As Is” basis. 
+									Website is provided on an ï¿½As Isï¿½ basis. 
 									Look8us does not warrant the accuracy, 
 									completeness, non-obsolescence, 
 									non-infringement, merchantability or fitness 
@@ -399,36 +404,36 @@ Services
 									any loss, injury, liability or damage of any 
 									kind resulting from and arising out of, or 
 									any way related to:<br>
-									</b>• Any errors in or omissions from the 
+									</b>ï¿½ Any errors in or omissions from the 
 									Website and its content, including but not 
 									limited to technical inaccuracies and 
 									typographical errors.<br>
-									• Any third party websites or content 
+									ï¿½ Any third party websites or content 
 									therein directly or indirectly accessed 
 									through links in the Website, including but 
 									not limited to any errors in or omissions 
 									there from.<br>
-									• The unavailability of this Website or any 
+									ï¿½ The unavailability of this Website or any 
 									portion thereof.<br>
-									• The use of any equipment or software in 
+									ï¿½ The use of any equipment or software in 
 									connection with the Website by the user.<br>
 									Limitation of Liability<br>
 									Under no circumstances shall Look8us be 
 									liable to any User for:<br>
-									• Loss, injury, claim, liability or damages 
+									ï¿½ Loss, injury, claim, liability or damages 
 									of any kind resulting from the use of or the 
 									inability to use the materials in the 
 									Website, even if Look8us had been advised 
 									of the possibility of such damages and 
 									regardless of the form of action, whether in 
 									contract, stated or otherwise.<br>
-									• Special, direct, incidental, punitive, 
+									ï¿½ Special, direct, incidental, punitive, 
 									exemplary or consequential damages of any 
 									kind whatsoever in any way due, resulting 
 									from or arising in connection with the use 
 									of or the inability to use the Website or 
 									its content / materials; and<br>
-									• Claim attributable to errors, omission or 
+									ï¿½ Claim attributable to errors, omission or 
 									inaccuracies in or destructive properties of 
 									any information. <br>
 									No Liability<br>
@@ -731,7 +736,7 @@ Services
 									offered by Look8us . The functions of the 
 									Service are dependent on the operator owning 
 									the network to facilitate this service 
-									(“Operator”), for which Look8us does not 
+									(ï¿½Operatorï¿½), for which Look8us does not 
 									undertake any responsibility for failure of 
 									this network transmission or failure of 
 									message transmission for any reasons 
@@ -823,7 +828,7 @@ Services
 									Look8us may require from time to time.<br>
 									25. This service is live in India only.<br>
 									<br>
-									<b>Copyright © 2014 Look8us .com. All rights 
+									<b>Copyright ï¿½ 2014 Look8us .com. All rights 
 									reserved. </b> </font><b><br>
 &nbsp;</b></td>
 								</tr>
@@ -841,7 +846,7 @@ Services
 </div>
 
 <div align="center">
-	<?php include("footer.php"); ?>
+	<?php require_once "footer.php"; ?>
 </div>
 
 </body>

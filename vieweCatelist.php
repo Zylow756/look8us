@@ -1,7 +1,12 @@
 <?php
-if(!isset($_SESSION))
-{
-session_start();
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
 }
 ?>
 
@@ -9,7 +14,7 @@ session_start();
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Look8US :Business Directory Kota, Rajasthan , India, Online Business Directory Kota,  Yellow Pages  kota Rajasthan , Trusted & Verified Businesses, Exporters, Manufacturers, Suppliers Directory, B2B Business Directory </title>
 <meta name="description" content="Look8us.com from Kota Rajasthan is Your local Business Directory , yellow pages  Business Directory. Business Details, Contacts, Products, Services & Verified Businesses, Exporters, Manufacturers, Suppliers Directory">
 <meta name="keywords" content=" Look8us.com , yellow pages Kota Rajasthan , business directory Kota Rajasthan india,business search engine, indian business directory, online business directory, Indian manufacturers, suppliers, Indian exporters directory, b2b portal, b2b business directory,manufacturer, importers, traders, dealers, buyers, ">
@@ -26,7 +31,7 @@ session_start();
 
 
 <div align="center">
-<?php include("header.php"); ?>
+<?php require_once "header.php"; ?>
 <table border="0" width="100%" height="100" cellpadding="0" style="border-collapse: collapse">
 	<tr>
 		<td bgcolor="#D2D2D2">
@@ -61,8 +66,11 @@ session_start();
  <?php 
  $flag=0;
 		 $st="Select * from ecate where ecateid=".$_GET["id"] ;
-		 		 $result=mysql_query($st,$con);
-		if ($row=mysql_fetch_array($result))
+		 		 $result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
+		if ($row=mysqli_fetch_assoc($result))
 			{
 			$flag=1;
 			}
@@ -72,7 +80,7 @@ session_start();
 											<td width="759" height="33" align="center"  style="background:rgba(0,90,180,0.9);" >
 											<font size="5" color="#FFFFFF">
 	 <?php  if( $flag==1)										
-      echo $row["catename"];?>
+      echo htmlspecialchars($row["catename"]);?>
 						</font></td>
 										</tr>
 										<tr>
@@ -82,7 +90,7 @@ session_start();
 													<td width="338" valign="top">
 													<p align="center">
 													&nbsp;<p align="center">
-													<img class="imgshad1" border="0" style="opacity:.90;" src="user/logo/<?php  if( $flag==1)echo $row['cateimg'];?>" width="280" height="323"></td>
+													<img class="imgshad1" border="0" style="opacity:.90;" src="user/logo/<?php  if( $flag==1)echo htmlspecialchars($row['cateimg']);?>" width="280" height="323"></td>
 													<td valign="top">
 													<table border="0" width="100%" id="table37" style="border-collapse: collapse">
 														<tr>
@@ -98,16 +106,19 @@ session_start();
 														
 												<?php 
 											 $st="Select * from eweblink where cateid=".$_GET["id"] ;
-											 		 $result=mysql_query($st,$con);
-											while ($row=mysql_fetch_array($result))
+											 		 $result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
+											while ($row=mysqli_fetch_assoc($result))
 												{
 												?><tr>
 																						
 														<td height="33" style="border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-style: dotted; border-bottom-width: 1px" bordercolor="#D2D2D2">
 																												
-														<a  class="big" href="http://<?php echo $row['wlink']; ?>" target="_blank" ><?php echo $row["wname"];?> </a> <br>
+														<a  class="big" href="http://<?php echo htmlspecialchars($row['wlink']); ?>" target="_blank" ><?php echo htmlspecialchars($row["wname"]); ?> </a> <br>
 														 
-														 <font size="2">Website : <a  class="a1" href="http://<?php echo $row['wlink']; ?>" target="_blank" ><?php echo $row['wlink']; ?></a>    &nbsp; &nbsp;   Contact No : <?php echo $row['mobile']; ?>
+														 <font size="2">Website : <a  class="a1" href="http://<?php echo htmlspecialchars($row['wlink']); ?>" target="_blank" ><?php echo htmlspecialchars($row['wlink']); ?></a>    &nbsp; &nbsp;   Contact No : <?php echo htmlspecialchars($row['mobile']); ?>
 															
 																											 
 														 </font>
@@ -167,7 +178,7 @@ session_start();
 </div>
 
 <div align="center">
-	<?php include("footer.php"); ?>
+	<?php require_once "footer.php"; ?>
 </div>
 
 </body>

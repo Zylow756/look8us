@@ -1,10 +1,20 @@
+<?php
+require_once "config.php";
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
+?>
 
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Online Directory : Admin Panel</title>
  <link rel="stylesheet" type="text/css" href="../akc.css" />
 
@@ -59,15 +69,14 @@ return true;
 </script>
 </head>
 
-<?php include("../config.php");
-session_start();
+<?php 
 		
 $msg=0;
 
 if (isset($_POST["submit"]))
 {
 $st="insert into agenquiry values (NULL ,'". $_POST["aname"]. "','". $_POST["cate"]. "','". $_POST["address"]. "','". $_POST["area"]. "','". $_POST["city"]. "','". $_POST["mobile"]. "','". $_POST["email"]. "',". $_SESSION['aid']. ",'".date("d-m-Y")."','Open','-','-','".$_POST["web"]."',1)" ;
-mysql_query($st,$con);
+mysqli_query($con,$st);
 $msg=1;
 
 
@@ -82,7 +91,7 @@ $msg=1;
 <div align="center">
 	<table border="0" width="980" id="table1" style="border-collapse: collapse" bordercolor="#E2E2E2" cellpadding="0">
 		<tr>
-			<td height="50" align="center" valign="top">	<?php  include("../header.php"); ?>		</td>		</tr>
+			<td height="50" align="center" valign="top">	<?php  require_once "../header.php"; ?>		</td>		</tr>
 		<tr>
 			<td height="12" align="center" valign="top" bgcolor="#697779">			
 					</td>
@@ -162,17 +171,20 @@ $msg=1;
 								
 		<?php 
 		 $st="Select * from agenquiry where aid=".$_SESSION['aid']." order by eid desc";
-		 		 $result=mysql_query($st,$con);
+		 		 $result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
 		 		
 
-		while ($row=mysql_fetch_array($result))
+		while ($row=mysqli_fetch_assoc($result))
 			{
 			?>
 								<tr>
-									<td width="155">&nbsp;&nbsp;<?php echo $row["ename"]; ?></td>
-									<td width="90">&nbsp;&nbsp;<?php echo $row["cate"]; ?></td>
-									<td width="65">&nbsp;<?php echo $row["mobile"]; ?></td>
-									<td width="65">&nbsp;<?php echo $row["edate"]; ?></td>
+									<td width="155">&nbsp;&nbsp;<?php echo htmlspecialchars($row["ename"]); ?></td>
+									<td width="90">&nbsp;&nbsp;<?php echo htmlspecialchars($row["cate"]); ?></td>
+									<td width="65">&nbsp;<?php echo htmlspecialchars($row["mobile"]); ?></td>
+									<td width="65">&nbsp;<?php echo htmlspecialchars($row["edate"]); ?></td>
 									<td width="60">&nbsp;&nbsp;&nbsp;<?php echo "<a class='a5' href='EditEnq.php?id=".$row['eid']."'>View</a>"; ?></td>
 								</tr>
 								
@@ -190,7 +202,7 @@ $msg=1;
 			</td>
 		</tr>
 		<tr>
-			<td height="57" align="center" valign="top">			<?php  include("../footer.php"); ?></td>
+			<td height="57" align="center" valign="top">			<?php  require_once "../footer.php"; ?></td>
 		</tr>
 	</table>
 </div>

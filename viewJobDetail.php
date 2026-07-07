@@ -1,7 +1,12 @@
 <?php
-if(!isset($_SESSION))
-{
-session_start();
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
 }
 ?>
 
@@ -9,7 +14,7 @@ session_start();
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Look8US :Business Directory Kota, Rajasthan , India, Online Business Directory Kota,  Yellow Pages  kota Rajasthan , Trusted & Verified Businesses, Exporters, Manufacturers, Suppliers Directory, B2B Business Directory </title>
 <meta name="description" content="Look8us.com from Kota Rajasthan is Your local Business Directory , yellow pages  Business Directory. Business Details, Contacts, Products, Services & Verified Businesses, Exporters, Manufacturers, Suppliers Directory">
 <meta name="keywords" content=" Look8us.com , yellow pages Kota Rajasthan , business directory Kota Rajasthan india,business search engine, indian business directory, online business directory, Indian manufacturers, suppliers, Indian exporters directory, b2b portal, b2b business directory,manufacturer, importers, traders, dealers, buyers, ">
@@ -26,7 +31,7 @@ session_start();
 
 
 <div align="center">
-<?php include("header.php"); ?>
+<?php require_once "header.php"; ?>
 <table border="0" width="100%" height="100" cellpadding="0" style="border-collapse: collapse">
 	<tr>
 		<td bgcolor="#D2D2D2">
@@ -91,9 +96,12 @@ $st="Select * from postjob where jid=".$_GET["id"];
 
 //echo $st;
 $i=1;
-$result=mysql_query($st,$con);
+$result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
 
-	if ($row=mysql_fetch_array($result))
+	if ($row=mysqli_fetch_assoc($result))
 	{	
 	
 	?>						
@@ -107,26 +115,26 @@ $result=mysql_query($st,$con);
 											<td width="1%" height="25">&nbsp;</td>
 											<td height="25" width="99%">
 											<b>
-											<font size="2">Category : <?php echo $row["cate"]; ?></font></b></td>
+											<font size="2">Category : <?php echo htmlspecialchars($row["cate"]); ?></font></b></td>
 										</tr>
 										<tr>
 											<td height="25"></td>
-											<td height="25"><b><font size="2"><?php echo $row["atitle"]; ?></font></b><font size="2">&nbsp;</font></td>
+											<td height="25"><b><font size="2"><?php echo htmlspecialchars($row["atitle"]); ?></font></b><font size="2">&nbsp;</font></td>
 										</tr>
 										<tr>
 											<td width="1%" height="25">&nbsp;</td>
 											<td height="25" width="99%">
-											<font size="2">Description : <?php echo $row["discr"]; ?></font></td>
+											<font size="2">Description : <?php echo htmlspecialchars($row["discr"]); ?></font></td>
 										</tr>
 										<tr>
 											<td width="1%" height="25">&nbsp;</td>
 											<td height="25" width="99%">
-											<font size="2">Post Date : <?php echo $row["y"]; ?></font></td>
+											<font size="2">Post Date : <?php echo htmlspecialchars($row["y"]); ?></font></td>
 										</tr>
 										<tr>
 											<td width="1%" height="25">&nbsp;</td>
 											<td height="25" width="99%">
-											<font size="2">Location : <?php echo $row["jobloc"]; ?>
+											<font size="2">Location : <?php echo htmlspecialchars($row["jobloc"]); ?>
 
 											</font>
 
@@ -136,37 +144,37 @@ $result=mysql_query($st,$con);
 										<tr>
 											<td width="1%" height="25"></td>
 											<td height="25" width="99%">
-											<font size="2"><?php echo $row["jtype"]; ?></font></td>
+											<font size="2"><?php echo htmlspecialchars($row["jtype"]); ?></font></td>
 										</tr>
 										<tr>
 											<td width="1%" height="25"></td>
 											<td height="25" width="99%">
-											<font size="2">Rs.<?php echo $row["srange"]." ".$row["stype"]; ?></font></td>
+											<font size="2">Rs.<?php echo htmlspecialchars($row["srange"])." ".htmlspecialchars($row["stype"]); ?></font></td>
 										</tr>
 										<tr>
 											<td width="1%" height="25"></td>
 											<td height="25" width="99%" bgcolor="#E3E3E3">
-											<font color="#000080"><b>Comapny/Industry/Shop Name : <?php echo $row["ename"]; ?></b></font></td>
+											<font color="#000080"><b>Comapny/Industry/Shop Name : <?php echo htmlspecialchars($row["ename"]); ?></b></font></td>
 										</tr>
 										<tr>
 											<td width="1%" height="25"></td>
 											<td height="25" width="99%">
-											<font size="2">Coontact No. :<?php echo $row["phone"]; ?></font></td>
+											<font size="2">Coontact No. :<?php echo htmlspecialchars($row["phone"]); ?></font></td>
 										</tr>
 										<tr>
 											<td width="1%" height="25"></td>
 											<td height="25" width="99%">
-											<font size="2">Email ID : <?php echo $row["email"]; ?></font></td>
+											<font size="2">Email ID : <?php echo htmlspecialchars($row["email"]); ?></font></td>
 										</tr>
 										<tr>
 											<td width="1%" height="25"></td>
 											<td height="25" width="99%">
-											<font size="2">City : <?php echo $row["city"]; ?></font></td>
+											<font size="2">City : <?php echo htmlspecialchars($row["city"]); ?></font></td>
 										</tr>
 										<tr>
 											<td width="1%" height="25"></td>
 											<td height="25" width="99%">
-											<font size="2">Website : <?php echo $row["web"]; ?></font></td>
+											<font size="2">Website : <?php echo htmlspecialchars($row["web"]); ?></font></td>
 										</tr>
 										
 																				
@@ -224,7 +232,7 @@ $result=mysql_query($st,$con);
 </div>
 
 <div align="center">
-	<?php include("footer.php"); ?>
+	<?php require_once "footer.php"; ?>
 </div>
 
 </body>

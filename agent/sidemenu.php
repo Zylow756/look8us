@@ -1,4 +1,14 @@
+<?php
+require_once "config.php";
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
+?>
 
 <div align="center">
 	<table  border="0" width="100%" id="table1"  class="table3" style="border-collapse: collapse" cellpadding="0">

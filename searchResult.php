@@ -1,7 +1,12 @@
 <?php
-if(!isset($_SESSION))
-{
-session_start();
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
 }
 
 if (isset($_POST["sea"]))
@@ -19,7 +24,7 @@ if (isset($_POST["sea"]))
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Online Directory Service</title>
  <link rel="stylesheet" type="text/css" href="akc.css" />
 
@@ -29,7 +34,7 @@ if (isset($_POST["sea"]))
 
 
 <div align="center">
-<?php include("header.php"); ?>
+<?php require_once "header.php"; ?>
 <table border="0" width="100%" height="100" cellpadding="0" style="border-collapse: collapse">
 	<tr>
 		<td bgcolor="#D2D2D2">
@@ -91,9 +96,12 @@ else
 
 //echo $st;
 $i=1;
-$result=mysql_query($st,$con);
+$result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
 
-	while ($row=mysql_fetch_array($result))
+	while ($row=mysqli_fetch_assoc($result))
 	{	
 	
 	?>
@@ -106,8 +114,12 @@ $result=mysql_query($st,$con);
 	<?php
 									
 $st="Select * from memberdetail where catdid =".$row['catdid'];
-$result1=mysql_query($st,$con);
-$ns = mysql_num_rows($result1);
+$result1=mysqli_query($con,$st);
+if (!$result1) {
+    die(mysqli_error($con));
+}
+
+$ns = mysqli_num_rows($result1);
 echo "(".$ns.")";
 	?>
 				
@@ -146,7 +158,7 @@ echo "(".$ns.")";
 </div>
 
 <div align="center">
-	<?php include("footer.php"); ?>
+	<?php require_once "footer.php"; ?>
 </div>
 
 </body>

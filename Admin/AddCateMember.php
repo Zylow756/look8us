@@ -1,16 +1,19 @@
 <?php
+require_once "config.php";
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
 
 
-if ( isset($_SESSION['user']))
- {
-   if($_SESSION['user']=="") 
- 	header("location: index.php?r=0"); 
- }
-else
- 		header("location: index.php?r=0"); 
-
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
   
  ?>
 
@@ -18,23 +21,23 @@ else
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta http-equiv="Content- type" content="text/html; charset=windows-1252">
 <title>Online Directory : Admin Panel</title>
- <link rel="stylesheet" type="text/css" href="../akc.css" />
+ <link rel="stylesheet"  type="text/css" href="../akc.css" />
 
 
-<script type="text/javascript" src="scripts/jquery.min.js"></script>
-<script type="text/javascript" src="scripts/jquery.form.js"></script>
+<script  type="text/javascript" src="scripts/jquery.min.js"></script>
+<script  type="text/javascript" src="scripts/jquery.form.js"></script>
 
 
 
-<script type="text/javascript" >
+<script  type="text/javascript" >
  $(document).ready(function()
   { 
 	
      
       
- $("#cname").click('change',function()
+ $("#cname").on("change", function ()
   {
      
 
@@ -58,7 +61,7 @@ else
 </script>
 
 
-<style type="text/css"> 
+<style  type="text/css"> 
 
 body
 {
@@ -72,16 +75,20 @@ background-color: #70828F;;
 </head>
 
 <?php
-include("../config.php"); 
-
 $msg=0;
 			
 if ( isset($_POST['submit0']))
 {
-if ($_POST["subcate"]<>0)
+if ((int)$_POST['subcate'] !== 0)
 {
-$s="insert into memberdetail values (NULL,".$_POST['mid'].",".$_POST["cname"].",".$_POST["subcate"].")"  ;
-mysql_query($s,$con);
+$mid     = (int)$_POST['mid'];
+$cname   = (int)$_POST['cname'];
+$subcate = (int)$_POST['subcate'];
+
+$s = "insert into memberdetail VALUES (NULL,$mid,$cname,$subcate)";
+if (!mysqli_query($con, $s)) {
+    die(mysqli_error($con));
+}
 $msg=1;
  }
 }
@@ -90,8 +97,13 @@ $msg=1;
 if ( isset($_GET['id']))
 {
 
-$s="delete from memberdetail where mdid=".$_GET["id"];
-mysql_query($s,$con);
+$id = (int)($_GET['id'] ?? 0);
+
+$s = "DELETE FROM memberdetail WHERE mdid=$id";
+mysqli_query($con, $s);
+if (!mysqli_query($con, $s)) {
+    die(mysqli_error($con));
+}
 
 $msg=2;
 
@@ -105,7 +117,7 @@ $msg=2;
 <div align="center">
 	<table border="0" width="980" id="table1" style="border-collapse: collapse" bordercolor="#E2E2E2" cellpadding="0">
 		<tr>
-			<td height="50" align="center" valign="top">	<?php  include("../header.php"); ?>		</td>		</tr>
+			<td height="50" align="center" valign="top">	<?php  require_once "../header.php"; ?>		</td>		</tr>
 		<tr>
 			<td height="12" align="center" valign="top" bgcolor="#697779">			
 					</td>
@@ -114,7 +126,9 @@ $msg=2;
 			<td>
 			<table border="0" width="100%" id="table2" style="border-collapse: collapse" bordercolor="#CCCCCC" height="206" cellpadding="0">
 				<tr>
-					<td width="228" valign="top" bgcolor="#EEEEEE">			<?php if ($_SESSION["id"]!="") include("sidemenu.php"); ?></td>
+					<td width="228" valign="top" bgcolor="#EEEEEE">			<?php if (!empty($_SESSION['id'])) {
+    require_once "sidemenu.php";
+} require_once "sidemenu.php"; ?></td>
 					<td align="center" valign="top" bgcolor="#FFFFFF">
 					<h1>Add Category to Member<br>
 &nbsp;</h1>
@@ -136,13 +150,16 @@ elseif  ($msg==2) echo "<h3>Category Delete from your Acccount</h3>" ;
 <?php
 $st="Select * from member order by compname, mname";
 $i=1;
-$result=mysql_query($st,$con);
+$result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
 
-	while ($row=mysql_fetch_array($result))
+	while ($row = mysqli_fetch_assoc($result))
 	{	
 	
 	?>
-	<option value="<?php echo $row['mid'] ; ?>" <?php if (isset($_POST['mid'])) if($_POST['mid']==$row['mid']) echo 'selected'; ?>  > <?php echo $row["compname"]." (". $row["mname"].")" ; ?></option>
+	<option value="<?php echo htmlspecialchars($row['mid']); ?>" <?php if (isset($_POST['mid'])) if($_POST['mid']==$row['mid']) echo 'selected'; ?>  > <?php echo htmlspecialchars($row["compname"]." (". $row["mname"].")"); ?></option>
 	
 	
 	<?php
@@ -152,7 +169,7 @@ $result=mysql_query($st,$con);
 					</select>								
 							</td>
 							<td>
-	<input  class="subbox" type="submit" value="Show" name="submit"/></td>
+	<input  class="subbox"  type="submit" value="Show" name="submit"/></td>
 						</tr>
 					</table>
 					
@@ -176,25 +193,35 @@ $result=mysql_query($st,$con);
 								</tr>
 			<?php						
 
-$st="Select * from memberdetail,category,catedetail where memberdetail.cateid=category.cateid and memberdetail.catdid=catedetail.catdid and  mid=".$_POST["mid"];
+$mid = (int)$_POST['mid'];
+
+$st = "SELECT * FROM memberdetail,category,catedetail
+WHERE memberdetail.cateid=category.cateid
+AND memberdetail.catdid=catedetail.catdid
+AND mid=$mid";
 
 //echo $st;
 $i=1;
-$result=mysql_query($st,$con);
+$result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
 
-	while ($row=mysql_fetch_array($result))
+	while ($row = mysqli_fetch_assoc($result))
 	{	
 	
 	?>
 				
 								<tr>
 									<td height="29" width="6%" style="text-align: center">&nbsp;<?php echo $i; ?></td>
-									<td height="29" width="41%" style="text-align: left">&nbsp;<?php echo $row["cname"]; ?></td>
-									<td height="29" width="43%" style="text-align: left">&nbsp;<?php echo $row["cdname"]; ?></td>
+									<td height="29" width="41%" style="text-align: left">&nbsp;<?php echo htmlspecialchars($row["cname"]); ?></td>
+									<td height="29" width="43%" style="text-align: left">&nbsp;<?php echo htmlspecialchars($row["cdname"]); ?></td>
 									<td height="29" width="9%" style="text-align: left">&nbsp;
-									<?php
-			echo "<a class='a2' href='AddCateMember.php?id=".$row['mdid']."'>Del</a>";  
-			?>
+									
+			<a href="AddCateMember.php?id=<?php echo htmlspecialchars($row['mdid']); ?>"
+   onclick="return confirm('Delete this category?');">
+   Delete
+</a>  
 </td>
 								</tr>
 								
@@ -232,11 +259,14 @@ $result=mysql_query($st,$con);
 	<option value='0' >Please Select</option>
 		<?php 
 		 $st="Select * from category order by cname";
-		 $result=mysql_query($st,$con);
-		while ($row=mysql_fetch_array($result))
+		 $result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
+		while ($row = mysqli_fetch_assoc($result))
 			{
 			?>
-		<option value='<?php echo $row["cateid"]; ?>' <?php if (isset($_POST["cname"])){if ($_POST["cname"]==$row["cateid"]) echo "Selected" ;} ?> > <?php echo $row["cname"]; ?></option>
+		<option value='<?php echo htmlspecialchars($row["cateid"]); ?>' <?php if (isset($_POST["cname"])){if ($_POST["cname"]==$row["cateid"]) echo "Selected" ;} ?> > <?php echo htmlspecialchars($row["cname"]); ?></option>
 			<?php
 			}
 			?>
@@ -260,12 +290,19 @@ $result=mysql_query($st,$con);
 	<?php 
 	if (isset($_POST["cname"]))
 	{
-		 $st="Select * from catedetail where cateid=".$_POST["cname"]." order by cdname";
-		 $result=mysql_query($st,$con);
-		while ($row=mysql_fetch_array($result))
+		 $cateid = (int)$_POST['cname'];
+
+$st = "SELECT * FROM catedetail
+WHERE cateid=$cateid
+ORDER BY cdname";
+		 $result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
+		while ($row = mysqli_fetch_assoc($result))
 			{
 			?>
-		<option value='<?php echo $row["catdid"]; ?>' > <?php echo $row["cdname"]; ?></option>
+		<option value='<?php echo htmlspecialchars($row["catdid"]); ?>' > <?php echo htmlspecialchars($row["cdname"]); ?></option>
 			<?php
 			}
 	}
@@ -280,7 +317,7 @@ $result=mysql_query($st,$con);
 			<td width="103">&nbsp;</td>
 			<td width="191" style="border-left-style: dotted; border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-style: dotted; border-bottom-width: 1px" bordercolor="#C0C0C0">&nbsp;</td>
 			<td width="315" style="border-left-width: 1px; border-right-style: dotted; border-right-width: 1px; border-top-width: 1px; border-bottom-style: dotted; border-bottom-width: 1px" bordercolor="#C0C0C0">
-	<input  class="subbox" type="submit" value="Add Category" name="submit0"/></td>
+	<input  class="subbox"  type="submit" value="Add Category" name="submit0"/></td>
 			<td width="132">
 	&nbsp;</td>
 		</tr>
@@ -299,7 +336,7 @@ $result=mysql_query($st,$con);
 			</td>
 		</tr>
 		<tr>
-			<td height="57" align="center" valign="top">			<?php  include("../footer.php"); ?></td>
+			<td height="57" align="center" valign="top">			<?php  require_once "../footer.php"; ?></td>
 		</tr>
 	</table>
 </div>

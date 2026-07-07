@@ -1,8 +1,19 @@
+<?php
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
+?>
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Online Directory : Admin Panel</title>
  <link rel="stylesheet" type="text/css" href="../akc.css" />
 
@@ -18,11 +29,6 @@ background-color: #70828F;;
 </head>
 
 <?php
-session_start();
-
- 
-include("../config.php");
-
 //	$ip = getenv('HTTP_CLIENT_IP')?: getenv('HTTP_X_FORWARDED_FOR')?: 	getenv('HTTP_X_FORWARDED')?: 	getenv('HTTP_FORWARDED_FOR')?: 	getenv('HTTP_FORWARDED')?: 	getenv('REMOTE_ADDR');
 		
 $ip = getenv('REMOTE_ADDR');
@@ -40,10 +46,13 @@ $ip = getenv('REMOTE_ADDR');
 		
 	 
 	 	$s="select * from agent  where us='".$_POST['t1']."' and pass='".$pass."'" ;
-		$r=mysql_query($s,$con);
+		$r=mysqli_query($con,$s);
+if (!$r) {
+    die(mysqli_error($con));
+}
          
 		//echo $s;
-		if ($row=mysql_fetch_array($r))
+		if ($row=mysqli_fetch_assoc($r))
 			{
 			
 				if( ($row['us']==$_POST['t1']) and ($pass==$row['pass']) )
@@ -52,7 +61,7 @@ $ip = getenv('REMOTE_ADDR');
 					$_SESSION['aid']=$row['aid'];
 					
 				$st="insert into loginlog values(NULL,'".$row["us"]."',".$row["aid"].",'".date("d/M/Y")."','".date("h:i:s a")."','".$rhost."','".$_SERVER['REMOTE_ADDR']."','Success','-')";										
-				mysql_query($st,$con);
+				mysqli_query($con,$st);
 			
 				
 				}
@@ -72,7 +81,7 @@ $ip = getenv('REMOTE_ADDR');
 			$_SESSION['aid']=0;
 			
 			$st="insert into loginlog values(NULL,'".$_POST["t1"]."',0,'".date("d/M/Y")."','".date("h:i:s a")."','".$rhost."','".$_SERVER['REMOTE_ADDR']."','Fail','-')";										
-			mysql_query($st,$con);
+			mysqli_query($con,$st);
 					
 			header("location: index.php?r=0");
 			
@@ -91,7 +100,7 @@ $ip = getenv('REMOTE_ADDR');
 <div align="center">
 	<table border="0" width="980" id="table1" style="border-collapse: collapse" bordercolor="#E2E2E2" cellpadding="0">
 		<tr>
-			<td height="50" align="center" valign="top">	<?php  include("../header.php"); ?>		</td>		</tr>
+			<td height="50" align="center" valign="top">	<?php  require_once "../header.php"; ?>		</td>		</tr>
 		<tr>
 			<td height="12" align="center" valign="top" bgcolor="#697779">			
 					</td>
@@ -123,7 +132,7 @@ $ip = getenv('REMOTE_ADDR');
 			</td>
 		</tr>
 		<tr>
-			<td height="57" align="center" valign="top">			<?php  include("../footer.php"); ?></td>
+			<td height="57" align="center" valign="top">			<?php  require_once "../footer.php"; ?></td>
 		</tr>
 	</table>
 </div>

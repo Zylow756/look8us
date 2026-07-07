@@ -1,8 +1,14 @@
-<?php 
-if(!isset($_SESSION))
-	{
-	session_start();
-	}
+<?php
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
+
 include("setup.php");
 
 $msg=0;
@@ -32,16 +38,19 @@ $msg=0;
 <td height="65" width="39%" align="left" >
 <?php 
 $st="Select * from store  where storeid=1";
-							$result=mysql_query($st,$con);
-							if ($row=mysql_fetch_array($result))
+							$result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
+							if ($row=mysqli_fetch_assoc($result))
 								{
 								?>
-								<p align="left"><font color="#000000"><b><font size="3"><?php echo $row['storename']; ?><br></font>Address : </b>:	<?php echo $row['address']; ?> <br>
-								<?php echo $row['city']; ?> &nbsp;,  <?php echo $row['state']; ?>
+								<p align="left"><font color="#000000"><b><font size="3"><?php echo htmlspecialchars($row['storename']); ?><br></font>Address : </b>:	<?php echo htmlspecialchars($row['address']); ?> <br>
+								<?php echo htmlspecialchars($row['city']); ?> &nbsp;,  <?php echo htmlspecialchars($row['state']); ?>
 								
-								<br> <b>Phone : </b><?php echo $row['phone']; ?>
-								<br> <b>Email : </b><?php echo $row['email']; ?>
-								<br> <b>Website : </b><?php echo $row['helpline']; ?>&nbsp;</font>
+								<br> <b>Phone : </b><?php echo htmlspecialchars($row['phone']); ?>
+								<br> <b>Email : </b><?php echo htmlspecialchars($row['email']); ?>
+								<br> <b>Website : </b><?php echo htmlspecialchars($row['helpline']); ?>&nbsp;</font>
 
 								<?php
 								}
@@ -99,9 +108,12 @@ $st="Select * from store  where storeid=1";
 				//echo $st;
 				$i=1;
 				$tot=0;
-				$result=mysql_query($st,$con);
+				$result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
 				
-					while ($row=mysql_fetch_array($result))
+					while ($row=mysqli_fetch_assoc($result))
 					{	
 					
 					?>
@@ -110,16 +122,16 @@ $st="Select * from store  where storeid=1";
                                 <tr class="odd gradeX">
                                     <td height="24"><font face="Arial" size="2"><?php echo $i; ?></font></td>
                                     <td class="hidden-phone" height="24">
-									<font face="Arial" size="2"><?php echo $row["catname"]; ?></font></td>
+									<font face="Arial" size="2"><?php echo htmlspecialchars($row["catname"]); ?></font></td>
                                     <td height="24" >
-									<font face="Arial" size="2"><?php echo $row["cname"]; ?></font></td>
+									<font face="Arial" size="2"><?php echo htmlspecialchars($row["cname"]); ?></font></td>
                                     
-                                    <td height="24"><font face="Arial" size="2"><?php echo $row["pname"]; ?></font></td>
+                                    <td height="24"><font face="Arial" size="2"><?php echo htmlspecialchars($row["pname"]); ?></font></td>
                                      <td height="24" >
-										<font face="Arial" size="2"><?php echo $row["ptitle"]; ?></font></td>
+										<font face="Arial" size="2"><?php echo htmlspecialchars($row["ptitle"]); ?></font></td>
                                     
                                     <td  align="center" height="24">
-									<font face="Arial" size="2"><?php echo $row["minqty"]; ?></font></td>
+									<font face="Arial" size="2"><?php echo htmlspecialchars($row["minqty"]); ?></font></td>
                                    
                                     <td  align="center" height="24">
                                     
@@ -128,13 +140,13 @@ $st="Select * from store  where storeid=1";
                                      <?php if ($row["qty"]<$row["minqty"]) 
                                      { ?>
                                     <span class="label label-important">
-                                    <?php echo $row["qty"]; ?>
+                                    <?php echo htmlspecialchars($row["qty"]); ?>
                                     </span>
                                     <?php
                                     }
                                     else
                                     {
-                                     echo $row["qty"]; 
+                                     echo htmlspecialchars($row["qty"]); 
                                     
 									}
 									  ?>
@@ -146,10 +158,10 @@ $st="Select * from store  where storeid=1";
                                     </td>
                                    
                                     <td class="center hidden-phone" align="center" height="24">
-									<font face="Arial" size="2"><?php echo $row["uname"]; ?></font></td>
+									<font face="Arial" size="2"><?php echo htmlspecialchars($row["uname"]); ?></font></td>
                                    
                                     <td  align="center" height="24">
-									<font face="Arial" size="2"><?php echo $row["reqqty"]; ?></font></td>
+									<font face="Arial" size="2"><?php echo htmlspecialchars($row["reqqty"]); ?></font></td>
                                     
                                    
                                     

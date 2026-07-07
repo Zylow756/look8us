@@ -1,7 +1,18 @@
+<?php
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
+?>
 <html>
 
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Online Directory</title>
  <link rel="stylesheet" type="text/css" href="../akc.css" />
 
@@ -11,7 +22,7 @@
 
 <table border="0" width="100%" id="table1" style="border-collapse: collapse" bordercolor="#C0C0C0" cellpadding="0">
 	<tr>
-		<td height="20" bgcolor="#E2E2E2"><?php  include("../header.php"); ?></td>
+		<td height="20" bgcolor="#E2E2E2"><?php  require_once "../header.php"; ?></td>
 	</tr>
 	<tr>
 		<td align="center" valign="top">
@@ -32,7 +43,7 @@
 		</td>
 	</tr>
 	<tr>
-		<td bgcolor="#F5F5F5" height="20"><?php  include("../footer.php"); ?></td>
+		<td bgcolor="#F5F5F5" height="20"><?php  require_once "../footer.php"; ?></td>
 	</tr>
 </table>
 

@@ -1,8 +1,19 @@
+<?php
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
+?>
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Online Directory : Admin Panel</title>
  <link rel="stylesheet" type="text/css" href="../akc.css" />
 
@@ -18,10 +29,6 @@ background-color: #70828F
 </head>
 
 <?php
-session_start();
-
- 
-include("../config.php");
  
  if (isset($_GET['user']))
  {
@@ -44,9 +51,12 @@ $_SESSION['mplan']=$_GET['mplan'];
 				
 			 
 			 	$s="select * from member  where (uname='".$_POST['t1']."' or email='".$_POST['t1']."') and pass='".$pass."' and mstatus=0" ;
-				$r=mysql_query($s,$con);
+				$r=mysqli_query($con,$s);
+if (!$r) {
+    die(mysqli_error($con));
+}
         		// echo $s;
-					if ($row=mysql_fetch_array($r))
+					if ($row=mysqli_fetch_assoc($r))
 						{
 									if( ((strtoupper($row['uname'])==strtoupper($_POST['t1'])) or (strtoupper($row['email'])==strtoupper($_POST['t1']))) and ($pass==$row['pass']) )
 									{
@@ -98,7 +108,7 @@ $_SESSION['mplan']=$_GET['mplan'];
 <div align="center">
 	<table border="0" width="980" id="table1" style="border-collapse: collapse" bordercolor="#E2E2E2" cellpadding="0">
 		<tr>
-			<td height="50" align="center" valign="top">	<?php  include("../header.php"); ?>		</td>
+			<td height="50" align="center" valign="top">	<?php  require_once "../header.php"; ?>		</td>
 		</tr>
 		<tr>
 			<td height="12" align="center" valign="top" bgcolor="#697779">			
@@ -121,8 +131,11 @@ $_SESSION['mplan']=$_GET['mplan'];
 												
 							<?php 
 		 $st="Select * from member where mid=".$_SESSION["mid"];
-		 		 $result1=mysql_query($st,$con);
-		if ($row=mysql_fetch_array($result1))
+		 		 $result1=mysqli_query($con,$st);
+if (!$result1) {
+    die(mysqli_error($con));
+}
+		if ($row=mysqli_fetch_assoc($result1))
 			{
 			?>
 
@@ -130,7 +143,7 @@ $_SESSION['mplan']=$_GET['mplan'];
 								<tr>
 									<td width="199" height="25">&nbsp;<b><font size="2" color="#003366">User ID
 									</font></b> </td>
-									<td height="25">&nbsp;<font color="#FF0000" size="2"><?php echo $row["uname"]; ?></font></td>
+									<td height="25">&nbsp;<font color="#FF0000" size="2"><?php echo htmlspecialchars($row["uname"]); ?></font></td>
 								</tr>
 								<tr>
 									<td width="199" height="25"><b>
@@ -138,14 +151,14 @@ $_SESSION['mplan']=$_GET['mplan'];
 									Membership 
 									Plan</font></b></td>
 									<td height="25"><b>
-									<font color="#FF0000" size="2">&nbsp;<?php echo $row["mplan"]; ?></font></b></td>
+									<font color="#FF0000" size="2">&nbsp;<?php echo htmlspecialchars($row["mplan"]); ?></font></b></td>
 								</tr>
 								<tr>
 									<td width="199" height="25"><b>
 									<font size="2" color="#003366">&nbsp;Plan 
 									Start Date</font></b></td>
 									<td height="25"><b>
-									<font color="#FF0000" size="2">&nbsp;<?php echo $row["x"]; ?></font></b></td>
+									<font color="#FF0000" size="2">&nbsp;<?php echo htmlspecialchars($row["x"]); ?></font></b></td>
 								</tr>
 								<tr>
 									<td width="199" height="25">
@@ -199,7 +212,7 @@ $_SESSION['mplan']=$_GET['mplan'];
 			</td>
 		</tr>
 		<tr>
-			<td height="57" align="center" valign="top">			<?php  include("../footer.php"); ?></td>
+			<td height="57" align="center" valign="top">			<?php  require_once "../footer.php"; ?></td>
 		</tr>
 	</table>
 </div>

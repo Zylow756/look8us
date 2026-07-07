@@ -1,4 +1,13 @@
-<?php 
+<?php
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
 
 include("setup.php");
 
@@ -7,8 +16,11 @@ include("setup.php");
 			{
 				$i=1;	
 				$st="Select * from pur_request where purid=".$_GET["id"];
-				$result0=mysql_query($st,$con);
-				  if ($row0=mysql_fetch_array($result0))
+				$result0=mysqli_query($con,$st);
+if (!$result0) {
+    die(mysqli_error($con));
+}
+				  if ($row0=mysqli_fetch_assoc($result0))
 					{
 						//echo $st ;
 					?>
@@ -22,16 +34,20 @@ include("setup.php");
 <td height="65" width="39%" align="left" >
 <?php 
 $st="Select * from store  where storeid=1";
-							$result=mysql_query($st,$con);
-							if ($row=mysql_fetch_array($result))
+							$result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
+
+							if ($row=mysqli_fetch_assoc($result))
 								{
 								?>
-								<p align="left"><font color="#000000"><b><font size="3"><?php echo $row['storename']; ?><br></font>Address : </b>:	<?php echo $row['address']; ?> <br>
-								<?php echo $row['city']; ?> &nbsp;,  <?php echo $row['state']; ?>
+								<p align="left"><font color="#000000"><b><font size="3"><?php echo htmlspecialchars($row['storename']); ?><br></font>Address : </b>:	<?php echo htmlspecialchars($row['address']); ?> <br>
+								<?php echo htmlspecialchars($row['city']); ?> &nbsp;,  <?php echo htmlspecialchars($row['state']); ?>
 								
-								<br> <b>Phone : </b><?php echo $row['phone']; ?>
-								<br> <b>Email : </b><?php echo $row['email']; ?>
-								<br> <b>Website : </b><?php echo $row['helpline']; ?>&nbsp;</font>
+								<br> <b>Phone : </b><?php echo htmlspecialchars($row['phone']); ?>
+								<br> <b>Email : </b><?php echo htmlspecialchars($row['email']); ?>
+								<br> <b>Website : </b><?php echo htmlspecialchars($row['helpline']); ?>&nbsp;</font>
 
 								<?php
 								}
@@ -49,20 +65,23 @@ $st="Select * from store  where storeid=1";
 								<td><br>
 								   <?php						
 									$st="Select * from supplier where sid=".$row0['suppid'];
-									$result=mysql_query($st,$con);
-									if ($row=mysql_fetch_array($result))
+									$result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
+									if ($row=mysqli_fetch_assoc($result))
 									{	
 									?>
 									 
 							<font color="#000000"><b><font size="3">
-								<b><?php echo $row["sname"]; ?></b>	</font>	
+								<b><?php echo htmlspecialchars($row["sname"]); ?></b>	</font>	
 														
-								<br> Address </b>:	<?php echo $row['address']; ?> <br>
-								<?php echo $row['city']; ?> &nbsp;,  <?php echo $row['pincode']; ?>
+								<br> Address </b>:	<?php echo htmlspecialchars($row['address']); ?> <br>
+								<?php echo htmlspecialchars($row['city']); ?> &nbsp;,  <?php echo htmlspecialchars($row['pincode']); ?>
 								
-								<br> <b>Phone : </b><?php echo $row['mobile']; ?>
-								<br> <b>GST : </b><?php echo $row['gst']; ?>
-								<br> <b>Email : </b><?php echo $row['email']; ?></font>
+								<br> <b>Phone : </b><?php echo htmlspecialchars($row['mobile']); ?>
+								<br> <b>GST : </b><?php echo htmlspecialchars($row['gst']); ?>
+								<br> <b>Email : </b><?php echo htmlspecialchars($row['email']); ?></font>
 
 								 <?php 								
 									}
@@ -77,7 +96,7 @@ $st="Select * from store  where storeid=1";
 										<td width="14" align="center">
 									 
 							<font color="#000000">:</font></td>
-										<td><font color="#000000">&nbsp;<?php echo $row['scode']; ?></font></td>
+										<td><font color="#000000">&nbsp;<?php echo htmlspecialchars($row['scode']); ?></font></td>
 									</tr>
 									<tr>
 										<td width="132"><font color="#000000">PO No. 
@@ -85,7 +104,7 @@ $st="Select * from store  where storeid=1";
 										<td width="14" align="center">
 									 
 							<font color="#000000">:</font></td>
-										<td><font color="#000000">&nbsp;<?php echo $row0['pono']; ?></font></td>
+										<td><font color="#000000">&nbsp;<?php echo htmlspecialchars($row0['pono']); ?></font></td>
 									</tr>
 									<tr>
 										<td width="132"><font color="#000000">Date 
@@ -93,7 +112,7 @@ $st="Select * from store  where storeid=1";
 										<td width="14" align="center">
 									 
 							<font color="#000000">:</font></td>
-										<td><font color="#000000">&nbsp;<?php echo $row0['podate']; ?></font></td>
+										<td><font color="#000000">&nbsp;<?php echo htmlspecialchars($row0['podate']); ?></font></td>
 									</tr>
 									<tr>
 										<td width="132"><font color="#000000">Deli.Period 
@@ -101,7 +120,7 @@ $st="Select * from store  where storeid=1";
 										<td width="14" align="center">
 									 
 							<font color="#000000">:</font></td>
-										<td><font color="#000000">&nbsp;<?php echo $row0['deliper']; ?></font></td>
+										<td><font color="#000000">&nbsp;<?php echo htmlspecialchars($row0['deliper']); ?></font></td>
 									</tr>
 									<tr>
 										<td width="132"><font color="#000000">Disp. Through
@@ -109,7 +128,7 @@ $st="Select * from store  where storeid=1";
 										<td width="14" align="center">
 									 
 							<font color="#000000">:</font></td>
-										<td><font color="#000000">&nbsp;<?php echo $row0['dispthro']; ?></font></td>
+										<td><font color="#000000">&nbsp;<?php echo htmlspecialchars($row0['dispthro']); ?></font></td>
 									</tr>
 									<tr>
 										<td width="132"><font color="#000000">Freight 
@@ -117,7 +136,7 @@ $st="Select * from store  where storeid=1";
 										<td width="14" align="center">
 									 
 							<font color="#000000">:</font></td>
-										<td><font color="#000000">&nbsp;<?php echo $row0['freight']; ?></font></td>
+										<td><font color="#000000">&nbsp;<?php echo htmlspecialchars($row0['freight']); ?></font></td>
 									</tr>
 									<tr>
 										<td width="132"><font color="#000000">Payment Terms 
@@ -125,7 +144,7 @@ $st="Select * from store  where storeid=1";
 										<td width="14" align="center">
 									 
 							<font color="#000000">:</font></td>
-										<td><font color="#000000">&nbsp;<?php echo $row0['payterm']; ?></font></td>
+										<td><font color="#000000">&nbsp;<?php echo htmlspecialchars($row0['payterm']); ?></font></td>
 									</tr>
 								</table>
 								</div>
@@ -170,8 +189,11 @@ $st="Select * from store  where storeid=1";
 						$st="Select * from pur_request_detail,product,punit where unitid=uid and pur_request_detail.pid=product.pid and purid=".$_GET["id"]." order by purdid";
 						//echo $st;
 						
-						$result1=mysql_query($st,$con);
-						while ($row1=mysql_fetch_array($result1))
+						$result1=mysqli_query($con,$st);
+if (!$result1) {
+    die(mysqli_error($con));
+}
+						while ($row1=mysqli_fetch_assoc($result1))
 						 { 
 						
 						
@@ -179,28 +201,28 @@ $st="Select * from store  where storeid=1";
 						 ?>	 <tr><td align="center"><font color="#000000">&nbsp;<?php echo $i; ?>
 									</font>
 									</td>
-									<td align="left"> <font color="#000000">&nbsp;<?php  echo $row1['pname']; ?> &nbsp;( <?php  echo $row1['ptitle']; ?> ) <br>&nbsp;[<?php  echo $row1['pdetail']; ?>]
+									<td align="left"> <font color="#000000">&nbsp;<?php  echo htmlspecialchars($row1['pname']); ?> &nbsp;( <?php  echo htmlspecialchars($row1['ptitle']); ?> ) <br>&nbsp;[<?php  echo htmlspecialchars($row1['pdetail']); ?>]
 									</font>
 									</td>
-									<td align="center"><font color="#000000"><?php  echo $row1['hsn']; ?>
+									<td align="center"><font color="#000000"><?php  echo htmlspecialchars($row1['hsn']); ?>
 									</font>
 									</td>
-									<td align="center"><font color="#000000"><?php  echo $row1['pgst']; ?>
+									<td align="center"><font color="#000000"><?php  echo htmlspecialchars($row1['pgst']); ?>
 									</font>
 									</td>
-									<td align="center"><font color="#000000"><?php  echo $row1['pqty']; ?>
+									<td align="center"><font color="#000000"><?php  echo htmlspecialchars($row1['pqty']); ?>
 									</font>
 									</td>									
-									<td align="center"><font color="#000000"><?php  echo $row1['prate']; ?>
+									<td align="center"><font color="#000000"><?php  echo htmlspecialchars($row1['prate']); ?>
 									</font>
 									</td>
-									<td align="center"><font color="#000000"><?php  echo $row1['uom']; ?>
+									<td align="center"><font color="#000000"><?php  echo htmlspecialchars($row1['uom']); ?>
 									</font>
 									</td>
-									<td align="center"><font color="#000000"><?php  echo $row1['pdis']; ?>
+									<td align="center"><font color="#000000"><?php  echo htmlspecialchars($row1['pdis']); ?>
 									</font>
 									</td>									
-									<td align="center"><font color="#000000"><?php  echo $row1['ptot']; ?>
+									<td align="center"><font color="#000000"><?php  echo htmlspecialchars($row1['ptot']); ?>
 									</font>
 									</td>							
 						</tr><?php
@@ -268,7 +290,7 @@ $st="Select * from store  where storeid=1";
 								<td width="9" height="22">
                                  <font color="#000000" face="Arial"><b>:</b></font></td>
 								<td height="22">
-                                <font face="Arial" color="#000000">Rs.<?php echo $row0['cgstamt']+$row0['sgstamt']; ?>/-</font>
+                                <font face="Arial" color="#000000">Rs.<?php echo htmlspecialchars($row0['cgstamt'])+htmlspecialchars($row0['sgstamt']); ?>/-</font>
 						</td>
 							</tr>
 							<tr>
@@ -278,7 +300,7 @@ $st="Select * from store  where storeid=1";
 								<td width="9" height="22">
                                  <font color="#000000" face="Arial"><b>:</b></font></td>
 								<td height="22">
-                                 <font face="Arial" color="#000000">Rs.<?php echo $row0['igstamt']; ?>/-</font>
+                                 <font face="Arial" color="#000000">Rs.<?php echo htmlspecialchars($row0['igstamt']); ?>/-</font>
 										</td>
 							</tr>
 							<tr>
@@ -289,7 +311,7 @@ $st="Select * from store  where storeid=1";
 								<td width="9" height="22">
                                  <font color="#000000" face="Arial"><b>:</b></font></td>
 								<td height="22">
-								<font face="Arial" color="#000000"><b>Rs.<?php echo $row0['netamt']; ?>/-
+								<font face="Arial" color="#000000"><b>Rs.<?php echo htmlspecialchars($row0['netamt']); ?>/-
                                  </b></font>
                                  </td>
 							</tr>

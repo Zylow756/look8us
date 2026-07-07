@@ -1,11 +1,16 @@
 	<?php
-			include("../config.php"); 
-		
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
 					if (isset($_GET["id"]))
 					{
 					?>
-					
-					
 					<table class="table2"  width="99%" id="table3" border="1" style="border-collapse: collapse" bordercolor="#C0C0C0"    >
 								<tr>
 									<td bgcolor="#D2D2D2" width="5%" height="33">&nbsp;SNO.</td>
@@ -28,46 +33,45 @@
 								</tr>
 			<?php						
 
-$st="Select * from agenquiry where aid=" . $_GET['id'] ." and hid=1  order by eid desc";
+$id = (int)$_GET['id'];
+
+$st = "SELECT * FROM agenquiry WHERE aid=$id AND hid=1 ORDER BY eid DESC";
 
 //echo $st;
 $i=1;
 
-$result=mysql_query($st,$con);
+$result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
 
-$num_rows = mysql_num_rows($result);
+$num_rows = mysqli_num_rows($result);
 
-	while ($row=mysql_fetch_array($result))
+	while ($row=mysqli_fetch_assoc($result))
 	{	
 	
 	?>				<tr>
 									<td height="29" width="5%" style="text-align: center">&nbsp;<?php echo $num_rows; ?></td>
-									<td height="29" width="10%" style="text-align: center">&nbsp;<?php echo $row["edate"]; ?></td>
-									<td height="29" width="23%" style="text-align: left">&nbsp;<?php echo $row["ename"]; ?></td>
-									<td height="29" width="13%" style="text-align: left">&nbsp;<?php echo $row["cate"]; ?></td>
-									<td height="29" width="10%" style="text-align: center">&nbsp;<?php echo $row["mobile"]; ?></td>
-									<td height="29" width="200" style="text-align: left">&nbsp;<?php echo $row["email"]; ?> &nbsp; <?php echo $row["web"]; ?></td>
-									<td height="29" width="8%" style="text-align: left">&nbsp;<?php echo $row["address"]; ?></td>
-									<td height="29" width="6%">&nbsp;<?php echo $row["area"]; ?></td>
-									<td height="29" width="11%">&nbsp;<?php echo $row["cdate"]; ?></td>
-									<td height="29" width="11%">&nbsp;<?php echo $row["ndate"]; ?></td>
-									<td height="29" width="4%">&nbsp;<?php echo $row["estatus"]; ?></td>
+									<td height="29" width="10%" style="text-align: center">&nbsp;<?php echo htmlspecialchars($row["edate"]); ?></td>
+									<td height="29" width="23%" style="text-align: left">&nbsp;<?php echo htmlspecialchars($row["ename"]); ?></td>
+									<td height="29" width="13%" style="text-align: left">&nbsp;<?php echo htmlspecialchars($row["cate"]); ?></td>
+									<td height="29" width="10%" style="text-align: center">&nbsp;<?php echo htmlspecialchars($row["mobile"]); ?></td>
+									<td height="29" width="200" style="text-align: left">&nbsp;<?php echo htmlspecialchars($row["email"]); ?> &nbsp; <?php echo htmlspecialchars($row["web"]); ?></td>
+									<td height="29" width="8%" style="text-align: left">&nbsp;<?php echo htmlspecialchars($row["address"]); ?></td>
+									<td height="29" width="6%">&nbsp;<?php echo htmlspecialchars($row["area"]); ?></td>
+									<td height="29" width="11%">&nbsp;<?php echo htmlspecialchars($row["cdate"]); ?></td>
+									<td height="29" width="11%">&nbsp;<?php echo htmlspecialchars($row["ndate"]); ?></td>
+									<td height="29" width="4%">&nbsp;<?php echo htmlspecialchars($row["estatus"]); ?></td>
 								</tr>
 								
 								<?php
 //								$i=$i+1;
 $num_rows=$num_rows-1;
-
 								}
-								
-								
 								?>
 							</table>
-							
-							<br><br><a target="_blank" href="http://look8us.com/Admin/ViewAgentEnquiry-excelexport.php?id=<?php echo $_GET['id'] ; ?> ">
+							<br><br><a target="_blank" href="ViewAgentEnquiry-excelexport.php?id=<?php echo urlencode($_GET['id'] ?? ''); ?>"
 <font size="4">Click here for Excel Export</font></a><br><br>
-							
 							<?php
-							
 							}
 							?>

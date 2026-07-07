@@ -1,10 +1,16 @@
 <?php
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
 
 // Merchant key here as provided by Payu
 // Merchant Salt as provided by Payu
-
-include("../config.php");
-
 
 $MERCHANT_KEY = $cMERCHANT_KEY;
 $SALT = $cSALT;
@@ -29,7 +35,7 @@ $PAYU_BASE_URL = $cPAYU_BASE_URL;
 
 $action = '';
 
-$posted = array();
+$posted = [];
 if(!empty($_POST)) {
    //print_r($_POST);
   foreach($_POST as $key => $value) {
@@ -93,7 +99,7 @@ if (! isset($_POST["submit1"]))
 if(($posted['firstname']!="")&&($posted['email']!=""))
 {
 $st="insert into payreq values(NULL,'".$txnid."','".$posted['firstname']."','".$posted['email']."','".$posted['phone']."','".$_POST['pid']."','".$posted['productinfo']."','".$posted['amount']."','".date("d-m-Y")."','0','0','0','0','0','".$posted['udf1']."','".$posted['udf2']."','0')";
-mysql_query($st,$con);
+mysqli_query($con,$st);
 }
 
 }

@@ -1,4 +1,13 @@
 <?php
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
 
 phpinfo();
 
@@ -57,7 +66,7 @@ else {
 	if (empty($_POST['email'])) {
 		$error .= 1;
 		$email_text = '<span>Please enter your email</span>';
-	} elseif (!eregi('^[-!#$%&\'*+\\./0-9=?A-Z^_a-z{|}~]+'.'@'.'[-!#$%&\'*+\\/0-9=?A-Z^_a-z{|}~]+\.'.'[-!#$%&\'*+\\./0-9=?A-Z^_a-z{|}~]+$', $_POST['email'])) {
+	} elseif (!preg_match('/^[-!#$%&\'*+\\./0-9=?A-Z^_a-z{|}~]+'.'@'.'[-!#$%&\'*+\\/0-9=?A-Z^_a-z{|}~]+\.'.'[-!#$%&\'*+\\./0-9=?A-Z^_a-z{|}~]+$/i', $_POST['email'])) {
 		$error .= 1;
 		$email_text = '<span>Please enter correct email address</span>';
 		$email = strip_tags($_POST['email']);

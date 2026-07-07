@@ -1,7 +1,12 @@
 <?php
-if(!isset($_SESSION))
-{
-session_start();
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
 }
 ?>
 
@@ -9,7 +14,7 @@ session_start();
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Look8US :Business Directory Kota, Rajasthan , India, Online Business Directory Kota,  Yellow Pages  kota Rajasthan , Trusted & Verified Businesses, Exporters, Manufacturers, Suppliers Directory, B2B Business Directory </title>
 <meta name="description" content="Look8us.com from Kota Rajasthan is Your local Business Directory , yellow pages  Business Directory. Business Details, Contacts, Products, Services & Verified Businesses, Exporters, Manufacturers, Suppliers Directory">
 <meta name="keywords" content=" Look8us.com , yellow pages Kota Rajasthan , business directory Kota Rajasthan india,business search engine, indian business directory, online business directory, Indian manufacturers, suppliers, Indian exporters directory, b2b portal, b2b business directory,manufacturer, importers, traders, dealers, buyers, ">
@@ -21,7 +26,7 @@ session_start();
 
 
 <div align="center">
-<?php include("header.php"); ?>
+<?php require_once "header.php"; ?>
 <table border="0" width="100%" height="100" cellpadding="0" style="border-collapse: collapse">
 	<tr>
 		<td bgcolor="#D2D2D2">
@@ -57,20 +62,24 @@ session_start();
 																
 							<?php 
 		 $st="Select * from activity  where eid=".$_GET["id"] ;
-		 		 $result=mysql_query($st,$con);
+		 		 $result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
+
 		 		 $i=1;
-		if ($row=mysql_fetch_array($result))
+		if ($row=mysqli_fetch_assoc($result))
 			{
 			?>
 								<tr>
 									<td width="29%">
 									<p style="line-height: 20px">
-									<font color="#0033CC"><b>Event Date :</b>&nbsp;<?php echo $row["edate"]; ?>&nbsp;&nbsp;
+									<font color="#0033CC"><b>Event Date :</b>&nbsp;<?php echo htmlspecialchars($row["edate"]); ?>&nbsp;&nbsp;
 									</font><font color="#000000">
 									<br><b><font size="2">Subject&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
 									:
-									</font></b><font size="2"><?php echo $row["eventhead"]; ?>
-									<br><b>Detail&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :</b> <?php echo $row["eventdetail"]; ?>&nbsp;
+									</font></b><font size="2"><?php echo htmlspecialchars($row["eventhead"]); ?>
+									<br><b>Detail&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :</b> <?php echo htmlspecialchars($row["eventdetail"]); ?>&nbsp;
 									</font></font>
 									
 									<br>
@@ -81,7 +90,7 @@ session_start();
 									{
 									?>
 									
-									<img src="User/logo/<?php echo $row['eimg']; ?>">
+									<img src="User/logo/<?php echo htmlspecialchars($row['eimg']); ?>">
 									<?php
 									}
 									?>
@@ -133,7 +142,7 @@ session_start();
 </div>
 
 <div align="center">
-	<?php include("footer.php"); ?>
+	<?php require_once "footer.php"; ?>
 </div>
 
 </body>

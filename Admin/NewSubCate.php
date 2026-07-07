@@ -1,15 +1,25 @@
 <?php
+require_once "config.php";
 
-session_start();
-
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
 
 if ( isset($_SESSION['user']))
  {
-   if($_SESSION['user']=="") 
+   if($_SESSION['user']=="") {
  	header("location: index.php?r=0"); 
+	exit;
+   }
  }
-else
+else {
  		header("location: index.php?r=0"); 
+	exit;
+   }
 
   
  ?>
@@ -18,7 +28,7 @@ else
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Online Directory : Admin Panel</title>
  <link rel="stylesheet" type="text/css" href="../akc.css" />
 
@@ -56,7 +66,7 @@ $('#sname').click('change', function()
   */
       
       
- $("#cname").click('change',function()
+ $("#cname").change(function () 
   {
      
      $("#preview1").html('<img src="img/loader.gif" alt="Uploading...."/>');
@@ -119,21 +129,58 @@ return true;
 
 </head>
 
-<?php include("../config.php");
-
+<?php 
 $msg=0;
 
-if (isset($_POST["submit"]))
+if ($_SERVER['REQUEST_METHOD'] === 'POST')
 {
+	$stmt = mysqli_prepare(
+    $con,
+    "SELECT COUNT(*) FROM catedetail WHERE cateid=? AND subcatename=?"
+);
 
-$st="insert into catedetail values (NULL ,'". $_POST["cname"]. "','". $_POST["subname"]. "','". $_POST["remark"]. "',". $_POST["gstatus"]. ")" ;
-mysql_query($st,$con);
-//echo $st;
-$msg=1;
+mysqli_stmt_bind_param($stmt,"ss",$cname,$subname);
+mysqli_stmt_execute($stmt);
+mysqli_stmt_bind_result($stmt,$count);
+mysqli_stmt_fetch($stmt);
+mysqli_stmt_close($stmt);
 
+if($count>0)
+{
+    die("Subcategory already exists.");
+}
 
-	
+$stmt = mysqli_prepare(
+    $con,
+    "INSERT INTO catedetail VALUES (NULL, ?, ?, ?, ?)"
+);
+$subname = trim($_POST['subname'] ?? '');
+$cname   = $_POST['cname'] ?? '';
+$remark  = trim($_POST['remark'] ?? '');
+$status  = (int)($_POST['gstatus'] ?? 0);
 
+if(trim($subname)=="")
+{
+    die("Subcategory name required.");
+}
+
+mysqli_stmt_bind_param(
+    $stmt,
+    "sssi",
+    $_POST['cname'],
+    $_POST['subname'],
+    $_POST['remark'],
+    $_POST['gstatus']
+);
+
+mysqli_stmt_execute($stmt);
+mysqli_stmt_close($stmt);
+
+$msg = 1;
+if(!mysqli_stmt_execute($stmt))
+{
+    die(mysqli_error($con));
+}
 } 	// end of if (submit)
 
 ?>
@@ -142,8 +189,10 @@ $msg=1;
 
 <div align="center">
 	<table border="0" width="980" id="table1" style="border-collapse: collapse" bordercolor="#E2E2E2" cellpadding="0">
-		<tr>
-			<td height="50" align="center" valign="top">	<?php  include("../header.php"); ?>		</td>		</tr>
+		
+<tbody>
+	<tr>
+			<td height="50" align="center" valign="top">	<?php  require_once "../header.php"; ?>		</td>		</tr>
 		<tr>
 			<td height="12" align="center" valign="top" bgcolor="#697779">			
 					</td>
@@ -151,14 +200,18 @@ $msg=1;
 		<tr>
 			<td>
 			<table border="0" width="100%" id="table2" style="border-collapse: collapse" bordercolor="#CCCCCC" height="206" cellpadding="0">
-				<tr>
-					<td width="228" valign="top" bgcolor="#EEEEEE">			<?php if ($_SESSION["id"]!="") include("sidemenu.php"); ?></td>
+				
+<tbody>
+			<tr>
+					<td width="228" valign="top" bgcolor="#EEEEEE">			<?php if (!empty($_SESSION['id'])) include("sidemenu.php"); ?></td>
 					<td align="center" valign="top" bgcolor="#FFFFFF">
 					<h1>Create New Sub-Category</h1>
-					<p><h3><?php if ($msg==1) echo "Sub-Category Create"; ?></h3>
+					<p><?php if ($msg==1) echo "<h3>Sub-Category Created Successfully.</h3>"; ?>
 </p>
 					<table border="0" width="90%" id="table13" cellpadding="0" style="border-collapse: collapse" bordercolor="#697779" height="128">
-						<tr>
+						
+<tbody>
+					<tr>
 							<td valign="top" width="402">
 							<table class="table3" border="0" width="100%"  id="table14" cellpadding="0" style="border-collapse: collapse" bordercolor="#697779">
 						
@@ -174,12 +227,20 @@ $msg=1;
 	<select  class="selbox" name="cname" id="cname" size="1" tabindex="5">
 	<option value='0' >Please Select</option>
 		<?php 
+if($cname == 0)
+{
+    die("Please select a category.");
+}
+
 		 $st="Select * from category order by cname";
-		 $result=mysql_query($st,$con);
-		while ($row=mysql_fetch_array($result))
+		 $result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
+		while ($row=mysqli_fetch_assoc($result))
 			{
 			?>
-		<option value='<?php echo $row["cateid"]; ?>' <?php if (isset($_POST["cname"])){if ($_POST["cname"]==$row["cateid"]) echo "Selected" ;} ?> > <?php echo $row["cname"]; ?></option>
+		<option value='<?php echo htmlspecialchars($row["cateid"]); ?>' <?php if (isset($_POST["cname"])){if ($_POST["cname"]==$row["cateid"]) echo "Selected" ;} ?> > <?php echo htmlspecialchars($row["cname"]); ?></option>
 			<?php
 			}
 			?>
@@ -190,7 +251,7 @@ $msg=1;
 
 <tr>
 	<td width="116" height="50">Sub-Category Name</td><td width="286" height="50">
-	<input  class="txtbox" type="text" name="subname" id="subname" tabindex="4" value="Sub-Category Name" onfocus="if(this.value=='Sub-Category Name'){this.value='';}" onblur="if(this.value==''){this.value='Sub-Category Name';}" size="1"/></td>
+	<input  class="txtbox" type="text" name="subname" id="subname" tabindex="4" value="Sub-Category Name"  size="1"/></td>
 </tr>
 <tr>
 	<td width="116" height="30">Remark</td><td width="286" height="30">
@@ -213,29 +274,38 @@ $msg=1;
 							<table class="table3" border="0" width="96%"  id="table16" cellpadding="0" style="border-collapse: collapse" bordercolor="#697779">
 						</td>
 						</tr>
+</tbody>
 					</table>
 							</td>
 							<td valign="top">
 							<h2>Already Created </h2>
-							<div id="res"><table class="table2"  border="1" width="96%" id="table12">
+							<div id="res">
+								<table class="table2"  border="1" width="96%" id="table12">
+
+<tbody>
 								<tr>
 									<td bgcolor="#E0E2FE" width="353">&nbsp;Sub-Category 
 									Name</td>
 								</tr>
 								
 								
+</tbody>
 							</table></div>
 							</td>
 						</tr>
+
+</tbody>
 					</table></p>
 					<p>&nbsp;</td>
 				</tr>
+</tbody>
 			</table>
 			</td>
 		</tr>
 		<tr>
-			<td height="57" align="center" valign="top">			<?php  include("../footer.php"); ?></td>
+			<td height="57" align="center" valign="top">			<?php  require_once "../footer.php"; ?></td>
 		</tr>
+</tbody>
 	</table>
 </div>
 

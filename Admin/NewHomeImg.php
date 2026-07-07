@@ -1,15 +1,25 @@
 <?php
+require_once "config.php";
 
-session_start();
-
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
 
 if ( isset($_SESSION['user']))
  {
-   if($_SESSION['user']=="") 
+   if($_SESSION['user']=="") {
  	header("location: index.php?r=0"); 
+	exit;
+   }
  }
-else
+else {
  		header("location: index.php?r=0"); 
+	exit;
+   }
 
   
  ?>
@@ -18,7 +28,7 @@ else
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Online Directory : Admin Panel</title>
  <link rel="stylesheet" type="text/css" href="../akc.css" />
 
@@ -66,38 +76,69 @@ return true;
 </script>
 </head>
 
-<?php include("../config.php");
-
+<?php 
 $msg=0;
 
-if (isset($_POST["submit"]))
+if(isset($_POST['submit']))
 {
+    if($_FILES['photoimg']['error'] == UPLOAD_ERR_OK)
+    {
+        $allowed = [
+            'image/jpeg',
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        ];
 
-		if (( ($_FILES["photoimg"]["type"]=="application/vnd.openxmlformats-officedocument.wordprocessingml.document")||($_FILES["photoimg"]["type"] == "application/msword") || ($_FILES["photoimg"]["type"] == "image/jpeg") || ($_FILES["photoimg"]["type"] == "application/pdf")) && ($_FILES["photoimg"]["size"] < 41100000))
-		{
-		
-		
-		$name = $_FILES['photoimg']['name'];
-		list($txt, $ext) = explode(".", $name);
-		$fp = date('d')."_".date('M')."_".date('Y')."_".time()."_".substr(str_replace(" ", "_", $txt),0,5).".jpg";
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime = finfo_file($finfo, $_FILES['photoimg']['tmp_name']);
+        finfo_close($finfo);
 
-		//	$fp=date('d')."_".date('M')."_".date('Y')."_".date('h')."_".date('i')."_".date('s')."_".$_FILES["photoimg"]["name"];
-			move_uploaded_file($_FILES["photoimg"]["tmp_name"],"../user/logo/".$fp);
-			
-			$st="insert into homeimg values (NULL ,'". $_POST["cname"]. "','".$_POST["mobile"]. "','".$_POST["website"]."','".$fp . "')" ;
-			mysql_query($st,$con);
-			//echo $st;
-			$msg=1;
-		}
-		
-		else
-		{
-				$msg=2;
-		}
+        if(in_array($mime,$allowed) && $_FILES['photoimg']['size'] < 41100000)
+        {
+            $pathInfo = pathinfo($_FILES['photoimg']['name']);
 
-	
+            $txt = $pathInfo['filename'];
+            $ext = strtolower($pathInfo['extension']);
 
-} 	// end of if (submit)
+            $fp = uniqid('img_',true).".".$ext;
+
+            if(move_uploaded_file($_FILES['photoimg']['tmp_name'], "../user/logo/".$fp))
+            {
+                $stmt = mysqli_prepare(
+                    $con,
+                    "INSERT INTO homeimg VALUES(NULL, ?, ?, ?, ?)"
+                );
+
+                mysqli_stmt_bind_param(
+                    $stmt,
+                    "ssss",
+                    $_POST['cname'],
+                    $_POST['mobile'],
+                    $_POST['website'],
+                    $fp
+                );
+
+                mysqli_stmt_execute($stmt);
+                mysqli_stmt_close($stmt);
+
+                $msg = 1;
+            }
+            else
+            {
+                $msg = 2;
+            }
+        }
+        else
+        {
+            $msg = 2;
+        }
+    }
+    else
+    {
+        $msg = 2;
+    }
+}
 
 ?>
 	
@@ -106,7 +147,7 @@ if (isset($_POST["submit"]))
 <div align="center">
 	<table border="0" width="980" id="table1" style="border-collapse: collapse" bordercolor="#E2E2E2" cellpadding="0">
 		<tr>
-			<td height="50" align="center" valign="top">	<?php  include("../header.php"); ?>		</td>		</tr>
+			<td height="50" align="center" valign="top">	<?php  require_once "../header.php"; ?>		</td>		</tr>
 		<tr>
 			<td height="12" align="center" valign="top" bgcolor="#697779">			
 					</td>
@@ -115,7 +156,7 @@ if (isset($_POST["submit"]))
 			<td>
 			<table border="0" width="100%" id="table2" style="border-collapse: collapse" bordercolor="#CCCCCC" height="206" cellpadding="0">
 				<tr>
-					<td width="228" valign="top" bgcolor="#EEEEEE">			<?php if ($_SESSION["id"]!="") include("sidemenu.php"); ?></td>
+					<td width="228" valign="top" bgcolor="#EEEEEE">			<?php if (!empty($_SESSION['id'])) include("sidemenu.php"); ?></td>
 					<td align="center" valign="top" bgcolor="#FFFFFF">
 					<h1>Home Pages Images/Ads </h1>
 					<p><h3><?php if ($msg==1) echo "Category Create"; ?></h3>
@@ -126,8 +167,13 @@ if (isset($_POST["submit"]))
 							<td valign="top" width="100%">
 							<table class="table3" border="0" width="96%"  id="table14" cellpadding="0" style="border-collapse: collapse" bordercolor="#697779">
 						
-						<form name="frmhlp" id="frmhlp" method="post" action="NewHomeImg.php" enctype="multipart/form-data" >
-						
+						<form
+    name="frmhlp"
+    id="frmhlp"
+    method="post"
+    action="NewHomeImg.php"
+    enctype="multipart/form-data"
+    onsubmit="return vfhfn();">
 
 <tr>
 	<td width="173" height="42">Company/Form/Shop&nbsp; Name</td>
@@ -167,7 +213,7 @@ if (isset($_POST["submit"]))
 			</td>
 		</tr>
 		<tr>
-			<td height="57" align="center" valign="top">			<?php  include("../footer.php"); ?></td>
+			<td height="57" align="center" valign="top">			<?php  require_once "../footer.php"; ?></td>
 		</tr>
 	</table>
 </div>

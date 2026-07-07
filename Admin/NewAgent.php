@@ -1,16 +1,25 @@
 <?php
+require_once "config.php";
 
-session_start();
-
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
 
 if ( isset($_SESSION['user']))
  {
-   if($_SESSION['user']=="") 
+   if($_SESSION['user']=="") {
  	header("location: index.php?r=0"); 
+        exit;
+   }
  }
-else
+else{
  		header("location: index.php?r=0"); 
-
+        exit;
+}
   
  ?>
 
@@ -18,7 +27,7 @@ else
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Online Directory : Admin Panel</title>
  <link rel="stylesheet" type="text/css" href="../akc.css" />
 
@@ -39,7 +48,7 @@ function vfhfn()
 {
 
 
-var fllnme1=document.frmhlp.cname.value;
+var fllnme1=document.frmhlp.aname.value;
 
 
 var num =/^[0-9]+$/;
@@ -66,16 +75,19 @@ return true;
 </script>
 </head>
 
-<?php include("../config.php");
+<?php 
 
 $msg=0;
 
 if (isset($_POST["submit"]))
 {
 $y=0;
-		 $st="Select * from agent order by aid desc";
- 		 $result=mysql_query($st,$con);
-			if ($row=mysql_fetch_array($result))
+		 $st="SELECT MAX(aid)";
+ 		 $result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
+			if ($row=mysqli_fetch_assoc($result))
 				$y=$row["aid"];
 				
 	$y=$y+1;	
@@ -83,9 +95,19 @@ $y=0;
 $x=strtoupper(substr($_POST["aname"],0,3));
 $z=$x.$y;
 
-$st="insert into agent values (NULL ,'". $_POST["aname"]. "','". $_POST["address"]. "','". $_POST["mobile"]. "','".$z."','".$z."','".$z."')" ;
+$st="INSERT INTO agent
+(
+aname,
+address,
+mobile,
+acode,
+uname,
+pass
+)
+VALUES
+(?,?,?,?,?,?)" ;
 
-mysql_query($st,$con);
+mysqli_query($con,$st);
 //echo $st;
 $msg=1;
 
@@ -101,7 +123,7 @@ $msg=1;
 <div align="center">
 	<table border="0" width="980" id="table1" style="border-collapse: collapse" bordercolor="#E2E2E2" cellpadding="0">
 		<tr>
-			<td height="50" align="center" valign="top">	<?php  include("../header.php"); ?>		</td>		</tr>
+			<td height="50" align="center" valign="top">	<?php  require_once "../header.php"; ?>		</td>		</tr>
 		<tr>
 			<td height="12" align="center" valign="top" bgcolor="#697779">			
 					</td>
@@ -110,7 +132,7 @@ $msg=1;
 			<td>
 			<table border="0" width="100%" id="table2" style="border-collapse: collapse" bordercolor="#CCCCCC" height="206" cellpadding="0">
 				<tr>
-					<td width="228" valign="top" bgcolor="#EEEEEE">			<?php if ($_SESSION["id"]!="") include("sidemenu.php"); ?></td>
+					<td width="228" valign="top" bgcolor="#EEEEEE">			<?php if (!empty($_SESSION['id'])) include("sidemenu.php"); ?></td>
 					<td align="center" valign="top" bgcolor="#FFFFFF">
 					<h1>Create New Enquiry</h1>
 					<p><h3><?php if ($msg==1) echo "Agent Create"; ?></h3>
@@ -120,19 +142,19 @@ $msg=1;
 							<td valign="top" width="338">
 							<table class="table3" border="0" width="99%"  id="table14" cellpadding="0" style="border-collapse: collapse" bordercolor="#697779" height="181">
 						
-						<form name="frmhlp" id="frmhlp" method="post" action="NewAgent.php" onSubmit="return vfhfn();">
+						<form name="frmhlp" id="frmhlp" method="post" action="NewAgent.php" onsubmit="return vfhfn();">
 						
 
 <tr>
 	<td width="86" height="50">Agent Name</td><td width="222" height="50">
-	<input  class="txtbox" type="text" name="aname" id="aname" tabindex="4" value="Agent Name" onfocus="if(this.value=='Agent Name'){this.value='';}" onblur="if(this.value==''){this.value='Agent Name';}" size="24"/></td>
+	<input  class="txtbox" type="text" name="aname" id="aname" tabindex="4" value="Agent Name" onfocus="if(this.value=='Agent Name'){this.value='';}" onblur="if(this.value==''){this.value='Agent Name';}" size="24"  required/></td>
 </tr>
 <tr>
 	<td width="86" height="40">Address</td><td width="222" height="40">
-	<input  class="txtbox" type="text" name="address" id="address" tabindex="4"  size="1"/></td>
+	<input  class="txtbox" type="text" name="address" id="address" tabindex="4"  size="1" required/></td>
 </tr>
 <tr><td width="86" height="28">Mobile</td><td width="222" height="28">
-	<input  class="txtbox" type="text" name="mobile" id="mobile" tabindex="4"  size="1"/></td>
+	<input  class="txtbox" type="text" name="mobile" id="mobile" tabindex="4"  size="1" required/></td>
 	</tr>
 <tr><td width="86" height="63">&nbsp;</td><td width="222" height="63">
 	<input  class="subbox" type="submit" value="Submit" name="submit"/>
@@ -160,15 +182,18 @@ $msg=1;
 								
 		<?php 
 		 $st="Select * from agent order by aname";
-		 		 $result=mysql_query($st,$con);
-		while ($row=mysql_fetch_array($result))
+		 		 $result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
+		while ($row=mysqli_fetch_assoc($result))
 			{
 			?>
 								<tr>
-									<td width="190">&nbsp;&nbsp;<?php echo $row["aname"]; ?></td>
-									<td width="99">&nbsp;&nbsp;<?php echo $row["acode"]; ?></td>
-									<td width="74">&nbsp;<?php echo $row["pass"]; ?></td>
-									<td width="74">&nbsp;&nbsp;&nbsp;<?php echo "<a class='a5' href='EditAgent.php?id=".$row['aid']."'>View</a>"; ?></td>
+									<td width="190">&nbsp;&nbsp;<?php echo htmlspecialchars($row["aname"]); ?></td>
+									<td width="99">&nbsp;&nbsp;<?php echo htmlspecialchars($row["acode"]); ?></td>
+									<td width="74">&nbsp;<?php echo htmlspecialchars($row["pass"]); ?></td>
+									<td width="74">&nbsp;&nbsp;&nbsp;<?php echo "<a class='a5' href='EditAgent.php?id=" . htmlspecialchars($row['aid']) . "'>View</a>"; ?></td>
 								</tr>
 								
 								<?php
@@ -185,7 +210,7 @@ $msg=1;
 			</td>
 		</tr>
 		<tr>
-			<td height="57" align="center" valign="top">			<?php  include("../footer.php"); ?></td>
+			<td height="57" align="center" valign="top">			<?php  require_once "../footer.php"; ?></td>
 		</tr>
 	</table>
 </div>

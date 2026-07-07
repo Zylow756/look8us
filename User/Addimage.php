@@ -1,8 +1,13 @@
-
-
 <?php
+require_once "config.php";
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
 
 if (isset($_SESSION['user']))
  {	if ($_SESSION['user']=="")
@@ -19,7 +24,7 @@ else
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Online Directory : Admin Panel</title>
  <link rel="stylesheet" type="text/css" href="../akc.css" />
 
@@ -57,15 +62,17 @@ return true;
 </head>
 
 		<?php
-include("../config.php");
 $msg=0;
 
 if ( isset($_POST['submit']))
 {
 				
 $st="Select * from memberimage  where mid=".$_SESSION["mid"];
-$result=mysql_query($st,$con);
-$num_rows = mysql_num_rows($result);
+$result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
+$num_rows = mysqli_num_rows($result);
 if ($num_rows<5)
 {
 	$valid_formats = array("jpg","JPG","png","PNG","gif","GIF","bmp","BMP");
@@ -88,7 +95,7 @@ if ($num_rows<5)
 												move_uploaded_file($_FILES["photoimg"]["tmp_name"],"logo/".$fp);
 												
 												$s="insert memberimage  values(NULL,".$_SESSION["mid"].",'".$fp . "')";
-												mysql_query($s,$con);
+												mysqli_query($con,$s);
 												
 												$msg=1;
 											}
@@ -119,7 +126,7 @@ if ( isset($_GET['id']))
 {
 
 $s="delete from memberimage where id=".$_GET["id"];
-mysql_query($s,$con);
+mysqli_query($con,$s);
 
 $msg=5;
 
@@ -136,7 +143,7 @@ $msg=5;
 <div align="center">
 	<table border="0" width="980" id="table1" style="border-collapse: collapse" bordercolor="#E2E2E2" cellpadding="0">
 		<tr>
-			<td height="50" align="center" valign="top">	<?php  include("../header.php"); ?>		</td>		</tr>
+			<td height="50" align="center" valign="top">	<?php  require_once "../header.php"; ?>		</td>		</tr>
 		<tr>
 			<td height="12" align="center" valign="top" bgcolor="#697779">			
 					</td>
@@ -182,8 +189,11 @@ Pixel </font>
 		
 		<?php 
 		 $st="Select * from memberimage where mid=".$_SESSION["mid"];
-		 		 $result=mysql_query($st,$con);
-		while ($row=mysql_fetch_array($result))
+		 		 $result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
+		while ($row=mysqli_fetch_assoc($result))
 			{
 			if ($row['img']<>"-")
 			{
@@ -217,7 +227,7 @@ Pixel </font>
 			</td>
 		</tr>
 		<tr>
-			<td height="57" align="center" valign="top">			<?php  include("../footer.php"); ?></td>
+			<td height="57" align="center" valign="top">			<?php  require_once "../footer.php"; ?></td>
 		</tr>
 	</table>
 </div>

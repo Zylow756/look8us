@@ -1,12 +1,17 @@
 <?php
-if(!isset($_SESSION))
-{
-session_start();
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
 }
 ?>
 
 
-<?php include("config.php");
+<?php 
 
 $msg=0;
 
@@ -14,7 +19,7 @@ $msg=0;
 		{
 		
 		$st="insert into enquiry values (NULL ,". $_GET["id"]. ",'". $_GET["city"]. "','". $_GET["mname"]. "','". $_GET["mobile"]. "','". $_GET["txtmail"]. "','". $_GET["remark"]. "','".date("d-m-Y")."')" ;
-		mysql_query($st,$con);
+		mysqli_query($con,$st);
 		//echo $st;
 		$msg=1;
 			
@@ -28,7 +33,7 @@ $msg=0;
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Online Directory Service</title>
  <link rel="stylesheet" type="text/css" href="akc.css" />
 
@@ -37,7 +42,7 @@ $msg=0;
 <body topmargin="0" leftmargin="0" rightmargin="0" bottommargin="2" background="images/bg.png">
 
 
-<?php include("header.php"); ?>
+<?php require_once "header.php"; ?>
 <table border="0" width="100%"  cellpadding="0" style="border-collapse: collapse">
 	<tr>
 		<td valign="top">
@@ -56,9 +61,12 @@ $st="Select * from member,memberdetail where member.mid=memberdetail.mid and mem
 
 //echo $st;
 $i=1;
-$result=mysql_query($st,$con);
+$result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
 
-	if ($row=mysql_fetch_array($result))
+	if ($row=mysqli_fetch_assoc($result))
 	{
 	?>
 	
@@ -66,16 +74,16 @@ $result=mysql_query($st,$con);
 					<td width="599" align="center" valign="top" style="border-left-width: 1px; border-right-style: dotted; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px">
 					<br>
 					
-					<?php echo $row['gmap'];  ?> </td>
+					<?php echo htmlspecialchars($row['gmap']);  ?> </td>
 					<td width="410" valign="top">
 	
 	&nbsp;<div align="right">
 	
 	<table border="0" width="96%" id="table37" style="border-collapse: collapse">
 		<tr>
-			<td width="21%" align="center" height="105"><a href="http://<?php  echo $row['website'] ; ?>" target="_blank" class="a5">
-			<img border="0" src="user/logo/<?php  echo $row['logo'] ; ?>" width="82" height="91"></a></td>
-			<td width="79%" height="105">&nbsp;<font color="#333333" size="5"><?php	echo $row["compname"] ; ?>
+			<td width="21%" align="center" height="105"><a href="http://<?php  echo htmlspecialchars($row['website']); ?>" target="_blank" class="a5">
+			<img border="0" src="user/logo/<?php  echo htmlspecialchars($row['logo']); ?>" width="82" height="91"></a></td>
+			<td width="79%" height="105">&nbsp;<font color="#333333" size="5"><?php	echo htmlspecialchars($row["compname"]); ?>
 	
 
 
@@ -84,12 +92,12 @@ $result=mysql_query($st,$con);
 					</font></td>
 		</tr>
 		<tr>
-			<td colspan="2" align="center" height="37" valign="top">&nbsp;<a  target="_blank" href="http://<?php  echo $row['twiter'] ; ?>"><img border="0" src="<?php echo $path; ?>images/twitter-icon.png" width="32" height="32"></a>
-									<a  target="_blank" href="http://<?php  echo $row['facebook'] ; ?>">
+			<td colspan="2" align="center" height="37" valign="top">&nbsp;<a  target="_blank" href="http://<?php  echo htmlspecialchars($row['twiter']); ?>"><img border="0" src="<?php echo $path; ?>images/twitter-icon.png" width="32" height="32"></a>
+									<a  target="_blank" href="http://<?php  echo htmlspecialchars($row['facebook']); ?>">
 									<img border="0" src="<?php echo $path; ?>images/facebook-icon.png" width="32" height="32"></a>
-									<a  target="_blank" href="http://<?php  echo $row['linken'] ; ?>">
+									<a  target="_blank" href="http://<?php  echo htmlspecialchars($row['linken']); ?>">
 									<img border="0" src="<?php echo $path; ?>images/linkedin-icon.png" width="32" height="32"></a>
-			<a href="http://<?php  echo $row['ytube'] ; ?>">
+			<a href="http://<?php  echo htmlspecialchars($row['ytube']); ?>">
 									<img border="0" src="<?php echo $path; ?>images/uTube.png" width="32" height="32"></a>
 								
 								
@@ -117,17 +125,17 @@ $result=mysql_query($st,$con);
 										<tr>
 											<td width="47%" height="25">
 											<p style="line-height: 25px"><b>
-											<font size="3" color="#003366">Contact Person : <?php echo $row["mname"] ; ?></font></b><font size="3" color="#003366">
+											<font size="3" color="#003366">Contact Person : <?php echo htmlspecialchars($row["mname"]); ?></font></b><font size="3" color="#003366">
 											</font>
 											</td>
 										</tr>
 										<tr>
 											<td width="47%" height="25"><b>
-											<font color="#003366">&nbsp;Address&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :</font></b><font color="#003366" size="2"> <?php echo ucwords($row["shopno"]) ; ?>
-											<?php echo ucwords($row["address"]) ; ?>
-											<?php echo ucwords($row["area"]) ; ?>
-											<?php echo $row["city"] ; ?>
-											<?php echo $row["state1"] ; ?>
+											<font color="#003366">&nbsp;Address&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :</font></b><font color="#003366" size="2"> <?php echo htmlspecialchars(ucwords($row["shopno"])); ?>
+											<?php echo htmlspecialchars(ucwords($row["address"])); ?>
+											<?php echo htmlspecialchars(ucwords($row["area"])); ?>
+											<?php echo htmlspecialchars($row["city"]); ?>
+											<?php echo htmlspecialchars($row["state1"]); ?>
 
 
 
@@ -142,8 +150,8 @@ $result=mysql_query($st,$con);
 										<tr>
 											<td width="47%" height="25">
 											<font color="#003366"><b>
-											&nbsp;Contact No. :</b></font><font size="2" color="#003366"> <?php echo $row["phone"] ; ?>,
-											<?php echo $row["mobile"] ; ?>
+											&nbsp;Contact No. :</b></font><font size="2" color="#003366"> <?php echo htmlspecialchars($row["phone"]); ?>,
+											<?php echo htmlspecialchars($row["mobile"]); ?>
 											</font>
 
 
@@ -154,7 +162,7 @@ $result=mysql_query($st,$con);
 											<td width="47%" height="25">
 											<font color="#003366">
 											<b>
-											&nbsp;Email&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :</b><font size="2"> <?php echo $row["email"] ; ?> 
+											&nbsp;Email&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :</b><font size="2"> <?php echo htmlspecialchars($row["email"]); ?> 
 											
 
 
@@ -173,8 +181,8 @@ $result=mysql_query($st,$con);
 											<font color="#003366"><b>
 											&nbsp;Website&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :</b><font size="2">  
 								
-			<a href="https://<?php  echo $row['web'] ; ?>" target="_blank" class="a5">
-			<?php echo $row["web"] ; ?>
+			<a href="https://<?php  echo htmlspecialchars($row['web']); ?>" target="_blank" class="a5">
+			<?php echo htmlspecialchars($row["web"]); ?>
 			</a>
 
 
@@ -212,13 +220,16 @@ $result=mysql_query($st,$con);
 	
 $st="Select * from memberimage where mid=".$_GET["id"];
 
-$result2=mysql_query($st,$con);
+$result2=mysqli_query($con,$st);
+if (!$result2) {
+    die(mysqli_error($con));
+}
 
-	while ($row2=mysql_fetch_array($result2))
+	while ($row2=mysqli_fetch_assoc($result2))
 	{
 	?>
 			
-			<img border="0" src="user/logo/<?php  echo $row2['img'] ; ?>" width="156" height="169"> &nbsp;&nbsp;&nbsp;
+			<img border="0" src="user/logo/<?php  echo htmlspecialchars($row2['img']); ?>" width="156" height="169"> &nbsp;&nbsp;&nbsp;
 		<?php
 		}
 		?>
@@ -247,7 +258,7 @@ $result2=mysql_query($st,$con);
 						<tr>
 							<td width="98%" valign="top" bgcolor="#FFFFFF">
 							<p style="line-height: 25px; margin-left: 10px; margin-right: 20px; margin-top: 10px; margin-bottom: 5px" align="justify">
-							<b><font color="#003366" size="2">About Us :</font></b><font color="#003366" size="2">&nbsp;&nbsp; <?php echo $row["remark1"] ; ?></font><br><br></td>
+							<b><font color="#003366" size="2">About Us :</font></b><font color="#003366" size="2">&nbsp;&nbsp; <?php echo htmlspecialchars($row["remark1"]); ?></font><br><br></td>
 						</tr>
 					</table>
 					</td>
@@ -267,7 +278,7 @@ $result2=mysql_query($st,$con);
 	
 
 <div align="center">
-	<?php include("footer.php"); ?>
+	<?php require_once "footer.php"; ?>
 </div>
 
 </body>

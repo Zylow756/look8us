@@ -1,7 +1,12 @@
 <?php
-if(!isset($_SESSION))
-{
-session_start();
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
 }
 ?>
 
@@ -9,7 +14,7 @@ session_start();
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Online Directory Service</title>
  <link rel="stylesheet" type="text/css" href="akc.css" />
 
@@ -19,7 +24,7 @@ session_start();
 
 
 <div align="center">
-<?php include("header.php"); ?>
+<?php require_once "header.php"; ?>
 <table border="0" width="100%" height="100" cellpadding="0" style="border-collapse: collapse">
 	<tr>
 		<td bgcolor="#D2D2D2">
@@ -71,7 +76,7 @@ if (isset($_GET["item"]))
 									
 		<?php
 									
-	echo $_GET["item"];
+	$item = $_GET["item"] ?? '';
 	
 	?>
 	
@@ -102,9 +107,12 @@ else
 
 //echo $st;
 $i=1;
-$result=mysql_query($st,$con);
+$result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
 
-	while ($row=mysql_fetch_array($result))
+	while ($row=mysqli_fetch_assoc($result))
 	{	
 	
 	?>
@@ -131,8 +139,8 @@ $result=mysql_query($st,$con);
 			{
 			?>			<td width="107" align="center" height="107">
 	
-<a href="http://<?php  echo $row['web'] ; ?>" target="_blank" class="a5">
-	<img  src="user/logo/<?php  echo $row['logo'] ; ?>" width="89" height="84"></a>
+<a href="http://<?php  echo htmlspecialchars($row['web']) ; ?>" target="_blank" class="a5">
+	<img  src="user/logo/<?php  echo htmlspecialchars($row['logo']) ; ?>" width="89" height="84"></a>
 		
 	</td>
 	<?php
@@ -142,15 +150,15 @@ $result=mysql_query($st,$con);
 	}
 	?>
 													<td width="460"><b>
-													<font size="4" color="#003399"><?php echo $row["compname"] ; ?>
+													<font size="4" color="#003399"><?php echo htmlspecialchars($row["compname"]) ; ?>
 											</font></b>
 											<p style="line-height: 20px; margin-left:2px; margin-top:4px">
-											<font size="4" color="#003399">Contact : <?php echo ucwords($row["mname"]) ; ?>
+											<font size="4" color="#003399">Contact : <?php echo htmlspecialchars(ucwords($row["mname"])) ; ?>
 											</font>
 											<br>
 											<b> 
 											<font size="2" color="#CC3300">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-											<u><?php if(($row["tagline"]<>"-") &&($row["tagline"]<>"") ) echo $row['tagline'];  ?>											
+											<u><?php if(($row["tagline"]<>"-") &&($row["tagline"]<>"") ) echo htmlspecialchars($row['tagline']);  ?>											
 											</u>											
 											</font></b>
 											
@@ -171,16 +179,19 @@ $result=mysql_query($st,$con);
 										if (($row['mplan']=="Gold") ||($row['mplan']=="Platinum"))
 										{
 											$st="Select * from memberimage where mid=".$row["mid"];
-											$result2=mysql_query($st,$con);
+											$result2=mysqli_query($con,$st);
+if (!$result2) {
+    die(mysqli_error($con));
+}
 										?>
 		
 													<td width="204" align="center" rowspan="2" valign="top">
-<table border="1" class="tbBG" width="190" id="table42" height="180" style="border-collapse: collapse" bordercolor="#E2E2E2" background="<?php if ($row2=mysql_fetch_array($result2)){ echo 'user/logo/'.$row2['img'] ; } else {echo 'user/logo/no-images.jpg' ; } ?>" >
+<table border="1" class="tbBG" width="190" id="table42" height="180" style="border-collapse: collapse" bordercolor="#E2E2E2" background="<?php if ($row2=mysqli_fetch_assoc($result2)){ echo 'user/logo/'.$row2['img'] ; } else {echo 'user/logo/no-images.jpg' ; } ?>" >
 														<tr>
 															<td align="center">
 															
 
-	<a href="clientSlide.php?id=<?php  echo $row['mid'] ; ?>" ><img class="imgshad" border="0" src="images/transp.png" width="190" height="176"></a>
+	<a href="clientSlide.php?id=<?php  echo htmlspecialchars($row['mid']) ; ?>" ><img class="imgshad" border="0" src="images/transp.png" width="190" height="176"></a>
 	
 
 
@@ -246,8 +257,8 @@ $result=mysql_query($st,$con);
 
 </td>
 											<td height="13" width="77%">
-											<font size="2" color="#121212"><?php echo $row["phone"] ; ?>
-										<?php if ($row["phone1"]<>"-") echo " , " .$row["phone1"] ; ?>
+											<font size="2" color="#121212"><?php echo htmlspecialchars($row["phone"] ); ?>
+										<?php if ($row["phone1"]<>"-") echo " , " .htmlspecialchars($row["phone1"]) ; ?>
 											
 											</font></td>
 														</tr>
@@ -260,7 +271,7 @@ $result=mysql_query($st,$con);
 </td>
 											<td height="12" width="77%">
 												<font size="2" color="#121212"> 
-<?php echo $row["mobile"] ; ?>
+<?php echo htmlspecialchars($row["mobile"] ); ?>
 											<?php if ($row["mobile1"]<>"-") echo " , " .$row["mobile1"] ; ?></font>
 											</td>
 														</tr>
@@ -268,7 +279,7 @@ $result=mysql_query($st,$con);
 											<td height="25" width="56%" colspan="2">  
 											&nbsp; <font color="#121212"><b><font size="2"> 
 											Email&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;: </font></b></font><font size="2" color="#121212"> 
-											&nbsp;<?php echo $row["email"] ; ?> 
+											&nbsp;<?php echo htmlspecialchars($row["email"] ); ?> 
 											
 
 
@@ -283,8 +294,8 @@ $result=mysql_query($st,$con);
 											<font color="#121212" size="2"><b>&nbsp; 
 											Website&nbsp; : </b> 
 											&nbsp;
-					<a href="http://<?php  echo $row['web'] ; ?>" target="_blank" class="a5">
-<?php echo $row["web"] ; ?> </a>
+					<a href="http://<?php  echo htmlspecialchars($row['web']) ; ?>" target="_blank" class="a5">
+<?php echo htmlspecialchars($row["web"]) ; ?> </a>
 
 
 
@@ -310,10 +321,10 @@ $result=mysql_query($st,$con);
 													<td width="256" valign="bottom">
 													&nbsp;
 
-	<?php if ($row['twiter']<>"-") { ?>		<a  target="_blank" href="http://<?php  echo $row['twiter'] ; ?>"><img border="0" src="<?php echo $path; ?>images/twitter-icon.png" width="25" height="25"></a>    <?php } ?>
-	<?php if ($row['facebook']<>"-") { ?>		<a  target="_blank" href="http://<?php  echo $row['facebook'] ; ?>"> <img border="0" src="<?php echo $path; ?>images/facebook-icon.png" width="25" height="25"></a>  <?php } ?>
-	<?php if ($row['linken']<>"-") { ?>		<a  target="_blank" href="http://<?php  echo $row['linken'] ; ?>"> 	<img border="0" src="<?php echo $path; ?>images/linkedin-icon.png" width="25" height="25"></a>   <?php } ?>
-	<?php if ($row['ytube']<>"-") { ?>		<a href="http://<?php  echo $row['ytube'] ; ?>"> <img border="0" src="<?php echo $path; ?>images/uTube.png" width="25" height="25"></a>  <?php } ?>
+	<?php if ($row['twiter']<>"-") { ?>		<a  target="_blank" href="http://<?php  echo htmlspecialchars($row['twiter'] ); ?>"><img border="0" src="<?php echo $path; ?>images/twitter-icon.png" width="25" height="25"></a>    <?php } ?>
+	<?php if ($row['facebook']<>"-") { ?>		<a  target="_blank" href="http://<?php  echo htmlspecialchars($row['facebook'] ); ?>"> <img border="0" src="<?php echo $path; ?>images/facebook-icon.png" width="25" height="25"></a>  <?php } ?>
+	<?php if ($row['linken']<>"-") { ?>		<a  target="_blank" href="http://<?php  echo htmlspecialchars($row['linken'] ); ?>"> 	<img border="0" src="<?php echo $path; ?>images/linkedin-icon.png" width="25" height="25"></a>   <?php } ?>
+	<?php if ($row['ytube']<>"-") { ?>		<a href="http://<?php  echo htmlspecialchars($row['ytube'] ); ?>"> <img border="0" src="<?php echo $path; ?>images/uTube.png" width="25" height="25"></a>  <?php } ?>
 									
 									</td>
 
@@ -340,7 +351,7 @@ $result=mysql_query($st,$con);
 										
 											<p style="margin-left: 5px; margin-right: 10px; line-height:25px; text-align:justify; margin-top:5px; margin-bottom:5px">
 											<font size="2" color="#000000"><b>
-											About Us :</b>&nbsp;&nbsp; <?php echo $row["remark"] ; ?>
+											About Us :</b>&nbsp;&nbsp; <?php echo htmlspecialchars($row["remark"]); ?>
 											&nbsp;</font>
 											<?php
 										}
@@ -351,7 +362,7 @@ $result=mysql_query($st,$con);
 										<div align="center">
 													<table border="0" width="90%" id="table43" style="border-collapse: collapse" bordercolor="#F4F4F4">
 														<tr>
-															<td>&nbsp;<font color="#121212" size="2"><b><?php if ($row['a']<>"-") { ?>Rating :&nbsp;<?php  echo $row['a'] ; } ?> </b></font></td>
+															<td>&nbsp;<font color="#121212" size="2"><b><?php if ($row['a']<>"-") { ?>Rating :&nbsp;<?php  echo htmlspecialchars($row['a'] ); } ?> </b></font></td>
 															<td width="136">&nbsp;
 													<?php if ($row['verify'] == "Verified") { ?>  
 															<img border="0" src="images/VerifiedLogo.jpg"> <?php } ?></td>
@@ -380,7 +391,7 @@ $result=mysql_query($st,$con);
 										<tr>
 											<td height="25">
 								
-										<a href="clientweb.php?id=<?php echo $row['mid']; ?> ">
+										<a href="clientweb.php?id=<?php echo htmlspecialchars($row['mid']); ?> ">
 											<img border="0" id="img1" src="images/button22.jpg" onmouseover="this.src='images/button23.jpg'" onmouseout="this.src='images/button22.jpg'"  height="26" width="166" alt="View more detail &gt;&gt;" >
 											
 											</a>			
@@ -422,8 +433,8 @@ $result=mysql_query($st,$con);
 							?>
 							
 							
-							<input   type="hidden" name="item" id="item" tabindex="4" value="<?php echo $_GET['item'] ;?>"  size="1"/>
-							<input   type="hidden" name="loc" id="loc" value="<?php echo $_GET['loc'] ;?>" />
+							<input   type="hidden" name="item" id="item" tabindex="4" value="<?php $item = $_GET['item'] ?? ''; echo $item; ?>"  size="1"/>
+							<input   type="hidden" name="loc" id="loc" value="<?php $loc = $_GET['loc'] ?? ''; echo $loc; ?>" />
 							
 							<input  class="subbox11" type="submit" value="More" name="submit" style="float: center"/></p>
 												</form>&nbsp;</td>
@@ -444,7 +455,7 @@ $result=mysql_query($st,$con);
 </div>
 
 <div align="center">
-	<?php include("footer.php"); ?>
+	<?php require_once "footer.php"; ?>
 </div>
 
 </body>

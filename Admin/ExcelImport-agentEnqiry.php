@@ -1,28 +1,32 @@
 <?php
+require_once "config.php";
 
-session_start();
-
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
 
 if ( isset($_SESSION['user']))
  {
    if($_SESSION['user']=="") 
- 	header("location: index.php?r=0"); 
+ 	{
+		header("location: index.php?r=0"); 
+		exit;
+	}
  }
-else
+else{
  		header("location: index.php?r=0"); 
-
-  
+		exit;
+}
  ?>
- 
- 
- 
- 
-
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Online Directory : Admin Panel</title>
  <link rel="stylesheet" type="text/css" href="../akc.css" />
 
@@ -40,45 +44,45 @@ background-color: #70828F;;
 </head>
 
 <?php
-include("../config.php"); 
-
 $msg=0;
 
 $ino=0;
-
-$connect = mysqli_connect("ish.genxwhosting.com:3306", "websofts_look8us", "*Akc12345", "websofts_look8us");//databse connectivity
 
 //$connect = mysqli_connect("localhost", "root", "", "look8us");//databse connectivity
 
 	if(isset($_POST["submit"]))
 	{
-		$aid=$_POST["aid"];
+		$aid = (int)($_POST['aid'] ?? 0);
 		
-		if($_FILES['file']['name'])
+		if (isset($_FILES['file']) &&
+    $_FILES['file']['error'] === UPLOAD_ERR_OK)
 		{
-				$filename = explode(".", $_FILES['file']['name']);
-				if($filename[1] == 'csv')
+				$extension = strtolower(pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION));
+
+if ($extension === 'csv')
 				{
 					$handle = fopen($_FILES['file']['tmp_name'], "r");
 					while($data = fgetcsv($handle))//handling csv file 
 						{
-							$item1 = mysqli_real_escape_string($connect, $data[0]);  
-							$item2 = mysqli_real_escape_string($connect, $data[1]);
-							$item3 = mysqli_real_escape_string($connect, $data[2]);  
-							$item4 = mysqli_real_escape_string($connect, $data[3]);
-							$item5 = mysqli_real_escape_string($connect, $data[4]);  
-							$item6 = mysqli_real_escape_string($connect, $data[5]);
-							$item7 = mysqli_real_escape_string($connect, $data[6]);  
-							$item8 = mysqli_real_escape_string($connect, $data[7]);  
+							$item1 = mysqli_real_escape_string($con, $data[0] ?? '');  
+							$item2 = mysqli_real_escape_string($con, $data[1] ?? '');
+							$item3 = mysqli_real_escape_string($con, $data[2] ?? '');  
+							$item4 = mysqli_real_escape_string($con, $data[3] ?? '');
+							$item5 = mysqli_real_escape_string($con, $data[4] ?? '');  
+							$item6 = mysqli_real_escape_string($con, $data[5] ?? '');
+							$item7 = mysqli_real_escape_string($con, $data[6] ?? '');  
+							$item8 = mysqli_real_escape_string($con, $data[7] ?? '');  
 
 							
 							if (($ino>0)&&($item1<>"")) //=======remove coloum name, not insert =============
 							{
 								//insert data from CSV file 
 								$query = "INSERT into agenquiry(aid,ename, cate,address,area,city,mobile,email,edate,estatus,hid) values('$aid','$item1','$item2','$item3','$item4','$item5','$item6','$item7','$item8','Open',1)";
-							 	mysqli_query($connect, $query);
+							 	if (!mysqli_query($con, $query)) {
+    die(mysqli_error($con));
+}
 						 	}
-						//	mysql_query($query,$con);
+						//	mysqli_query($con,$query);
 						$ino=$ino+1;
 						
 						}
@@ -98,7 +102,7 @@ $connect = mysqli_connect("ish.genxwhosting.com:3306", "websofts_look8us", "*Akc
 <div align="center">
 	<table border="0" width="980" id="table1" style="border-collapse: collapse" bordercolor="#E2E2E2" cellpadding="0">
 		<tr>
-			<td height="50" align="center" valign="top">	<?php  include("../header.php"); ?>		</td>		</tr>
+			<td height="50" align="center" valign="top">	<?php  require_once "../header.php"; ?>		</td>		</tr>
 		<tr>
 			<td height="12" align="center" valign="top" bgcolor="#697779">			
 					</td>
@@ -107,7 +111,7 @@ $connect = mysqli_connect("ish.genxwhosting.com:3306", "websofts_look8us", "*Akc
 			<td>
 			<table border="0" width="100%" id="table2" style="border-collapse: collapse" bordercolor="#CCCCCC" height="206" cellpadding="0">
 				<tr>
-					<td width="228" valign="top" bgcolor="#EEEEEE">			<?php if ($_SESSION["id"]!="") include("sidemenu.php"); ?></td>
+					<td width="228" valign="top" bgcolor="#EEEEEE">			<?php if (!empty($_SESSION['id'])) include("sidemenu.php"); ?></td>
 					<td align="center" valign="top" bgcolor="#FFFFFF">
 					<h1>Excel Import- Enquiry by Agent<br>
 &nbsp;</h1>
@@ -116,7 +120,7 @@ $connect = mysqli_connect("ish.genxwhosting.com:3306", "websofts_look8us", "*Akc
 					<?php
 					
 					if ($msg==2)
-					{ echo "Excel Import Successfully, Total Record Import : ".$ino-1 ; }  
+					{ echo "Excel Import Successfully, Total Record Import : " . ($ino - 1); }  
 					
 					?>
 					
@@ -142,13 +146,16 @@ $connect = mysqli_connect("ish.genxwhosting.com:3306", "websofts_look8us", "*Akc
 <?php
 $st="Select * from agent order by aname";
 $i=1;
-$result=mysql_query($st,$con);
+$result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
 
-	while ($row=mysql_fetch_array($result))
+	while ($row=mysqli_fetch_assoc($result))
 	{	
 	
 	?>
-	<option value="<?php echo $row['aid'] ; ?>" <?php if (isset($_POST['aid'])) if($_POST['aid']==$row['aid']) echo 'selected'; ?>  > <?php echo $row["aname"] ; ?></option>
+	<option value="<?php echo htmlspecialchars($row['aid']); ?>" <?php if (isset($_POST['aid'])) if($_POST['aid']==$row['aid']) echo 'selected'; ?>  > <?php echo htmlspecialchars($row["aname"]); ?></option>
 	
 	
 	<?php
@@ -163,7 +170,7 @@ $result=mysql_query($st,$con);
 							<td width="151"><font size="2" color="#000000"><b>&nbsp;Select Excel CSV File</b></font></td>
 							<td width="416">
 	
-&nbsp;<input type="file" name="file">
+&nbsp<input type="file" name="file" accept=".csv" required>
 </td>
 							<td>
 	<input  class="subbox" type="submit" value="Import Excel" name="submit"/> <br>
@@ -220,32 +227,36 @@ $result=mysql_query($st,$con);
 									View</td>
 								</tr>
 			<?php						
-
-		$st="Select * from agenquiry where aid=" . $_POST['aid'] ." and hid=1   order by eid desc limit ".$ino;
+$limit = max(1, $ino);
+$aid = (int)$_POST['aid'];
+		$st="Select * from agenquiry where aid=" . $aid ." and hid=1   order by eid desc LIMIT $limit";
 		
 		//echo $st;
 		$i=1;
 		
-		$result=mysql_query($st,$con);
+		$result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
 		
-		$num_rows = mysql_num_rows($result);
+		$num_rows = mysqli_num_rows($result);
 
-	while ($row=mysql_fetch_array($result))
+	while ($row=mysqli_fetch_assoc($result))
 	{	
 	
 	?>				<tr>
 									<td height="29" width="5%" style="text-align: center">&nbsp;<?php echo $num_rows; ?></td>
-									<td height="29" width="10%" style="text-align: center">&nbsp;<?php echo $row["edate"]; ?></td>
-									<td height="29" width="23%" style="text-align: left">&nbsp;<?php echo $row["ename"]; ?></td>
-									<td height="29" width="13%" style="text-align: left">&nbsp;<?php echo $row["cate"]; ?></td>
-									<td height="29" width="10%" style="text-align: center">&nbsp;<?php echo $row["mobile"]; ?></td>
-									<td height="29" width="200" style="text-align: left">&nbsp;<?php echo $row["email"]; ?> &nbsp; <?php echo $row["web"]; ?></td>
-									<td height="29" width="8%" style="text-align: left">&nbsp;<?php echo $row["address"]; ?></td>
-									<td height="29" width="6%">&nbsp;<?php echo $row["area"]; ?></td>
-									<td height="29" width="11%">&nbsp;<?php echo $row["cdate"]; ?></td>
-									<td height="29" width="11%">&nbsp;<?php echo $row["ndate"]; ?></td>
-									<td height="29" width="4%">&nbsp;<?php echo $row["estatus"]; ?></td>
-									<td height="29" width="3%">&nbsp;<?php echo "<a class='a2' href='ViewEnqStatus.php?eid=".$row['eid']."'>Detail</a>"; ?></td>
+									<td height="29" width="10%" style="text-align: center">&nbsp;<?php echo htmlspecialchars($row["edate"]); ?></td>
+									<td height="29" width="23%" style="text-align: left">&nbsp;<?php echo htmlspecialchars($row["ename"]); ?></td>
+									<td height="29" width="13%" style="text-align: left">&nbsp;<?php echo htmlspecialchars($row["cate"]); ?></td>
+									<td height="29" width="10%" style="text-align: center">&nbsp;<?php echo htmlspecialchars($row["mobile"]); ?></td>
+									<td height="29" width="200" style="text-align: left">&nbsp;<?php echo htmlspecialchars($row["email"]); ?> &nbsp; <?php echo htmlspecialchars($row["web"] ?? ''); ?></td>
+									<td height="29" width="8%" style="text-align: left">&nbsp;<?php echo htmlspecialchars($row["address"]); ?></td>
+									<td height="29" width="6%">&nbsp;<?php echo htmlspecialchars($row["area"]); ?></td>
+									<td height="29" width="11%">&nbsp;<?php echo htmlspecialchars($row["cdate"] ?? ''); ?></td>
+									<td height="29" width="11%">&nbsp;<?php echo htmlspecialchars($row["ndate"] ?? ''); ?></td>
+									<td height="29" width="4%">&nbsp;<?php echo htmlspecialchars($row["estatus"]); ?></td>
+									<td height="29" width="3%">&nbsp;<?php echo "<a class='a2' href='ViewEnqStatus.php?eid=" . htmlspecialchars($row['eid']) . "'>Detail</a>"; ?></td>
 								</tr>
 								
 								<?php
@@ -269,7 +280,7 @@ $num_rows=$num_rows-1;
 			</td>
 		</tr>
 		<tr>
-			<td height="57" align="center" valign="top">			<?php  include("../footer.php"); ?></td>
+			<td height="57" align="center" valign="top">			<?php  require_once "../footer.php"; ?></td>
 		</tr>
 	</table>
 </div>

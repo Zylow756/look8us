@@ -1,17 +1,13 @@
-
 <?php
+require_once "config.php";
 
-session_start();
-
-
-if ( isset($_SESSION['user']))
- {
-   if($_SESSION['user']=="") 
- 	header("location: index.php?r=0"); 
- }
-else
- 		header("location: index.php?r=0"); 
-
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
   
  ?>
  
@@ -22,7 +18,7 @@ else
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Online Directory : Admin Panel</title>
  <link rel="stylesheet" type="text/css" href="../akc.css" />
 
@@ -70,16 +66,25 @@ return true;
 </script>
 </head>
 
-<?php include("../config.php");
-
+<?php 
 $msg=0;
 
 if (isset($_POST["submit"]))
 {
 
 
-$st="update advert set aname='". $_POST["cname"]. "',mobile='".$_POST["mobile"]. "',website='".$_POST["website"]."', astatus= '".$_POST["gstatus"]."' where aid=". $_POST["id"] ;
-mysql_query($st,$con);
+$id = (int)$_POST["id"];
+
+$st = "UPDATE advert SET
+aname='" . mysqli_real_escape_string($con, $_POST["cname"]) . "',
+mobile='" . mysqli_real_escape_string($con, $_POST["mobile"]) . "',
+website='" . mysqli_real_escape_string($con, $_POST["website"]) . "',
+astatus='" . mysqli_real_escape_string($con, $_POST["gstatus"]) . "'
+WHERE aid=$id";
+
+if (!mysqli_query($con, $st)) {
+    die(mysqli_error($con));
+}
 //echo $st;
 $msg=1;
 
@@ -95,7 +100,7 @@ $msg=1;
 <div align="center">
 	<table border="0" width="980" id="table1" style="border-collapse: collapse" bordercolor="#E2E2E2" cellpadding="0">
 		<tr>
-			<td height="50" align="center" valign="top">	<?php  include("../header.php"); ?>		</td>		</tr>
+			<td height="50" align="center" valign="top">	<?php  require_once "../header.php"; ?>		</td>		</tr>
 		<tr>
 			<td height="12" align="center" valign="top" bgcolor="#697779">			
 					</td>
@@ -104,7 +109,7 @@ $msg=1;
 			<td>
 			<table border="0" width="100%" id="table2" style="border-collapse: collapse" bordercolor="#CCCCCC" height="206" cellpadding="0">
 				<tr>
-					<td width="228" valign="top" bgcolor="#EEEEEE">			<?php if ($_SESSION["id"]!="") include("sidemenu.php"); ?></td>
+					<td width="228" valign="top" bgcolor="#EEEEEE">			<?php if (!empty($_SESSION['id'])) include("sidemenu.php"); ?></td>
 					<td align="center" valign="top" bgcolor="#FFFFFF">
 					<h1>Edit Ads Links Information</h1>
 					<p><h3><?php if ($msg==1) echo "Information Update"; ?></h3>
@@ -115,9 +120,13 @@ $msg=1;
 							<?php
 	if (isset( $_GET["id"]))
 	{
-		$s="select * from advert where aid=". $_GET["id"] ;
-	   $r=mysql_query($s,$con);
-	   if($row=mysql_fetch_array($r))
+		$id = (int)$_GET["id"];
+$s = "SELECT * FROM advert WHERE aid=$id";
+	   $r=mysqli_query($con,$s);
+if (!$r) {
+    die(mysqli_error($con));
+}
+	   if($row=mysqli_fetch_assoc($r))
 		{
 		
 		?>
@@ -130,16 +139,16 @@ $msg=1;
 
 <tr>
 	<td width="173" height="42">Company/Form/Shop&nbsp; Name</td>
-	<td width="300" height="42"><input   type="hidden" name="id" id="id" tabindex="4" value="<?php echo $row['aid']; ?>"   size="1"/>
-	<input  class="txtbox" type="text" name="cname" id="cname" tabindex="4" value="<?php echo $row['aname']; ?>"   size="1"/></td>
+	<td width="300" height="42"><input   type="hidden" name="id" id="id" tabindex="4" value="<?php echo (int)$row['aid']; ?>"   size="1"/>
+	<input  class="txtbox" type="text" name="cname" id="cname" tabindex="4" value="<?php echo htmlspecialchars($row['aname']); ?>"   size="1"/></td>
 </tr>
 <tr>
 	<td width="173" height="31">Contact No</td><td width="300" height="31">
-	<input  class="txtbox" type="text" name="mobile" id="remark0" tabindex="4" value="<?php echo $row['mobile']; ?>"   size="1"/></td>
+	<input  class="txtbox" type="text" name="mobile" id="remark0" tabindex="4" value="<?php echo htmlspecialchars($row['mobile']); ?>"   size="1"/></td>
 </tr>
 <tr>
 	<td width="173" height="37">Website Link</td><td width="300" height="37">
-	<input  class="txtbox" type="text" name="website" id="remark" tabindex="4" value="<?php echo $row['website']; ?>"   size="1"/></td>
+	<input  class="txtbox" type="text" name="website" id="remark" tabindex="4" value="<?php echo htmlspecialchars($row['website']); ?>"   size="1"/></td>
 </tr>
 <tr>
 	<td width="173" height="39">Status</td><td width="300" height="39">
@@ -170,7 +179,10 @@ $msg=1;
 					</table>
 							</td>
 							<td valign="top" width="24%">
-							<img border="1" src="<?php echo "../user/logo/".$row['img']; ?>"  width="164" height="166"></td>
+							<img border="1"
+     src="<?php echo "../user/logo/" . htmlspecialchars($row['img']); ?>"
+     width="164"
+     height="166"></td>
 						</tr>
 					</table></p>
 					<p>&nbsp;</td>
@@ -179,7 +191,7 @@ $msg=1;
 			</td>
 		</tr>
 		<tr>
-			<td height="57" align="center" valign="top">			<?php  include("../footer.php"); ?></td>
+			<td height="57" align="center" valign="top">			<?php  require_once "../footer.php"; ?></td>
 		</tr>
 	</table>
 </div>

@@ -1,7 +1,12 @@
 <?php
-if(!isset($_SESSION))
-{
-session_start();
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
 }
 ?>
 
@@ -9,7 +14,7 @@ session_start();
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Look8US :Business Directory Kota, Rajasthan , India, Online Business Directory Kota,  Yellow Pages  kota Rajasthan , Trusted & Verified Businesses, Exporters, Manufacturers, Suppliers Directory, B2B Business Directory </title>
 <meta name="description" content="Look8us.com from Kota Rajasthan is Your local Business Directory , yellow pages  Business Directory. Business Details, Contacts, Products, Services & Verified Businesses, Exporters, Manufacturers, Suppliers Directory">
 <meta name="keywords" content=" Look8us.com , yellow pages Kota Rajasthan , business directory Kota Rajasthan india,business search engine, indian business directory, online business directory, Indian manufacturers, suppliers, Indian exporters directory, b2b portal, b2b business directory,manufacturer, importers, traders, dealers, buyers, ">
@@ -30,7 +35,7 @@ session_start();
 
 
 <div align="center">
-<?php include("header.php"); ?>
+<?php require_once "header.php"; ?>
 <table border="0" width="100%" height="100" cellpadding="0" style="border-collapse: collapse">
 	<tr>
 		<td bgcolor="#D2D2D2">
@@ -113,17 +118,17 @@ Introduction</p><br>
 									cannot access and use certain information, 
 									materials and services. For example, we 
 									request information from you when you:<br>
-									• Log-on to certain areas of the Website, 
+									ï¿½ Log-on to certain areas of the Website, 
 									where you may be prompted to provide us with 
 									your Log in Name and Password as a condition 
 									to gaining access to certain information, 
 									materials or services.<br>
-									• Register or sign-up to use a service.<br>
-									• Subscribe to a newsletter or desire to be 
+									ï¿½ Register or sign-up to use a service.<br>
+									ï¿½ Subscribe to a newsletter or desire to be 
 									added to our mailing lists for other 
 									products and services.<br>
-									• Place an order.<br>
-									• Provide feedback in an online survey.<br>
+									ï¿½ Place an order.<br>
+									ï¿½ Provide feedback in an online survey.<br>
 									In each of the instances above, we typically 
 									ask for your name, e-mail address, phone 
 									number, address, Log in Name and Password, 
@@ -304,7 +309,7 @@ Introduction</p><br>
 									<b>Third Party Services</b><p align="left" class="p1" style="text-align: justify">
 									Third parties provide certain services 
 									available on www.meritnation.com on 
-									Look8us ’s behalf. Look8us may provide 
+									Look8us ï¿½s behalf. Look8us may provide 
 									information, including Personal Information, 
 									which Look8us collects on the Web to 
 									third-party service providers to help us 
@@ -315,11 +320,11 @@ Introduction</p><br>
 									will take reasonable steps to ensure that 
 									these third-party service providers are 
 									obligated to protect Personal Information on 
-									Look8us ’s behalf.<br>
+									Look8us ï¿½s behalf.<br>
 									Look8us does not intend to transfer 
 									Personal Information without your consent to 
 									third parties who are not bound to act on 
-									Look8us ’s behalf unless such transfer is 
+									Look8us ï¿½s behalf unless such transfer is 
 									legally required. Similarly, it is against 
 									Look8us 's policy to sell Personal 
 									Information collected online without 
@@ -349,22 +354,22 @@ Introduction</p><br>
 									customers to use our servers to effect or 
 									participate in any of the following 
 									activities:<br>
-									• To post to any Usenet or other newsgroup, 
+									ï¿½ To post to any Usenet or other newsgroup, 
 									forum, e-mail mailing list or other similar 
 									group or list articles which are off-topic 
 									according to the agreement or other 
 									owner-published FAQ or description of the 
 									group or list;<br>
-									• To send unsolicited mass e-mailings, if 
+									ï¿½ To send unsolicited mass e-mailings, if 
 									such unsolicited e-mailings provoke 
 									complaints from the recipients;<br>
-									• To engage in any of the foregoing 
+									ï¿½ To engage in any of the foregoing 
 									activities using the service of another 
 									provider, but channeling such activities 
 									through Look8us provided server, or using 
 									Look8us provided server as a mail drop for 
 									responses;<br>
-									• To falsify user information provided to 
+									ï¿½ To falsify user information provided to 
 									Look8us or to other users of the service 
 									in connection with use of Look8us service.<br>
 									Consequences of Violation:<br>
@@ -389,17 +394,17 @@ Introduction</p><br>
 									information as described in this Privacy 
 									Policy.<br>
 									Information security<br>
-									• We take appropriate security measures to 
+									ï¿½ We take appropriate security measures to 
 									protect against unauthorized access to or 
 									unauthorized alteration, disclosure or 
 									destruction of data.<br>
-									• We restrict access to your personally 
+									ï¿½ We restrict access to your personally 
 									identifying information to employees who 
 									need to know that information in order to 
 									operate, develop or improve our services.<br>
 									<p align="left" class="p1" style="text-align: justify">
 									<b>Updating your information</b><p align="left" class="p1" style="text-align: justify">
-									• We provide mechanisms for updating and 
+									ï¿½ We provide mechanisms for updating and 
 									correcting your personally identifying 
 									information for many of our services.<br>
 									Information Sharing and Disclosure<br>
@@ -410,7 +415,7 @@ Introduction</p><br>
 									products or services you've requested, when 
 									we have your permission, or under the 
 									following circumstances<br>
-									• We provide the information to trusted 
+									ï¿½ We provide the information to trusted 
 									partners who work on behalf of or with 
 									Look8us under confidentiality agreements. 
 									These companies may use your personal 
@@ -419,11 +424,11 @@ Introduction</p><br>
 									marketing partners. However, these companies 
 									do not have any independent right to share 
 									this information.<br>
-									• We respond to subpoenas, court orders, or 
+									ï¿½ We respond to subpoenas, court orders, or 
 									legal process, or to establish or exercise 
 									our legal rights or defend against legal 
 									claims;<br>
-									• We believe it is necessary to share 
+									ï¿½ We believe it is necessary to share 
 									information in order to investigate, 
 									prevent, or take action regarding illegal 
 									activities, suspected fraud, situations 
@@ -431,20 +436,20 @@ Introduction</p><br>
 									safety of any person, violations of 
 									Look8us 's terms of use, or as otherwise 
 									required by law.<br>
-									• We transfer information about you if 'Info 
+									ï¿½ We transfer information about you if 'Info 
 									Edge India Limited' is acquired by or merged 
 									with another company. In this event, 
 									Look8us will notify you before information 
 									about you is transferred and becomes subject 
 									to a different privacy policy.<br>
-									• Look8us displays targeted advertisements 
+									ï¿½ Look8us displays targeted advertisements 
 									based on personal information. Advertisers 
 									(including ad serving companies) may assume 
 									that people who interact with, view, or 
 									click on targeted ads meet the targeting 
 									criteria - for example, women ages 18-24 
 									from a particular geographic area.<br>
-									• Look8us does not provide any personal 
+									ï¿½ Look8us does not provide any personal 
 									information to the advertiser when you 
 									interact with or view a targeted ad. 
 									However, by interacting with or viewing an 
@@ -452,30 +457,30 @@ Introduction</p><br>
 									that the advertiser will make the assumption 
 									that you meet the targeting criteria used to 
 									display the ad.<br>
-									• Look8us advertisers include financial 
+									ï¿½ Look8us advertisers include financial 
 									service providers (such as banks, insurance 
 									agents, stock brokers and mortgage lenders) 
 									and non-financial companies (such as stores, 
 									airlines, and software companies).<br>
-									• Look8us works with vendors, partners, 
+									ï¿½ Look8us works with vendors, partners, 
 									advertisers, and other service providers in 
 									different industries and categories of 
 									business.<br>
 									Confidentiality and Security<br>
-									• We limit access to personal information 
+									ï¿½ We limit access to personal information 
 									about you to employees who we believe 
 									reasonably need to come into contact with 
 									that information to provide products or 
 									services to you or in order to do their 
 									jobs.<br>
-									• &quot; We have physical, electronic, and 
+									ï¿½ &quot; We have physical, electronic, and 
 									procedural safeguards that comply with the 
 									laws prevalent in India to protect personal 
 									information about you. Changes to this 
 									Privacy
 									<p align="left" class="p1" style="text-align: justify">
 									<b>Policy</b><p align="left" class="p1" style="text-align: justify">
-									• Look8us reserves the right to update, 
+									ï¿½ Look8us reserves the right to update, 
 									change or modify this policy at any time. 
 									The policy shall come to effect from the 
 									date of such update, change or modification.<br>
@@ -521,14 +526,14 @@ Introduction</p><br>
 									<br>
 									<b>We request you to please provide the 
 									following information in your complaint:-<br>
-									</b>• Identification of the information 
+									</b>ï¿½ Identification of the information 
 									provided by you<br>
-									• Clear statement as to whether the 
+									ï¿½ Clear statement as to whether the 
 									information is personal information or 
 									sensitive personal information<br>
-									• Your address, telephone number or e-mail 
+									ï¿½ Your address, telephone number or e-mail 
 									address<br>
-									• A statement that you have a good-faith 
+									ï¿½ A statement that you have a good-faith 
 									belief that the information has been 
 									processed incorrectly or disclosed without 
 									authorization, as the case may be.<br>
@@ -586,7 +591,7 @@ Introduction</p><br>
 </div>
 
 <div align="center">
-	<?php include("footer.php"); ?>
+	<?php require_once "footer.php"; ?>
 </div>
 
 </body>

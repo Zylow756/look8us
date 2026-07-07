@@ -1,8 +1,13 @@
-
-
 <?php
+require_once "config.php";
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
 
 if (isset($_SESSION['user']))
  {	if ($_SESSION['user']=="")
@@ -19,7 +24,7 @@ else
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Online Directory : Admin Panel</title>
  <link rel="stylesheet" type="text/css" href="../akc.css" />
 
@@ -59,7 +64,6 @@ if ($_SESSION['user']=="")
 	header("location: ../index.php?r=0");
 
 
-include("../config.php");
 
 $msg=0;
 
@@ -101,7 +105,7 @@ if ( isset($_POST['submit']))
 					
 					
 		$s="insert into activity values (NULL,'".$_POST["eventhead"]."','".$_POST["remark"]."','".$fp."','".$_SESSION["mid"]."','".$ag1."','".$ag2."','Pending')" ;
-		mysql_query($s,$con);
+		mysqli_query($con,$s);
 		
 		$msg=1;				
 
@@ -117,7 +121,7 @@ if ( isset($_POST['submit']))
 <div align="center">
 	<table border="0" width="980" id="table1" style="border-collapse: collapse" bordercolor="#E2E2E2" cellpadding="0">
 		<tr>
-			<td height="50" align="center" valign="top">	<?php  include("../header.php"); ?>		</td>		</tr>
+			<td height="50" align="center" valign="top">	<?php  require_once "../header.php"; ?>		</td>		</tr>
 		<tr>
 			<td height="12" align="center" valign="top" bgcolor="#697779">			
 					</td>
@@ -149,7 +153,7 @@ if ( isset($_POST['submit']))
 
 
 
-	<INPUT TYPE="text" NAME="tdate" VALUE="<?php if (isset($_POST['tdate'])){ if ($_POST['tdate']<>'') echo $_POST['tdate']; else echo date('d-m-Y'); } else echo date('d-m-Y'); ?>" size="17"  >
+	<INPUT TYPE="text" NAME="tdate" VALUE="<?php if (isset($_POST['tdate'])){ if ($_POST['tdate']<>'') $tdate = $_POST['tdate'] ?? ''; echo $tdate; else echo date('d-m-Y'); } else echo date('d-m-Y'); ?>" size="17"  >
 <A HREF="#" onClick="cal.select(document.forms['example'].tdate,'anchor1','dd-MM-yyyy'); return false;"  NAME="anchor1" ID="anchor1">
 	<img src="../Admin/cal.gif" width="16" height="16" border="0" alt="Pick a date"></A>&nbsp;&nbsp; </td>
 </tr>
@@ -204,7 +208,7 @@ if ( isset($_POST['submit']))
 			</td>
 		</tr>
 		<tr>
-			<td height="57" align="center" valign="top">			<?php  include("../footer.php"); ?></td>
+			<td height="57" align="center" valign="top">			<?php  require_once "../footer.php"; ?></td>
 		</tr>
 	</table>
 </div>

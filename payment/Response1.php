@@ -1,8 +1,19 @@
+<?php
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
+?>
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>New Page 1</title>
 </head>
 <?php
@@ -19,16 +30,15 @@ function add_date($original_date,$d,$m,$y)
 <p><b><font size="5" color="#00FF00">Scuuess</font></b></p>
 <?php 
 
-include("../config.php");
 $MERCHANT_KEY = $cMERCHANT_KEY;
 $SALT = $cSALT;
 $PAYU_BASE_URL = $cPAYU_BASE_URL;
 
 
-echo $_POST['mihpayid']; 
+$mihpayid = $_POST['mihpayid'] ?? '';
 echo "<br>";
 
-$posted = array();
+$posted = [];
 if(!empty($_POST))
  {
     //print_r($_POST);
@@ -81,11 +91,11 @@ if ($hashr==$posted['hash'])
 {
 	
 	$st="insert into payrec values(NULL,'".$posted['mihpayid']."','".$posted['addedon']."','".$posted['status']."','".$_POST['txnid']."','".$posted['email']."','".$posted['firstname']."','".$posted['phone']."','".$posted['amount']."','".$posted['productinfo']."','".$posted['mode']."','".date("d-m-Y")."',".$posted['udf1'].",'0','0',".$posted['udf2'].")";
-	mysql_query($st,$con);
+	mysqli_query($con,$st);
 	echo $st;
 	
 	$st="update payreq set mihpayid='".$posted['mihpayid']."',addedon='".$posted['addedon']."',status='".$posted['status']."',amountr='".$posted['amount']."',emailr='".$posted['email']."' where txnid='".$posted['txnid']."'";
-	mysql_query($st,$con);
+	mysqli_query($con,$st);
 	
 	//
 		
@@ -105,7 +115,7 @@ if ($hashr==$posted['hash'])
 	$ag2=add_date($ag1, $d,"0","0");
 
 	$st="update member set mplan='".$posted['productinfo']."', mdate='".$posted['addedon']."', x='".date("d-m-Y")."', z='".$ag2."',expdate='".$ag2."'  where mid=".$posted['udf1'];
-	mysql_query($st,$con);
+	mysqli_query($con,$st);
 
 	
 				header("location: subscribeSuccess.php?flag=1");

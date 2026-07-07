@@ -1,7 +1,18 @@
+<?php
+require_once "config.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
+?>
 <html>
 
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Online Directory : Admin Panel</title>
  <link rel="stylesheet" type="text/css" href="../akc.css" />
 
@@ -23,7 +34,7 @@ background-color: #70828F;;
 		<tr>
 			<td height="50" align="center" valign="top">
 			
-			<?php  include("../header.php"); ?>
+			<?php  require_once "../header.php"; ?>
 </td>
 		</tr>
 		<tr>
@@ -84,7 +95,7 @@ background-color: #70828F;;
 			</td>
 		</tr>
 		<tr>
-			<td align="center" valign="top">			<?php  include("../footer.php"); ?></td>
+			<td align="center" valign="top">			<?php  require_once "../footer.php"; ?></td>
 		</tr>
 	</table>
 </div>

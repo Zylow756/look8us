@@ -1,24 +1,26 @@
 <?php
+require_once "config.php";
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
 
 
-if ( isset($_SESSION['user']))
- {
-   if($_SESSION['user']=="") 
- 	header("location: index.php?r=0"); 
- }
-else
- 		header("location: index.php?r=0"); 
-
-  
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
  ?>
 
 <html>
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Online Directory : Admin Panel</title>
  <link rel="stylesheet" type="text/css" href="../akc.css" />
 
@@ -43,16 +45,19 @@ background-color: #70828F;;
 </head>
 
 <?php
-
-include("../config.php");
 $msg=0;
 
 if ( isset($_POST['submit1']))
 {
 				
-$st="Select * from memberimage  where mid=".$_POST["mid"];
-$result=mysql_query($st,$con);
-$num_rows = mysql_num_rows($result);
+$mid = (int)($_POST['mid'] ?? 0);
+
+$st = "SELECT * FROM memberimage WHERE mid=$mid";
+$result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
+$num_rows = mysqli_num_rows($result);
 if ($num_rows<5)
 {
 	$valid_formats = array("jpg","JPG","png","PNG","gif","GIF","bmp","BMP");
@@ -62,7 +67,8 @@ if ($num_rows<5)
 				
 				if(strlen($name))
 					{
-					list($txt, $ext) = explode(".", $name);
+					$ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+$txt = pathinfo($name, PATHINFO_FILENAME);
 							if(in_array($ext,$valid_formats))
 								{
 										if($size<(500*550))
@@ -71,10 +77,20 @@ if ($num_rows<5)
 									//$fp=date('d')."_".date('M')."_".date('Y')."_".date('h')."_".date('i')."_".date('s')."_".$_FILES["photoimg"]["name"];
 									$fp = date('d')."_".date('M')."_".date('Y')."_".time()."_".substr(str_replace(" ", "_", $txt),0,5).".jpg";
 	
-												move_uploaded_file($_FILES["photoimg"]["tmp_name"],"../user/logo/".$fp);
+												if (move_uploaded_file($_FILES["photoimg"]["tmp_name"], "../user/logo/" . $fp)) {
+
+    // Insert into database
+
+} else {
+
+    $msg = 6;
+
+}
 												
 												$s="insert memberimage  values(NULL,".$_POST["mid"].",'".$fp . "')";
-												mysql_query($s,$con);
+												if (!mysqli_query($con, $s)) {
+    die(mysqli_error($con));
+}
 												
 												$msg=1;
 											}
@@ -104,8 +120,14 @@ if ($num_rows<5)
 if ( isset($_GET['id']))
 {
 
-$s="delete from memberimage where id=".$_GET["id"];
-mysql_query($s,$con);
+$id = (int)($_GET['id'] ?? 0);
+
+$s = "DELETE FROM memberimage WHERE id=$id";
+
+mysqli_query($con, $s);
+if (!mysqli_query($con, $s)) {
+    die(mysqli_error($con));
+}
 
 $msg=5;
 
@@ -119,7 +141,7 @@ $msg=5;
 <div align="center">
 	<table border="0" width="980" id="table1" style="border-collapse: collapse" bordercolor="#E2E2E2" cellpadding="0">
 		<tr>
-			<td height="50" align="center" valign="top">	<?php  include("../header.php"); ?>		</td>		</tr>
+			<td height="50" align="center" valign="top">	<?php  require_once "../header.php"; ?>		</td>		</tr>
 		<tr>
 			<td height="12" align="center" valign="top" bgcolor="#697779">			
 					</td>
@@ -128,7 +150,11 @@ $msg=5;
 			<td>
 			<table border="0" width="100%" id="table2" style="border-collapse: collapse" bordercolor="#CCCCCC" height="206" cellpadding="0">
 				<tr>
-					<td width="228" valign="top" bgcolor="#EEEEEE">			<?php if ($_SESSION["id"]!="") include("sidemenu.php"); ?></td>
+					<td width="228" valign="top" bgcolor="#EEEEEE">			<?php
+if (!empty($_SESSION['id'])) {
+    require_once "sidemenu.php";
+}
+?></td>
 					<td align="center" valign="top" bgcolor="#FFFFFF">
 					<h1>Add Product Image to Member<br>
 &nbsp;</h1>
@@ -151,13 +177,16 @@ elseif  (($msg==2)||($msg==3)||($msg==4)) echo "<h3>Image NOT Add to Member Accc
 <?php
 $st="Select * from member order by compname, mname";
 $i=1;
-$result=mysql_query($st,$con);
+$result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
 
-	while ($row=mysql_fetch_array($result))
+	while ($row=mysqli_fetch_assoc($result))
 	{	
 	
 	?>
-	<option value="<?php echo $row['mid'] ; ?>" <?php if (isset($_POST['mid'])) if($_POST['mid']==$row['mid']) echo 'selected'; ?>  > <?php echo $row["compname"]." (". $row["mname"].")" ; ?></option>
+	<option value="<?php echo htmlspecialchars($row['mid']); ?>" <?php if (isset($_POST['mid'])) if($_POST['mid']==$row['mid']) echo 'selected'; ?>  > <?php echo htmlspecialchars($row["compname"]." (". $row["mname"].")"); ?></option>
 	
 	
 	<?php
@@ -187,9 +216,14 @@ $result=mysql_query($st,$con);
 								</tr>
 								<tr>
 									<td width="99%" height="34" align="center">&nbsp;<?php 
-		 $st="Select * from memberimage where mid=".$_POST["mid"];
-		 		 $result=mysql_query($st,$con);
-		while ($row=mysql_fetch_array($result))
+		 $mid = (int)$_POST['mid'];
+
+$st = "SELECT * FROM memberimage WHERE mid=$mid";
+		 		 $result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
+		while ($row=mysqli_fetch_assoc($result))
 			{
 			if ($row['img']<>"-")
 			{
@@ -199,7 +233,7 @@ $result=mysql_query($st,$con);
 			<?php
 			}
 			echo "<br>";
-			echo "<a class='a2' href='AddImageMember.php?id=".$row['id']."'>Delete</a>";  
+			echo "<a class='a2' href='AddImageMember.php?id=" . htmlspecialchars($row['id']) . "' onclick=\"return confirm('Delete this image?');\">Delete</a>";
 			echo "<br><br>";
 
 		}
@@ -270,7 +304,7 @@ $result=mysql_query($st,$con);
 			</td>
 		</tr>
 		<tr>
-			<td height="57" align="center" valign="top">			<?php  include("../footer.php"); ?></td>
+			<td height="57" align="center" valign="top">			<?php  require_once "../footer.php"; ?></td>
 		</tr>
 	</table>
 </div>

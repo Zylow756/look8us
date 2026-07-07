@@ -1,26 +1,24 @@
-
 <?php
+require_once "config.php";
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
 
-
-if ( isset($_SESSION['user']))
- {
-   if($_SESSION['user']=="") 
- 	header("location: index.php?r=0"); 
- }
-else
- 		header("location: index.php?r=0"); 
-
+if (!isset($_SESSION['user']) || $_SESSION['user'] == "") {
+    header("Location: index.php?r=0");
+    exit;
+}
   
  ?>
- 
- 
 <html>
-
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Online Directory : Admin Panel</title>
  <link rel="stylesheet" type="text/css" href="../akc.css" />
 
@@ -33,8 +31,6 @@ background-repeat:repeat-x;
 background-color: #70828F;;
 } 
 </style>
-
-
 <script language="JavaScript1.2">
  
 //Disable select-text script (IE4+, NS6+)- By Andy Scott
@@ -58,27 +54,11 @@ document.onmousedown=disableselect
 document.onclick=reEnable
 }
 </script> 
-
-
-
 </head>
-
 <?php
-include("../config.php"); 
-
 $msg=0;
-			
-
-
-
-				
-
 ?>
-
-	
 <body >
-
-
 <script language=JavaScript>
 <!--
 
@@ -97,7 +77,7 @@ return false;
 }
 
 function clickNS4(e){
-if (document.layers||document.getElementById&&!document.all){
+if (window.sidebar||document.getElementById&&!document.all){
 if (e.which==2||e.which==3){
 alert(message);
 return false;
@@ -105,7 +85,7 @@ return false;
 }
 }
 
-if (document.layers){
+if (window.sidebar){
 document.captureEvents(Event.MOUSEDOWN);
 document.onmousedown=clickNS4;
 }
@@ -113,17 +93,14 @@ else if (document.all&&!document.getElementById){
 document.onmousedown=clickIE4;
 }
 
-document.oncontextmenu=new Function("alert(message);return false")
+document.onselectstart=new Function("alert(message);return false")
 
 // --> 
 </script>
-
-
-
 <div align="center">
 	<table border="0" width="980" id="table1" style="border-collapse: collapse" bordercolor="#E2E2E2" cellpadding="0">
 		<tr>
-			<td height="50" align="center" valign="top">	<?php  include("../header.php"); ?>		</td>		</tr>
+			<td height="50" align="center" valign="top">	<?php  require_once "../header.php"; ?>		</td>		</tr>
 		<tr>
 			<td height="12" align="center" valign="top" bgcolor="#697779">			
 					</td>
@@ -132,19 +109,19 @@ document.oncontextmenu=new Function("alert(message);return false")
 			<td>
 			<table border="0" width="100%" id="table2" style="border-collapse: collapse" bordercolor="#CCCCCC" height="206" cellpadding="0">
 				<tr>
-					<td width="228" valign="top" bgcolor="#EEEEEE">			<?php if ($_SESSION["id"]!="") include("sidemenu.php"); ?></td>
+					<td width="228" valign="top" bgcolor="#EEEEEE">			<?php if (!empty($_SESSION['id'])) include("sidemenu.php"); ?></td>
 					<td align="center" valign="top" bgcolor="#FFFFFF">
 					<h1>Search Member</h1>
 					
 					</p>
-					<form action="Searchmember.php" method="get">
+					<form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="get">
 					
 					<table border="1" width="96%" id="table6" style="border-collapse: collapse" bordercolor="#F4F4F4" height="83">
 						<tr>
 							<td height="43" bgcolor="#F4F4F4" width="95">
 							<font size="2">&nbsp;Enter Char</font></td>
 							<td height="43" bgcolor="#F4F4F4">
-	<input type="text" class="txtbox" id="q" size="38" name="q" value='<?php if (isset($_GET["q"])){ echo $_GET["q"];} ?>' ></td>
+	<input type="text" class="txtbox" id="q" size="38" name="q" value="<?php echo htmlspecialchars($_GET['q'] ?? ''); ?>"></td>
 						</tr>
 						<tr>
 							<td bgcolor="#E3E3E3" width="95"><font size="2">&nbsp;Search By</font></td>
@@ -190,47 +167,72 @@ if (isset($_GET["q"]))
 								</tr>
 			<?php						
 
-if ($_GET["qtyp"]=="0")
-	$st="Select * from member where mname like '%".$_GET["q"]."%' order by compname, mname";
-else if ($_GET["qtyp"]=="1")
-	$st="Select * from member where compname like '%".$_GET["q"]."%' order by compname, mname";
+$q = trim($_GET['q'] ?? '');
 
+if ($_GET['qtyp'] == "0") {
+
+    $stmt = mysqli_prepare(
+        $con,
+        "SELECT * FROM member
+         WHERE mname LIKE ?
+         ORDER BY compname,mname"
+    );
+
+} else {
+
+    $stmt = mysqli_prepare(
+        $con,
+        "SELECT * FROM member
+         WHERE compname LIKE ?
+         ORDER BY compname,mname"
+    );
+
+}
+
+$search = "%".$q."%";
+
+mysqli_stmt_bind_param($stmt,"s",$search);
+
+mysqli_stmt_execute($stmt);
+
+$result = mysqli_stmt_get_result($stmt);
 //echo $st;
 $i=1;
-$result=mysql_query($st,$con);
+$result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
 
-	while ($row=mysql_fetch_array($result))
+	while($row=mysqli_fetch_assoc($result))
 	{	
 	
 	?>
 				
 								<tr>
 									<td height="29" width="8%">&nbsp;<?php echo $i; ?></td>
-									<td height="29" width="17%">&nbsp;<?php echo $row["compname"]; ?></td>
-									<td height="29" width="16%">&nbsp;<?php echo $row["mname"]; ?></td>
-									<td height="29" width="8%" style="text-align: center">&nbsp;<?php 	echo $row["address"];  ?></td>
-									<td height="29" width="8%" style="text-align: center">&nbsp;<?php echo $row["area"]; ?></td>
-									<td height="29" width="8%" style="text-align: center">&nbsp;<?php echo $row["city"]; ?></td>
-									<td height="29" width="8%" style="text-align: center">&nbsp;<?php echo $row["mobile"]; ?></td>
-									<td height="29" width="10%" style="text-align: center">&nbsp;<?php echo "<a class='a5' href='ViewDetail.php?id=".$row['mid']."'>View</a>"; ?></td>
+									<td height="29" width="17%">&nbsp;<?php echo htmlspecialchars($row["compname"]); ?></td>
+									<td height="29" width="16%">&nbsp;<?php echo htmlspecialchars($row["mname"]); ?></td>
+									<td height="29" width="8%" style="text-align: center">&nbsp;<?php 	echo htmlspecialchars($row["address"]);  ?></td>
+									<td height="29" width="8%" style="text-align: center">&nbsp;<?php echo htmlspecialchars($row["area"]); ?></td>
+									<td height="29" width="8%" style="text-align: center">&nbsp;<?php echo htmlspecialchars($row["city"]); ?></td>
+									<td height="29" width="8%" style="text-align: center">&nbsp;<?php echo htmlspecialchars($row["mobile"]); ?></td>
+									<td height="29" width="10%" style="text-align: center">&nbsp;<a class="a5" href="ViewDetail.php?id=<?php echo urlencode($row['mid']); ?>">
+View
+</a></td>
 									<td height="29" width="8%" style="text-align: center">&nbsp;
 									<?php 
-									if ($row["mstatus"]==0)
-										echo "Enable"; 
-									else
-										echo "<b>Disable</b>"; 
-									
+									echo ($row['mstatus']==0)
+    ? "Enabled"
+    : "<strong>Disabled</strong>";
 									?>
 									</td>
-									<td height="29" width="6%" style="text-align: center">&nbsp;<?php echo $row["mplan"]; ?></td>
+									<td height="29" width="6%" style="text-align: center">&nbsp;<?php echo htmlspecialchars($row["mplan"]); ?></td>
 									<td height="29" width="6%" style="text-align: center">
 									
 										<?php 
-									if ($row["z"]<>"-")
+									if (!empty($row["z"]) && $row["z"] != "-")
 									{
-									$current_date = strtotime($row["z"]);
-								 $resultant_date = date('d-m-Y', mktime(0,0,0,date('m',$current_date),date('d',$current_date),date('Y',$current_date)));
-									echo $resultant_date; 
+										echo date("d-m-Y", strtotime($row["z"]));
 									}
 									else
 									echo "-";
@@ -263,7 +265,7 @@ $result=mysql_query($st,$con);
 			</td>
 		</tr>
 		<tr>
-			<td height="57" align="center" valign="top">			<?php  include("../footer.php"); ?></td>
+			<td height="57" align="center" valign="top">			<?php  require_once "../footer.php"; ?></td>
 		</tr>
 	</table>
 </div>

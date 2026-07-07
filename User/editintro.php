@@ -1,8 +1,13 @@
-
-
 <?php
+require_once "config.php";
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
 
 if (isset($_SESSION['user']))
  {	if ($_SESSION['user']=="")
@@ -18,7 +23,7 @@ else
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Online Directory : Admin Panel</title>
  <link rel="stylesheet" type="text/css" href="../akc.css" />
 
@@ -42,14 +47,12 @@ background-color: #70828F
 </head>
 
 <?php
-include("../config.php"); 
-
 $msg=0;
 			
 if (isset( $_POST["submit"]))
 {
 $s="update member  set remark='". $_POST['remark']. "',remark1='". $_POST['remark0']. "',gmap='". $_POST['gmap']. "' where mid=".$_SESSION["mid"] ;
-mysql_query($s,$con);
+mysqli_query($con,$s);
 //echo $s;
 $msg=1;
 }
@@ -66,7 +69,7 @@ $msg=1;
 <div align="center">
 	<table border="0" width="980" id="table1" style="border-collapse: collapse" bordercolor="#E2E2E2" cellpadding="0">
 		<tr>
-			<td height="50" align="center" valign="top">	<?php  include("../header.php"); ?>		</td>		</tr>
+			<td height="50" align="center" valign="top">	<?php  require_once "../header.php"; ?>		</td>		</tr>
 		<tr>
 			<td height="12" align="center" valign="top" bgcolor="#697779">			
 					</td>
@@ -88,8 +91,11 @@ $msg=1;
 							
 			<?php 
 		$st="Select * from member where mid=".$_SESSION["mid"];
-		$result=mysql_query($st,$con);
-		if ($row=mysql_fetch_array($result))
+		$result=mysqli_query($con,$st);
+if (!$result) {
+    die(mysqli_error($con));
+}
+		if ($row=mysqli_fetch_assoc($result))
 		{
 		?>
 			
@@ -106,7 +112,7 @@ $msg=1;
 	
 <tr><td width="1010" height="30" align="left" colspan="3">
 
-<textarea name="remark" rows="4" cols="86" ><?php  echo $row['remark'];  ?></textarea>
+<textarea name="remark" rows="4" cols="86" ><?php  echo htmlspecialchars($row['remark']);  ?></textarea>
 	</tr>
 
 	
@@ -133,7 +139,7 @@ $msg=1;
 							
 							<tr><td width="1010" height="30" align="left" colspan="3">
 
-<textarea name="gmap" rows="4" cols="86" ><?php  echo $row['gmap'];  ?></textarea></td>
+<textarea name="gmap" rows="4" cols="86" ><?php  echo htmlspecialchars($row['gmap']);  ?></textarea></td>
 	</tr>
 			
 							
@@ -144,7 +150,7 @@ $msg=1;
 							
 							<tr><td width="1010" height="30" align="left" colspan="3">
 
-<textarea name="remark0" rows="15" cols="86" ><?php  echo $row['remark1'];  ?></textarea></td>
+<textarea name="remark0" rows="15" cols="86" ><?php  echo htmlspecialchars($row['remark1']);  ?></textarea></td>
 	</tr>
 			
 			<?php
@@ -155,7 +161,7 @@ $msg=1;
 							 
 							<tr><td width="1010" height="30" align="left" colspan="3">
 
-							 <input  type="hidden" name="remark0"  value="<?php echo $row['remark1'];   ?>"  />
+							 <input  type="hidden" name="remark0"  value="<?php echo htmlspecialchars($row['remark1']);   ?>"  />
 
 
 </td>
@@ -195,7 +201,7 @@ $msg=1;
 			</td>
 		</tr>
 		<tr>
-			<td height="57" align="center" valign="top">			<?php  include("../footer.php"); ?></td>
+			<td height="57" align="center" valign="top">			<?php  require_once "../footer.php"; ?></td>
 		</tr>
 	</table>
 </div>

@@ -1,16 +1,13 @@
 <?php
+require_once "config.php";
 
-session_start();
-
-
-if ( isset($_SESSION['user']))
- {
-   if($_SESSION['user']=="") 
- 	header("location: index.php?r=0"); 
- }
-else
- 		header("location: index.php?r=0"); 
-
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['user'])) {
+    header("Location: index.php?r=0");
+    exit;
+}
   
  ?>
 
@@ -18,7 +15,7 @@ else
 
 <head>
 <meta http-equiv="Content-Language" content="en-us">
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
 <title>Online Directory : Admin Panel</title>
  <link rel="stylesheet" type="text/css" href="../akc.css" />
 
@@ -65,15 +62,12 @@ return true;
 
 </script>
 </head>
-
-<?php include("../config.php"); ?>
-	
 <body >
 
 <div align="center">
 	<table border="0" width="980" id="table1" style="border-collapse: collapse" bordercolor="#E2E2E2" cellpadding="0">
 		<tr>
-			<td height="50" align="center" valign="top">	<?php  include("../header.php"); ?>		</td>		</tr>
+			<td height="50" align="center" valign="top">	<?php  require_once "../header.php"; ?>		</td>		</tr>
 		<tr>
 			<td height="12" align="center" valign="top" bgcolor="#697779">			
 					</td>
@@ -88,11 +82,18 @@ return true;
 			
 if (isset( $_POST["submit"]))
 {
+$cateid = (int)$_POST['cateid'];
+$gstatus = (int)$_POST['gstatus'];
 
+$s = "UPDATE category SET
+cname='" . mysqli_real_escape_string($con, $_POST['cname']) . "',
+remark='" . mysqli_real_escape_string($con, $_POST['remark']) . "',
+cstatus=$gstatus
+WHERE cateid=$cateid";
 
-$s="UPDATE category SET cname = '". $_POST['cname']."', remark='". $_POST['remark']."',cstatus = ". $_POST['gstatus']." where cateid=".$_POST['cateid'] ;
-//echo $s;
-mysql_query($s,$con);
+if (!mysqli_query($con, $s)) {
+    die(mysqli_error($con));
+}
 $msg=1;
 
 }
@@ -104,7 +105,7 @@ $msg=1;
 
 			<table border="0" width="100%" id="table2" style="border-collapse: collapse" bordercolor="#CCCCCC" height="206" cellpadding="0">
 				<tr>
-					<td width="228" valign="top" bgcolor="#EEEEEE">			<?php if ($_SESSION["id"]!="") include("sidemenu.php"); ?></td>
+					<td width="228" valign="top" bgcolor="#EEEEEE">			<?php if (!empty($_SESSION['id'])) include("sidemenu.php"); ?></td>
 					<td align="center" valign="top" bgcolor="#FFFFFF">
 					<h1>Edit Category</h1>
 					<p><h3><?php if ($msg==1) echo "Category Detail Update"; ?></h3>
@@ -120,9 +121,14 @@ $msg=1;
 	<?php
 	if (isset( $_GET["id"]))
 	{
-		$s="select * from category where cateid=". $_GET["id"] ;
-	   $r=mysql_query($s,$con);
-	   if($row=mysql_fetch_array($r))
+		$id = (int)$_GET["id"];
+
+$s = "SELECT * FROM category WHERE cateid=$id";
+	   $r=mysqli_query($con,$s);
+if (!$r) {
+    die(mysqli_error($con));
+}
+	   if($row=mysqli_fetch_assoc($r))
 		{
 		
 		?>
@@ -131,15 +137,15 @@ $msg=1;
 
 <tr>
 	<td width="116" height="50">Category Name
-	<input  type="hidden" name="cateid" id="cateid" tabindex="4" value="<?php echo $row['cateid']; ?>"  size="1"/>
+	<input  type="hidden" name="cateid" id="cateid" tabindex="4" value="<?php echo (int)$row['cateid']; ?>"  size="1"/>
 	
 	
 	</td><td width="190" height="50">
-	<input  class="txtbox" type="text" name="cname" id="cname" tabindex="4" value="<?php echo $row['cname']; ?>"  size="1"/></td>
+	<input  class="txtbox" type="text" name="cname" id="cname" tabindex="4" value="<?php echo htmlspecialchars($row['cname']); ?>"  size="1"/></td>
 </tr>
 <tr>
 	<td width="116" height="30">Remark</td><td width="190" height="30">
-	<input  class="txtbox" type="text" name="remark" id="remark" tabindex="4"  value="<?php echo $row['remark']; ?>" size="1"/></td>
+	<input  class="txtbox" type="text" name="remark" id="remark" tabindex="4"  value="<?php echo htmlspecialchars($row['remark']); ?>" size="1"/></td>
 </tr>
 <tr>
 	<td width="116" height="39">Status</td><td width="190" height="39"><select  class="selbox" name="gstatus" id="gstatus" size="1" tabindex="5">
@@ -179,7 +185,7 @@ $msg=1;
 			</td>
 		</tr>
 		<tr>
-			<td height="57" align="center" valign="top">			<?php  include("../footer.php"); ?></td>
+			<td height="57" align="center" valign="top">			<?php  require_once "../footer.php"; ?></td>
 		</tr>
 	</table>
 </div>
