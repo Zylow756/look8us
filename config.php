@@ -26,7 +26,7 @@ if (!$con) {
 mysqli_set_charset($con, "utf8mb4");*/
 
 
-$path="http://Look8us.com/" ;
+$path = "/";
 
 $MERCHANT_KEY = "xjBaV4";  //Live
 $SALT = "fEXll9bP"; 		//Live
