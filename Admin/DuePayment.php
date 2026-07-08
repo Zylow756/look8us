@@ -4,16 +4,12 @@ require_once "config.php";
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-if (empty($_SESSION['user'])) {
+if (empty($_SESSION['admin'])) {
     header("Location: index.php?r=0");
     exit;
 }
   
  ?>
- 
- 
- 
- 
  <html>
 
 <head>

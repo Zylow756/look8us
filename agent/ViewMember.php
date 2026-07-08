@@ -4,22 +4,18 @@ require_once "config.php";
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-if (empty($_SESSION['user'])) {
+if (empty($_SESSION['agent'])) {
     header("Location: index.php?r=0");
     exit;
 }
 ?>
-
 <html>
-
 <head>
 <meta http-equiv="Content-Language" content="en-us">
 <meta charset="UTF-8">
 <title>Online Directory : Admin Panel</title>
  <link rel="stylesheet" type="text/css" href="../akc.css" />
-
 <style type="text/css"> 
-
 body
 {
 background-image:url('../Admin/img/bg.png');
@@ -27,18 +23,11 @@ background-repeat:repeat-x;
 background-color: #70828F;;
 } 
 </style>
-
-
 </head>
-
 <?php
-$msg=0;
-			
+$msg=0;	
 ?>
-
-	
 <body >
-
 <div align="center">
 	<table border="0" width="980" id="table1" style="border-collapse: collapse" bordercolor="#E2E2E2" cellpadding="0">
 		<tr>
@@ -57,15 +46,10 @@ $msg=0;
 &nbsp;</h1>
 				
 <form name="frmhlp" id="frmhlp" method="post" action="ViewEnq.php" >
-
-					
 					<?php
-					
 					if (isset($_SESSION["aid"]))
 					{
 					?>
-					
-					
 					<table class="table2"  width="94%" id="table3" border="1"    >
 								<tr>
 									<td bgcolor="#D2D2D2" width="5%">&nbsp;SNO.</td>
@@ -76,20 +60,22 @@ $msg=0;
 								</tr>
 			<?php						
 
-$st="Select * from member where acode='".$_SESSION['agent']."' order by mid DESC";
+$agent = mysqli_real_escape_string($con, $_SESSION['agent']);
+
+$st = "SELECT * FROM member
+       WHERE acode='$agent'
+       ORDER BY mid DESC";
 
 //echo $st;
 $i=1;
 $result=mysqli_query($con,$st);
 if (!$result) {
-    die(mysqli_error($con));
+    error_log(mysqli_error($con));
+    die("Database Error");
 }
-
 	while ($row=mysqli_fetch_assoc($result))
 	{	
-	
 	?>
-				
 								<tr>
 									<td height="29" width="5%" style="text-align: center">&nbsp;<?php echo $i; ?></td>
 									<td height="29" width="23%" style="text-align: center">&nbsp;<?php echo htmlspecialchars($row["y"]); ?></td>
@@ -99,15 +85,10 @@ if (!$result) {
 								
 								<?php
 								$i=$i+1;
-
 								}
-								
-								
 								?>
 							</table>
-							
 							<?php
-							
 							}
 							?>
 					</form>
@@ -121,7 +102,5 @@ if (!$result) {
 		</tr>
 	</table>
 </div>
-
 </body>
-
 </html>

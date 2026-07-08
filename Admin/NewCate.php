@@ -4,24 +4,10 @@ require_once "config.php";
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-if (empty($_SESSION['user'])) {
+if (empty($_SESSION['admin'])) {
     header("Location: index.php?r=0");
     exit;
 }
-
-if ( isset($_SESSION['user']))
- {
-   if($_SESSION['user']=="") {
- 	header("location: index.php?r=0"); 
-	exit; 
-	}
- }
-else {
- 		header("location: index.php?r=0"); 
-	exit; 
-	}
-
-  
  ?>
  
  
@@ -96,7 +82,7 @@ $_POST['gstatus']
 );
 
 $stmt->execute();
-mysqli_query($con,$st);
+mysqli_query($con,$stmt);
 //echo $st;
 $msg=1;
 

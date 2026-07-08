@@ -4,20 +4,13 @@ require_once "config.php";
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-if (empty($_SESSION['user'])) {
-    header("Location: index.php?r=0");
-    exit;
-}
 ?>
 <html>
-
 <head>
 <meta charset="UTF-8">
 <title>Online Directory : Admin Panel</title>
  <link rel="stylesheet" type="text/css" href="../akc.css" />
-
 <style type="text/css"> 
-
 body
 {
 background-image:url('../img/bg.png');
@@ -26,9 +19,7 @@ background-color: #70828F;;
 } 
 </style>
 </head>
-
 <body bgcolor="#748592">
-
 <div align="center">
 	<table border="0" width="980" id="table1" style="border-collapse: collapse" bordercolor="#C0C0C0" cellpadding="0">
 		<tr>
@@ -51,25 +42,25 @@ background-color: #70828F;;
 								<tr>
 									<td width="7%" height="41">&nbsp;</td>
 									<td height="41" colspan="2" style="text-align: center">
-									<font size="4" color="#FF0000">AGENT LOGIN&nbsp;
-									</font></td>
+									<h2 style="color:red;">AGENT LOGIN&nbsp;
+</h2></td>
 								</tr>
 								<tr>
 									<td width="7%" height="58">&nbsp;</td>
 									<td width="26%" height="58" valign="bottom">
 									<font color="#333333" size="2">User Name</font></td>
 									<td height="58" valign="bottom" width="65%">
-									<input type="text" name="t1" class="txtbox" size="27" onfocus="if(this.value=='Your User Name'){this.value='';}" onblur="if(this.value==''){this.value='Your User Name';}"  >  </td>
+									<input type="text" name="t1" class="txtbox" size="27" onfocus="if(this.value=='Your User Name'){this.value='';}" onblur="if(this.value==''){this.value='Your User Name';}" required >  </td>
 								</tr>
 								<tr>
 									<td width="7%" height="47">&nbsp;</td>
 									<td width="26%" height="47">
 									<font color="#333333" size="2">Password</font></td>
-									<td height="47" width="65%"><input type="password" name="t2" class="txtbox1" >  </td>
+									<td height="47" width="65%"><input type="password" name="t2" class="txtbox1" required>  </td>
 								</tr>
 								<tr>
 									<td width="7%" height="31">&nbsp;</td>
-									<td colspan="2" height="31">&nbsp;&nbsp;<?php  if (isset($_GET["r"])) echo "Invalid User Name OR Password<br><font size='1' face='Arial' color='#FF0000'>(Please Note User Name & Password is Case Sensitive)</font>"; ?> </td>
+									<td colspan="2" height="31">&nbsp;&nbsp;<?php  if (isset($_GET['r']) && $_GET['r'] == 0) echo "Invalid User Name OR Password<br><font size='1' face='Arial' color='#FF0000'>(Please Note User Name & Password is Case Sensitive)</font>"; ?> </td>
 								</tr>
 								<tr>
 									<td width="7%">&nbsp;</td>
@@ -99,7 +90,5 @@ background-color: #70828F;;
 		</tr>
 	</table>
 </div>
-
 </body>
-
 </html>

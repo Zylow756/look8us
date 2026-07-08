@@ -4,7 +4,7 @@ require_once "config.php";
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-if (empty($_SESSION['user'])) {
+if (empty($_SESSION['agent'])) {
     header("Location: index.php?r=0");
     exit;
 }
@@ -25,13 +25,15 @@ background-color: #70828F;;
 </style>
 </head>
 <?php
- if(isset($_POST) and $_SERVER['REQUEST_METHOD'] == "POST")
+ if ($_SERVER['REQUEST_METHOD'] === 'POST')
 	{
 $pass = base64_encode($_POST['t2']);
 $username = trim($_POST['t1']);
 //echo $t;
-	 	$s="select * from admin  where uname='".$username."' and pass='".$pass."'" ;
-		$r=mysqli_query($con,$s);
+	 	$stmt = mysqli_prepare($con, "SELECT * FROM admin WHERE uname=? AND pass=?");
+mysqli_stmt_bind_param($stmt, "ss", $username, $pass);
+mysqli_stmt_execute($stmt);
+$r = mysqli_stmt_get_result($stmt);
 if (!$r) {
     die(mysqli_error($con));
 }  
@@ -39,6 +41,7 @@ if (!$r) {
 			{
 				if( ($row['uname']==$username) and ($pass==$row['pass']) )
 				{
+					session_regenerate_id(true);
 					$_SESSION['user']=$username;
 					$_SESSION['typ']=$row['utyp'];
 					$_SESSION['id']=$row['uid'];
@@ -59,6 +62,7 @@ if (!$r) {
 			$_SESSION['id']=0;
 
 			header("location: index.php?r=0");
+    exit;
 			}
 	//echo $s;
 	}
@@ -66,6 +70,7 @@ if (!$r) {
 	{
 	if ($_SESSION['user']=="")
 	header("location: index.php?r=0");
+    exit;
 	}
 	?>
 <body >

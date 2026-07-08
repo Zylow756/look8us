@@ -1,8 +1,11 @@
 <?php
 require_once "config.php";
 
-if (!isset($_SESSION['user']) || $_SESSION['user'] == "") {
-    header("location: index.php?r=0");
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['admin'])) {
+    header("Location: index.php?r=0");
     exit;
 }
  ?>
@@ -60,11 +63,12 @@ if (!empty($_SESSION["id"])) {
 	
 <select name="aid" class="selbox4" >
 <?php
-$st="Select * from agent order by aname";
-$i=1;
-$result=mysqli_query($con,$st);
+$st = "SELECT * FROM agent ORDER BY aname";
+$result = mysqli_query($con, $st);
+
 if (!$result) {
-    die(mysqli_error($con));
+    error_log(mysqli_error($con));
+    die("Database Error");
 }
 
 	while ($row=mysqli_fetch_assoc($result))
@@ -84,7 +88,7 @@ if (!$result) {
 					if (isset($_POST["aid"]))
 					{
 					?>
-&nbsp;<a href="asp-mail/email_purchase_order.aspx?x=<?php echo urlencode($_POST['aid'] ?? ''); ?>"> " class="email"  ><font color="#FF0000" size="4">Click for Email >></font></a>
+&nbsp;<a href="asp-mail/email_purchase_order.aspx?x=<?php echo urlencode($_POST['aid'] ?? ''); ?>" class="email">"  ><font color="#FF0000" size="4">Click for Email >></font></a>
 				<?php
 				}
 				?>	
@@ -128,9 +132,11 @@ $st = "SELECT *
 //echo $st;
 $i=1;
 
-$result=mysqli_query($con,$st);
+$result = mysqli_query($con, $st);
+
 if (!$result) {
-    die(mysqli_error($con));
+    error_log(mysqli_error($con));
+    die("Database Error");
 }
 
 $num_rows = mysqli_num_rows($result);
@@ -150,9 +156,7 @@ $num_rows = mysqli_num_rows($result);
 									<td height="29" width="11%">&nbsp;<?php echo htmlspecialchars($row["cdate"]); ?></td>
 									<td height="29" width="11%">&nbsp;<?php echo htmlspecialchars($row["ndate"]); ?></td>
 									<td height="29" width="4%">&nbsp;<?php echo htmlspecialchars($row["estatus"]); ?></td>
-									<td height="29" width="3%">&nbsp;<?php echo "<a class='a2' href='ViewEnqStatus.php?eid=" .
-     urlencode($row['eid']) .
-     "'>Detail</a>"; ?></td>
+									<td height="29" width="3%">&nbsp;<a class="a2" href="ViewEnqStatus.php?eid=<?php echo (int)$row['eid']; ?>">Detail</a></td>
 								</tr>
 								
 								<?php

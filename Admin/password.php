@@ -23,7 +23,7 @@ if (session_status() === PHP_SESSION_NONE) {
 </head>
 
 <?php
-if (!isset($_SESSION['user']) || $_SESSION['user'] == "") {
+if (!isset($_SESSION['admin']) || $_SESSION['admin'] == "") {
 	header("location: ../index.php?r=0");
 	exit;
 }

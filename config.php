@@ -11,10 +11,10 @@
 // mysqli_select_db("onlndir", $con) or die ("error in select : akc");
 
 
-//$con = mysqli_connect("localhost","biagklvj_websoftguest","@Akc12345#") or die ("error Q akc");
-//mysqli_select_db($con, "biagklvj_websofts_look8us") or die ("error in select : akc");
+$con = mysqli_connect("localhost","biagklvj_websoftguest","@Akc12345#") or die ("error Q akc");
+mysqli_select_db($con, "biagklvj_websofts_look8us") or die ("error in select : akc");
 
-$host = "localhost";
+/*$host = "localhost";
 $user = "root";
 $password = "";
 $database = "biagklvj_websoftguest";
@@ -23,7 +23,7 @@ mysqli_select_db($con, $database) or die ("error in select : akc");
 if (!$con) {
     die("Connection failed: " . mysqli_connect_error());
 }
-mysqli_set_charset($con, "utf8mb4");
+mysqli_set_charset($con, "utf8mb4");*/
 
 
 $path="http://Look8us.com/" ;

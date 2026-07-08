@@ -4,29 +4,11 @@ require_once "config.php";
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-if (empty($_SESSION['user'])) {
+if (empty($_SESSION['admin'])) {
     header("Location: index.php?r=0");
     exit;
 }
-
-if ( isset($_SESSION['user']))
- {
-   if($_SESSION['user']=="") 
- 	{
-		header("Location: index.php?r=0");
-exit;
-	}
- }
-else{
-	header("Location: index.php?r=0");
-exit;
-}
-
-  
  ?>
- 
- 
-
 <html>
 
 <head>
@@ -92,23 +74,34 @@ $address = trim($_POST['address'] ?? '');
 $city    = trim($_POST['city'] ?? '');
 $mobile  = trim($_POST['mobile'] ?? '');
 
-$stmt = $con->prepare("INSERT INTO eweblink (ecateid, wname, wlink, address, city, mobile, status)
-VALUES (?, ?, ?, ?, ?, ?, ?)");
+$stmt = $con->prepare("
+    INSERT INTO eweblink
+    (ecateid, wname, wlink, address, city, mobile, status)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+");
+
+if (!$stmt) {
+    die("Database Error");
+}
 
 $status = 0;
 
 $stmt->bind_param(
     "isssssi",
-    $_POST['cate'],
-    $_POST['wname'],
-    $_POST['wlink'],
-    $_POST['address'],
-    $_POST['city'],
-    $_POST['mobile'],
+    $cate,
+    $wname,
+    $wlink,
+    $address,
+    $city,
+    $mobile,
     $status
 );
 
-$stmt->execute();
+if ($stmt->execute()) {
+    $msg = 1;
+} else {
+    error_log($stmt->error);
+}
 $stmt->close();
 //echo $st;
 $msg=1;
@@ -180,7 +173,8 @@ function FrontPage_Form1_Validator(theForm)
 		 $st="Select * from ecate order by catename";
 		 		 $result=mysqli_query($con,$st);
 if (!$result) {
-    die(mysqli_error($con));
+    error_log(mysqli_error($con));
+    die("Database Error");
 }
 		while ($row = mysqli_fetch_assoc($result))
 			{
