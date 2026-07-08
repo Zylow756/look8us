@@ -1,5 +1,5 @@
 <?php
-require_once "config.php";
+require_once __DIR__ . "/../config.php";
 ?>
 <div id="res"><table class="table2"  border="1" width="96%" id="table12">
 								<tr>
