@@ -4,10 +4,6 @@ require_once __DIR__ . "/../config.php";
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-if (empty($_SESSION['admin'])) {
-    header("Location: index.php?r=0");
-    exit;
-}
 ?>
 <html>
 
@@ -34,7 +30,10 @@ background-color: #70828F
 
 $username = trim($_POST['t1']);
 $password = trim($_POST['t2']);
-	 	$s="select * from admin  where uname=$username and pass=$password and acode='".$_POST['t3']."'" ;
+	 	$s = "SELECT * FROM admin
+      WHERE uname='".$username."'
+      AND password='".$password."'
+      AND acode='".$_POST['t3']."'";
 		$r=mysqli_query($con,$s);
 if (!$r) {
     die(mysqli_error($con));
@@ -44,7 +43,7 @@ if (!$r) {
 			{
 				if( ($row['uname']==$username) and ($password==$row['password']) )
 				{
-					$_SESSION['user']=$username;
+					$_SESSION['admin']=$username;
 					$_SESSION['typ']=$row['utyp'];
 					$_SESSION['id']=$row['uid'];
 					
@@ -56,7 +55,7 @@ if (!$r) {
 				}
 				else
 				{
-						$_SESSION['user']="";
+						$_SESSION['admin']="";
 						$_SESSION['typ']="";
 						$_SESSION['id']=0;
 								
@@ -67,7 +66,7 @@ if (!$r) {
 		else
 			{ 
 			//$res="Invalid User Name OR Password";
-			$_SESSION['user']="";
+			$_SESSION['admin']="";
 			$_SESSION['typ']="";
 			$_SESSION['id']=0;
 			
