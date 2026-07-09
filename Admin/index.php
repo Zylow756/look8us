@@ -136,7 +136,7 @@ $('#sname').click('change', function()
 									<td width="26%" height="23">
 									<font size="2">Access Code</font></td>
 									<td height="23" width="65%">
-									<input type="text" name="t3" class="txtbox4" size="27" onfocus="if(this.value=='Code'){this.value='';}" onblur="if(this.value==''){this.value='Code';}" required >
+									<input type="text" name="t3" class="txtbox4" size="27" onfocus="if(this.value=='Code'){this.value='';}" onblur="if(this.value==''){this.value='Code';}" >
 									<span id="gen" style="font-weight: 400">.
 									</span><span id="gen1" style="font-weight: 300; font-size:8pt;">-</span>
 									</td>

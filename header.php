@@ -51,7 +51,7 @@ Welcome<font color="#CCCCCC">,</font><font color="#0000FF">&nbsp;<b><?php echo u
 							<?php	
 							if (isset($_SESSION['typ'])) if ($_SESSION['typ']=="A")
 							{
-							echo "<a class='a3' href='".$path."admin/home.php'>(Administrator)</a>";
+							echo "<a class='a3' href='".$path."Admin/home.php'>(Administrator)</a>";
 							}
 							?>  
 							

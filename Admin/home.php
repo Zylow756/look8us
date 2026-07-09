@@ -4,10 +4,6 @@ require_once __DIR__ . "/../config.php";
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-if (empty($_SESSION['admin'])) {
-    header("Location: index.php?r=0");
-    exit;
-}
 ?>
 <html>
 
@@ -29,79 +25,65 @@ background-color: #70828F
 </head>
 
 <?php
- if ($_SERVER['REQUEST_METHOD'] === 'POST')
+ if(isset($_POST) and $_SERVER['REQUEST_METHOD'] == "POST")
 	{
+		$username = trim($_POST['t1']);
+$password = trim($_POST['t2']);
+$acode    = trim($_POST['t3']);
 
-// $pass=base64_encode($_POST['t2']);
-
- $pass=$_POST['t2'] ?? '';
-		
-/*$ty=$_POST['t1'] ?? '';
-$t=substr($ty,0,1);*/
-//echo $t;
-	
-	 	$stmt = $con->prepare(
-    "SELECT * FROM admin WHERE uname=? AND pass=?"
+$stmt = $con->prepare(
+    "SELECT * FROM admin
+     WHERE uname = ?
+       AND pass = ?
+       AND acode = ?"
 );
 
-$stmt->bind_param("ss", $_POST['t1'], $pass);
+$stmt->bind_param("sss", $username, $password, $acode);
 $stmt->execute();
 
 $r = $stmt->get_result();
-if (!$r) {
-    die(mysqli_error($con));
-}
-      //   echo $s;
-         
-		if ($row = mysqli_fetch_assoc($r))
-			{
-				if( ($row['uname']==$_POST['t1']) and ($pass==$row['pass']) )
-				{
-					$_SESSION['user']= $row['uname'];
-					$_SESSION['typ']=$row['utyp'];
-					$_SESSION['id']=$row['uid'];
-					
-					$stmt = $con->prepare(
-    "UPDATE admin SET acode='012345' WHERE uname=?"
-);
 
-$stmt->bind_param("s", $_POST['t1']);
-$stmt->execute();
-					if (!mysqli_query($con, $stmt)) {
-    die(mysqli_error($con));
-}
-		
-				}
-				else
-				{
-						$_SESSION['user']="";
-						$_SESSION['typ']="";
-						$_SESSION['id']=0;
-								
-						//header("location: index.php?r=0");
-				}
-			}
-			
-		else
-			{ 
-			//$res="Invalid User Name OR Password";
-			$_SESSION['user']="";
-			$_SESSION['typ']="";
-			$_SESSION['id']=0;
-			header("location: index.php?r=0");
-			exit;
-			}
+if ($row = $r->fetch_assoc()) {
 
-	//echo $s;
-	
-	}
-	else
-	{
-	if (empty($_SESSION['user'])) {
+    $_SESSION['admin'] = $row['uname'];
+    $_SESSION['typ']   = $row['utyp'];
+    $_SESSION['id']    = $row['uid'];
+
+	echo "<pre>";
+echo "LOGIN SUCCESS\n";
+echo "Session ID: " . session_id() . "\n";
+print_r($_SESSION);
+
+session_write_close();
+exit;
+
+    $stmt = $con->prepare(
+        "UPDATE admin SET acode='012345' WHERE uid=?"
+    );
+
+    $stmt->bind_param("i", $row['uid']);
+    $stmt->execute();
+
+    header("Location: home.php");
+    exit;
+
+} else {
+
+    $_SESSION['admin'] = "";
+    $_SESSION['typ']   = "";
+    $_SESSION['id']    = 0;
+
     header("Location: index.php?r=0");
     exit;
 }
-
+	}
+	else
+	{
+	if (empty($_SESSION['admin']))
+		{
+	 header("Location: index.php?r=0");
+exit;
+		}
 	}
 	?>
 	
