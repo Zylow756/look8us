@@ -49,14 +49,6 @@ if ($row = $r->fetch_assoc()) {
     $_SESSION['typ']   = $row['utyp'];
     $_SESSION['id']    = $row['uid'];
 
-	echo "<pre>";
-echo "LOGIN SUCCESS\n";
-echo "Session ID: " . session_id() . "\n";
-print_r($_SESSION);
-
-session_write_close();
-exit;
-
     $stmt = $con->prepare(
         "UPDATE admin SET acode='012345' WHERE uid=?"
     );
