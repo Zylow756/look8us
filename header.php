@@ -91,8 +91,6 @@ Welcome<font color="#CCCCCC">,</font><font color="#0000FF">&nbsp;<b><?php echo u
 </td><?php
 }
 ?>
-
-
 							</tr>
 						</table>
 					</div>
@@ -116,8 +114,6 @@ Welcome<font color="#CCCCCC">,</font><font color="#0000FF">&nbsp;<b><?php echo u
 					</td>
 				</tr></table></div></td>
 						</tr>
-						
-						
 						<tr>
 						<td height="5" bgcolor="#CCCCCC" colspan="3">
 						</td></tr>

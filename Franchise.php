@@ -1,425 +1,559 @@
 <?php
-require_once __DIR__ . "/config.php";
+declare(strict_types=1);
+
+require_once __DIR__ . '/config.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+$msg = 0;
+$error = '';
+
+$fname  = trim($_POST['fname']  ?? '');
+$mobile = trim($_POST['mobile'] ?? '');
+$email  = trim($_POST['email']  ?? '');
+$city   = trim($_POST['city']   ?? '');
+$remark = trim($_POST['remark'] ?? '');
+
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    if (
+        !isset($_POST['csrf_token']) ||
+        !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])
+    ) {
+        $error = 'Invalid request.';
+    }
+
+    if ($error === '') {
+
+        if ($fname === '') {
+            $error = 'Please enter your name.';
+        } elseif ($mobile === '') {
+            $error = 'Please enter your mobile number.';
+        } elseif ($email === '') {
+            $error = 'Please enter your email address.';
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $error = 'Please enter a valid email address.';
+        } elseif ($city === '') {
+            $error = 'Please enter preferred location.';
+        }
+
+    }
+
+    if ($error === '') {
+
+        try {
+$stmt = mysqli_prepare(
+    $con,
+    "INSERT INTO franch
+    (
+        fname,
+        mobile,
+        email,
+        city,
+        remark,
+        cdate
+    )
+    VALUES
+    (?, ?, ?, ?, ?, ?)"
+);
+
+$cdate = date('d-m-Y');
+mysqli_stmt_bind_param(
+    $stmt,
+    "ssssss",
+    $fname,
+    $mobile,
+    $email,
+    $city,
+    $remark,
+    $cdate
+);
+
+mysqli_stmt_execute($stmt);
+
+mysqli_stmt_close($stmt);
+
+            $msg = 1;
+
+            // clear values
+            $fname = '';
+            $mobile = '';
+            $email = '';
+            $city = '';
+            $remark = '';
+
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+
+        } catch (mysqli_sql_exception $e) {
+
+            error_log($e->getMessage());
+
+            $error = 'Unable to submit your details. Please try again later.';
+        }
+    }
+}
 ?>
 
-<html>
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
-<meta http-equiv="Content-Language" content="en-us">
+
 <meta charset="UTF-8">
-<title>Look8US :Business Directory Kota, Rajasthan , India, Online Business Directory Kota,  Yellow Pages  kota Rajasthan , Trusted & Verified Businesses, Exporters, Manufacturers, Suppliers Directory, B2B Business Directory </title>
-<meta name="description" content="Look8us.com from Kota Rajasthan is Your local Business Directory , yellow pages  Business Directory. Business Details, Contacts, Products, Services & Verified Businesses, Exporters, Manufacturers, Suppliers Directory">
-<meta name="keywords" content=" Look8us.com , yellow pages Kota Rajasthan , business directory Kota Rajasthan india,business search engine, indian business directory, online business directory, Indian manufacturers, suppliers, Indian exporters directory, b2b portal, b2b business directory,manufacturer, importers, traders, dealers, buyers, ">
- <link rel="stylesheet" type="text/css" href="akc.css" />
 
+<meta name="viewport"
+      content="width=device-width, initial-scale=1">
 
-<?php 
+<title>
+Look8US : Business Directory Kota, Rajasthan
+</title>
 
-$msg=0;
+<meta name="description"
+      content="Look8US Business Directory">
 
-if (isset($_POST["submit"]))
-{
+<meta name="keywords"
+      content="Business Directory, Kota, Rajasthan">
 
-$st="insert into franch values (NULL ,'". $_POST["fname"]. "','". $_POST["mobile"]. "','". $_POST["email"]. "','". $_POST["city"]. "','". $_POST["remark"]. "','".date("d-m-Y")."')" ;
-mysqli_query($con,$st);
-//echo $st;
-$msg=1;
-	
+<link rel="stylesheet" href="akc.css">
 
-} 	// end of if (submit)
+<style>
+	*{
+    box-sizing:border-box;
+}
 
-?>
+body{
+    margin:0;
+    padding:0;
+    font-family:Arial, Helvetica, sans-serif;
+    background:#ffffff;
+    color:#333;
+}
 
+img{
+    max-width:100%;
+    height:auto;
+}
+
+table{
+    max-width:100%;
+}
+
+input,
+textarea,
+select{
+    width:100%;
+    padding:10px;
+    border:1px solid #ccc;
+    border-radius:4px;
+    font-size:14px;
+    box-sizing:border-box;
+}
+
+textarea{
+    resize:vertical;
+    min-height:120px;
+}
+
+.subbox{
+
+    background:#0066cc;
+    color:#fff;
+    border:none;
+    padding:12px 25px;
+    cursor:pointer;
+    border-radius:4px;
+    font-size:15px;
+
+}
+
+.subbox:hover{
+
+    background:#004c99;
+
+}
+
+.success-message{
+
+    background:#d4edda;
+    color:#155724;
+    padding:12px;
+    margin:10px;
+    border-radius:5px;
+    border:1px solid #c3e6cb;
+
+}
+
+.error-message{
+
+    background:#f8d7da;
+    color:#721c24;
+    padding:12px;
+    margin:10px;
+    border-radius:5px;
+    border:1px solid #f5c6cb;
+
+}
+
+</style>
 
 </head>
 
-<body topmargin="0" leftmargin="0" rightmargin="0" bottommargin="2" background="images/bg.png">
+<body>
+<?php require_once 'header.php'; ?>
 
+<main class="franchise-page">
+<section class="page-banner">
+<div class="container">
+<h1>
+Franchise
+</h1>
+</div>
+</section>
+<section class="franchise-container">
+<div class="container">
+<div class="content-wrapper">
+<div class="content-left">
+<article class="franchise-content">
 
+    <p>
+        The service industry has shown new business horizons to the world.
+        It is the service industry which has multiplied customer comforts
+        and has churned immeasurable benefits for society.
+        Education is one of the brightest stars of the service industry.
+        Apart from monetary benefits, it is one of the few industries that
+        contributes significantly to the development of society.
+    </p>
 
+    <p>
+        In business terms, the investments required are simple and clean.
+        The major investment is in human resources rather than tangible
+        raw materials. Online marketing is one of the fastest-growing
+        businesses in the service industry and continues to earn respect
+        and recognition across different sectors.
+    </p>
 
+    <h2>Why Look8US?</h2>
 
-<div align="center">
-<?php require_once "header.php"; ?>
-<table border="0" width="100%" height="100" cellpadding="0" style="border-collapse: collapse">
-	<tr>
-		<td bgcolor="#D2D2D2">
-		<div align="center">
-			<table border="0" width="1010" id="table33" style="border-collapse: collapse" height="40" cellpadding="0">
-				<tr>
-					<td><font size="6">&nbsp;</font><font color="#333333" size="5">Franchise </font></td>
-				</tr>
-			</table>
-		</div>
-		</td>
-	</tr>
-</table>
-	<table border="0" width="1020" id="table1" style="border-collapse: collapse" bordercolor="#F2F2F2" bgcolor="#FFFFFF" cellpadding="0">
-		<tr>
-			<td valign="top">
-			<div align="center">
-			<table border="0" width="100%" id="table2" cellpadding="0" style="border-collapse: collapse" bordercolor="#FFFFCC">
-				
-				<tr>
-					<td valign="top">
-					<table border="0" width="100%" id="table8" cellpadding="0" style="border-collapse: collapse">
-						<tr>
-							<td  valign="top" bgcolor="#FFFFFF">
-							<table border="0" width="100%" id="table10" cellpadding="0" style="border-collapse: collapse" height="326" >
-								<tr>
-									
-									<td align="right" valign="top">
-									<table border="0" width="100%" id="table34" style="border-collapse: collapse">
-										<tr>
-											<td width="686">
-											<p style="text-align: justify; line-height: 17px; margin-left: 50px; margin-right: 10px; margin-top:2px; margin-bottom:2px">&nbsp;</p>
-											<p style="line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px" align="justify">
-											<font size="2">
-											<span style="font-family: Arial; ">
-											The service industry 
-											has shown new business horizons to 
-											the world. It is the service 
-											industry which has multiplied the 
-											customer comforts and has churned 
-											immeasurable benefits for the 
-											society world over. Education 
-											industry is one of the most eminent 
-											bright stars of service industry. 
-											Apart from the monetary inducements, 
-											it is one those few industries which 
-											has immense developmental corollary 
-											for the society.</span></font></p>
-											<p style="line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px" align="justify">
-											<font size="2">
-											<span style="font-family: Arial; ">
-											In business sense, 
-											the investments required are simple 
-											and clean. The major investment is 
-											in terms of human resource unlike 
-											tangible raw materials in other 
-											industries. Online marketing is not only 
-											one of the fastest growing 
-											businesses in the service industry 
-											but also is a business which 
-											commands a lot of respect and 
-											acknowledgement from different 
-											facets of the civilization. 
-											</span> </font>
-											</p>
-											<p style="line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px">&nbsp;</p>
-											<p class="hd" style="text-align: justify; line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px">
-											<b>
-											<span style="font-family: Arial; color: black" lang="EN-US">
-											<font size="2">Why us ?</font></span></b></p>
-											<p style="line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px">
-											<font size="2">
-											<span style="font-family: Arial">Look8us 
-											is an umbrella, which would give you 
-											recognition and will ensure that 
-											your investments are safe and 
-											growing. With our help and support, 
-											you will find yourself set to make 
-											your moves in the evolving Industry 
-											and make your mark.</span></font></p>
-											<ul style="margin-bottom: 0cm" type="disc">
-												<p style="line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px">
-												<img border="0" src="images/arrow3.gif" width="30" height="9"><font face="Arial" size="2">
-												</font>
-												<span style="font-family: Arial" lang="EN-US">
-												<font size="2">Association with 
-												the leading brand name of India
-												</font></span></p>
-												<p style="line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px">
-												<font face="Arial" size="2">
-												<img border="0" src="images/arrow3.gif" width="30" height="9">
-												</font>
-												<span style="font-family: Arial" lang="EN-US">
-												<font size="2">Membership of a 
-												nationwide network </font>
-												</span></p>
-												<p style="line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px">
-												<font face="Arial" size="2">
-												<img border="0" src="images/arrow3.gif" width="30" height="9">
-												</font>
-												<span style="font-family: Arial" lang="EN-US">
-												<font size="2">Detailed 
-												operations manual and processes 
-												to help you function smoothly 
-												and efficiently </font></span>
-												</p>
-												<p style="line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px">
-												<font face="Arial" size="2">
-												<img border="0" src="images/arrow3.gif" width="30" height="9">
-												</font>
-												<span style="font-family: Arial" lang="EN-US">
-												<font size="2">Latest and 
-												updated study material and 
-												curriculum </font></span></p>
-												<p style="line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px">
-												<font face="Arial" size="2">
-												<img border="0" src="images/arrow3.gif" width="30" height="9">
-												</font>
-												<span style="font-family: Arial" lang="EN-US">
-												<font size="2">National level 
-												advertisement support </font>
-												</span></p>
-											</ul>
-											<ul style="margin-bottom: 0cm" type="disc">
-												<p style="line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px">
-												<font face="Arial" size="2">&nbsp;</font></p>
-											</ul>
-											<p class="hd" style="text-align: justify; line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px">
-											<b>
-											<span style="font-family: Arial; color: black" lang="EN-US">
-											<font size="2">Reach of Look8us</font></span></b></p>
-											<ul style="margin-bottom: 0cm" type="disc">
-												<p style="line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px">
-												<font face="Arial" size="2">
-												<img border="0" src="images/arrow3.gif" width="30" height="9">
-												</font>
-												<span style="font-family: Arial" lang="EN-US">
-												<font size="2">A customer list 
-												that includes various customer 
-												all over India </font></span>
-												</p>
-												<p style="line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px">
-												<font face="Arial" size="2">
-												<img border="0" src="images/arrow3.gif" width="30" height="9">
-												</font>
-												<span style="font-family: Arial" lang="EN-US">
-												<font size="2">A vast community 
-												of satisfied clients </font>
-												</span></p>
-												<p style="line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px">
-												<font face="Arial" size="2">
-												<img border="0" src="images/arrow3.gif" width="30" height="9">
-												</font>
-												<span style="font-family: Arial" lang="EN-US">
-												<font size="2">A strong 
-												nationwide customer base </font>
-												</span></p>
-												<p style="line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px">
-												<font face="Arial" size="2">&nbsp;</font></p>
-											</ul>
-											<p style="text-align: justify; line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px">
-											<font face="Arial" size="2">&nbsp;</font></p>
-											<p style="text-align: justify; line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px">
-											<span style="color: black" lang="EN-US">
-											<strong><i>
-											<font size="2" face="Arial">Be a 
-											part of the movement called&nbsp; </font>
-											</i></strong>
-											<font size="2" face="Arial">L</font></span><span style="font-family: Arial; color: black" lang="EN-US"><font size="2">ook8us
-											</font><strong><i><font size="2">: 
-											follow the footprints of success....
-											</font></i></strong></span></p>
-											<p style="text-align: justify; line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px">
-											<span style="color: black" lang="EN-US">
-											<strong><font size="2" face="Arial">
-											Come to </font></strong>
-											<font face="Arial"><b>
-											<font size="2">L</font></b></font></span><span style="font-family: Arial; color: black" lang="EN-US"><b><font size="2">ook8us</font></b><strong><font size="2"> 
-											if you</font></strong></span></p>
-											<ul style="margin-bottom: 0cm" type="disc">
-												<p style="line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px">
-												<font face="Arial" size="2">
-												<img border="0" src="images/arrow3.gif" width="30" height="9">
-												</font>
-												<span style="font-family: Arial" lang="EN-US">
-												<font size="2">Have fire to 
-												excel </font></span></p>
-												<p style="line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px">
-												<font face="Arial" size="2">
-												<img border="0" src="images/arrow3.gif" width="30" height="9">
-												</font>
-												<span style="font-family: Arial" lang="EN-US">
-												<font size="2">Have right skills 
-												and attitude </font></span></p>
-												<p style="line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px">
-												<font face="Arial" size="2">
-												<img border="0" src="images/arrow3.gif" width="30" height="9">
-												</font>
-												<span style="font-family: Arial" lang="EN-US">
-												<font size="2">Have experience 
-												and knowledge in Education 
-												Industry </font></span></p>
-												<p style="line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px">
-												<font face="Arial" size="2">
-												<img border="0" src="images/arrow3.gif" width="30" height="9">
-												</font>
-												<span style="font-family: Arial" lang="EN-US">
-												<font size="2">Have ideas which 
-												can change the face of this 
-												industry </font></span></p>
-												<p style="line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px">
-												<font face="Arial" size="2">
-												<img border="0" src="images/arrow3.gif" width="30" height="9">
-												</font>
-												<span style="font-family: Arial" lang="EN-US">
-												<font size="2">Have all it takes 
-												to make a successful 
-												entrepreneur </font></span></p>
-												<p style="line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px">
-												<font face="Arial" size="2">&nbsp;</font></p>
-											</ul>
-											<p style="text-align: justify; line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px">
-											<span style="color: black" lang="EN-US">
-											<strong><font size="2" face="Arial">
-											In </font></strong>
-											<font face="Arial"><b>
-											<font size="2">L</font></b></font></span><span style="font-family: Arial; color: black" lang="EN-US"><b><font size="2">ook8us</font></b><strong><font size="2"> 
-											you will find :</font></strong></span></p>
-											<ul style="margin-bottom: 0cm" type="disc">
-												<p style="line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px">
-												<font face="Arial" size="2">
-												<img border="0" src="images/arrow3.gif" width="30" height="9">
-												</font>
-												<span style="font-family: Arial" lang="EN-US">
-												<font size="2">Someone, who 
-												believe in your vision </font>
-												</span></p>
-												<p style="line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px">
-												<font face="Arial" size="2">
-												<img border="0" src="images/arrow3.gif" width="30" height="9">
-												</font>
-												<span style="font-family: Arial" lang="EN-US">
-												<font size="2">Someone, who 
-												would provide you with solutions 
-												when you are struck </font>
-												</span></p>
-												<p style="line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px">
-												<font face="Arial" size="2">
-												<img border="0" src="images/arrow3.gif" width="30" height="9">
-												</font>
-												<span style="font-family: Arial" lang="EN-US">
-												<font size="2">Someone, who will 
-												help you see horizons of the 
-												glory </font></span></p>
-												<p style="line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px">
-												<font face="Arial" size="2">
-												<img border="0" src="images/arrow3.gif" width="30" height="9">
-												</font>
-												<span style="font-family: Arial" lang="EN-US">
-												<font size="2">Someone, who will 
-												help you realize your personal 
-												goals </font></span></p>
-												<p style="line-height: 17px; margin-left: 5px; margin-right: 10px; margin-top: 2px; margin-bottom: 2px">
-												<font face="Arial" size="2">
-												<img border="0" src="images/arrow3.gif" width="30" height="9">
-												</font>
-												<span style="font-family: Arial" lang="EN-US">
-												<font size="2">Someone, who will 
-												take your dreams and transform 
-												them into reality </font></span>
-												</p>
-											</ul>
-											<p>&nbsp;</td>
-											<td valign="top" bgcolor="#E3E3E3" align="center">
-											<p style="margin-left: 10px; margin-top: 5px; margin-bottom: 5px">
-											<b><font color="#0033CC" size="2"><?php if ($msg==1) echo "Your Detail Send."; ?></font></b>
-											</p>
-											<form name="example" METHOD="post" action="Franchise.php" enctype="multipart/form-data"  onsubmit="document.getElementById('pos').disabled = false;" >
+    <p>
+        Look8US is an umbrella brand that provides recognition while
+        ensuring your investment continues to grow. With our support,
+        guidance and nationwide presence, you can confidently establish
+        yourself in this rapidly growing industry.
+    </p>
 
-			<div align="right">
+    <ul class="feature-list">
 
-			<table border="0" width="99%" id="table1" style="BORDER-COLLAPSE: collapse" bordercolor="#f2f2f2" height="408">
-	<tr>
-		<td width="99%" align="middle" bgcolor="#969696" colspan="2" height="30">
-		<b>
-		<font size="2" color="#000000">Send your Detail </font></b></td>
-	</tr>
-	<tr>
-		<td width="99%" align="left" height="15" colspan="2">
-		
-		</td>
-		
-	</tr>
-	<tr>
-		<td width="35%" align="left" height="40">
-		
-		<font face="Arial" color="#000000" size="2">&nbsp;Name</font></td>
-		<td align="left" width="64%" height="40">
-	
-		<input name="fname" size="65" maxlength="35" onBlur="emailCheck(email.value)" class="txtbox1"   ></td>
-		
-	</tr>
-	<tr>
-		<td width="35%" align="left" height="40">
-		
-		<font face="Arial" color="#000000" size="2">&nbsp;Mobile/Phone</font></td>
-		<td align="left" width="64%" height="40">
-	
-		<input name="mobile" size="65" maxlength="35" onBlur="emailCheck(email.value)" class="txtbox1"    ></td>
-		
-	</tr>
-	<tr>
-		<td align="left" height="40">
-		
-		<font face="Arial" color="#000000" size="2">&nbsp;Email Id</font></td>
-		<td align="left" width="64%" height="40">
-	
-		<input name="email" size="65" maxlength="35" onBlur="emailCheck(email.value)" 
-		class="txtbox1" ></td>
-	</tr>
-	<tr>
-		<td align="left" height="40">
-		
-		<font face="Arial" color="#000000" size="2">&nbsp;Preffered Location</font></td>
-		<td align="left" width="64%" height="40">
-	
-		<input name="city" size="65" maxlength="35" onBlur="emailCheck(email.value)" 
-		class="txtbox1" ></td>
-	</tr>
-	<tr>
-		<td width="99%" align="left" height="40" colspan="2">
-		
-		<font face="Arial" color="#000000" size="2">&nbsp; Your Query - Remark </font></td>
-		
-	</tr>
-	<tr>
-		<td align="center" height="50" colspan="2">
-		
-		<textarea name="remark" rows="6" cols="35"></textarea>
-		&nbsp;
-		
-		</td>
-	</tr>
-	<tr>
-		<td align="middle" colspan="2" height="61">
-	
-		&nbsp;&nbsp;&nbsp;&nbsp;
-	
-		<input type="submit" value="Send"  name="submit" class="subbox" ></B></FONT></td>
-	</tr>
-	</table>
-			</div>
-	</form>
-											</td>
-										</tr>
-									</table>
-									</td>
-								</tr>
-							</table>
-							</td>
-						</tr>
-						</table>
-					</td>
-				</tr>
-			</table>
-			</div>
-			</td>
-		</tr>
-	</table>
+        <li>
+            Association with one of India's leading brand names.
+        </li>
+
+        <li>
+            Membership of a nationwide business network.
+        </li>
+
+        <li>
+            Detailed operating manuals and business processes.
+        </li>
+
+        <li>
+            Updated study materials and curriculum.
+        </li>
+
+        <li>
+            National-level advertising support.
+        </li>
+
+    </ul>
+
+    <h2>Reach of Look8US</h2>
+
+    <ul class="feature-list">
+
+        <li>
+            Customers from various cities across India.
+        </li>
+
+        <li>
+            Large community of satisfied clients.
+        </li>
+
+        <li>
+            Strong nationwide customer base.
+        </li>
+
+    </ul>
+
+    <p class="highlight">
+
+        <strong>
+            Be a part of the movement called Look8US —
+            follow the footprints of success.
+        </strong>
+
+    </p>
+
+    <h2>Come to Look8US if you...</h2>
+
+    <ul class="feature-list">
+
+        <li>
+            Have the passion to excel.
+        </li>
+
+        <li>
+            Possess the right skills and attitude.
+        </li>
+
+        <li>
+            Have experience in the education industry.
+        </li>
+
+        <li>
+            Have innovative business ideas.
+        </li>
+
+        <li>
+            Want to become a successful entrepreneur.
+        </li>
+
+    </ul>
+
+    <h2>With Look8US You Will Find</h2>
+
+    <ul class="feature-list">
+
+        <li>
+            Someone who believes in your vision.
+        </li>
+
+        <li>
+            Someone who helps solve business challenges.
+        </li>
+
+        <li>
+            Someone who helps you discover new opportunities.
+        </li>
+
+        <li>
+            Someone who helps you achieve your personal goals.
+        </li>
+
+        <li>
+            Someone who transforms your dreams into reality.
+        </li>
+
+    </ul>
+
+</article>
+
 </div>
 
-<div align="center">
-	<?php require_once "footer.php"; ?>
-</div>
+<div class="content-right">
+<form
+    name="example"
+    method="post"
+    action="<?= htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, 'UTF-8'); ?>"
+    enctype="multipart/form-data"
+    autocomplete="on"
+>
 
-</body>
+    <!-- CSRF Protection -->
+    <input
+        type="hidden"
+        name="csrf_token"
+        value="<?= htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>"
+    >
 
-</html>
+    <div align="right">
+
+        <table
+            border="0"
+            width="99%"
+            id="table1"
+            style="border-collapse:collapse;"
+            bordercolor="#f2f2f2"
+            class="franchise-form-table"
+        >
+
+            <tr>
+                <td colspan="2" bgcolor="#969696" align="center" height="30">
+                    <strong>Send your Detail</strong>
+                </td>
+            </tr>
+
+            <?php if ($msg === 1): ?>
+
+            <tr>
+
+                <td colspan="2" align="center">
+
+                    <div class="success-message">
+
+                        Your details have been sent successfully.
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+            <?php endif; ?>
+
+
+            <?php if ($error !== ''): ?>
+
+            <tr>
+
+                <td colspan="2" align="center">
+
+                    <div class="error-message">
+
+                        <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+            <?php endif; ?>
+
+
+            <tr>
+
+                <td width="35%">
+                    Name
+                </td>
+
+                <td>
+
+                    <input
+                        type="text"
+                        name="fname"
+                        maxlength="35"
+                        class="txtbox1"
+                        required
+                        value="<?= htmlspecialchars($fname, ENT_QUOTES, 'UTF-8'); ?>"
+                    >
+
+                </td>
+
+            </tr>
+
+
+            <tr>
+
+                <td>
+                    Mobile / Phone
+                </td>
+
+                <td>
+
+                    <input
+                        type="text"
+                        name="mobile"
+                        maxlength="35"
+                        class="txtbox1"
+                        required
+                        value="<?= htmlspecialchars($mobile, ENT_QUOTES, 'UTF-8'); ?>"
+                    >
+
+                </td>
+
+            </tr>
+
+
+            <tr>
+
+                <td>
+                    Email ID
+                </td>
+
+                <td>
+
+                    <input
+                        type="email"
+                        name="email"
+                        maxlength="60"
+                        class="txtbox1"
+                        required
+                        value="<?= htmlspecialchars($email, ENT_QUOTES, 'UTF-8'); ?>"
+                    >
+
+                </td>
+
+            </tr>
+
+
+            <tr>
+
+                <td>
+                    Preferred Location
+                </td>
+
+                <td>
+
+                    <input
+                        type="text"
+                        name="city"
+                        maxlength="50"
+                        class="txtbox1"
+                        required
+                        value="<?= htmlspecialchars($city, ENT_QUOTES, 'UTF-8'); ?>"
+                    >
+
+                </td>
+
+            </tr>
+
+
+            <tr>
+
+                <td colspan="2">
+
+                    Your Query / Remark
+
+                </td>
+
+            </tr>
+
+            <tr>
+
+                <td colspan="2">
+
+                    <textarea
+                        name="remark"
+                        rows="6"
+                        class="txtarea1"
+                        required><?= htmlspecialchars($remark, ENT_QUOTES, 'UTF-8'); ?></textarea>
+
+                </td>
+
+            </tr>
+
+
+            <tr>
+
+                <td colspan="2" align="center">
+
+                    <input
+                        type="submit"
+                        name="submit"
+                        value="Send"
+                        class="subbox"
+                    >
+
+                </td>
+
+            </tr>
+
+        </table>
+
+    </div>
+
+</form>

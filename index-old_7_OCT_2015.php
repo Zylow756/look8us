@@ -1,747 +1,1009 @@
 <?php
-require_once __DIR__ . "/config.php";
+declare(strict_types=1);
+
+require_once __DIR__ . '/config.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+/*
+|--------------------------------------------------------------------------
+| CSRF Token
+|--------------------------------------------------------------------------
+*/
+
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+$msg = 0;
+$error = '';
+
+/*
+|--------------------------------------------------------------------------
+| Feedback Form
+|--------------------------------------------------------------------------
+*/
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
+
+    if (
+        !isset($_POST['csrf_token']) ||
+        !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])
+    ) {
+        die('Invalid CSRF Token');
+    }
+
+    $city   = trim($_POST['city'] ?? '');
+    $mname  = trim($_POST['mname'] ?? '');
+    $mobile = trim($_POST['mobile'] ?? '');
+    $email  = trim($_POST['txtmail'] ?? '');
+    $remark = trim($_POST['remark'] ?? '');
+
+    if (
+        $city === '' ||
+        $mname === '' ||
+        $mobile === '' ||
+        $email === '' ||
+        $remark === ''
+    ) {
+
+        $error = 'Please fill all fields.';
+
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+
+        $error = 'Please enter a valid email address.';
+
+    } else {
+
+        $stmt = $con->prepare("
+            INSERT INTO feedback
+            (
+                city,
+                mname,
+                mobile,
+                txtmail,
+                remark,
+                cdate
+            )
+            VALUES
+            (
+                ?,?,?,?,?,?
+            )
+        ");
+
+        $today = date('d-m-Y');
+
+        $stmt->bind_param(
+            'ssssss',
+            $city,
+            $mname,
+            $mobile,
+            $email,
+            $remark,
+            $today
+        );
+
+        $stmt->execute();
+        $stmt->close();
+
+        $msg = 1;
+    }
+}
 ?>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
-<meta http-equiv="Content-Language" content="en-us">
+
 <meta charset="UTF-8">
 
-<title>Look8US :Business Directory Kota, Rajasthan , India, Online Business Directory Kota,  Yellow Pages  kota Rajasthan , Trusted & Verified Businesses, Exporters, Manufacturers, Suppliers Directory, B2B Business Directory </title>
-<meta name="description" content="Look8us.com from Kota Rajasthan is Your local Business Directory , yellow pages  Business Directory. Business Details, Contacts, Products, Services & Verified Businesses, Exporters, Manufacturers, Suppliers Directory">
-<meta name="keywords" content=" Look8us.com , yellow pages Kota Rajasthan , business directory Kota Rajasthan india,business search engine, indian business directory, online business directory, Indian manufacturers, suppliers, Indian exporters directory, b2b portal, b2b business directory,manufacturer, importers, traders, dealers, buyers,Best english spoken institute in kota ">
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0">
 
+<meta
+    http-equiv="X-UA-Compatible"
+    content="IE=edge">
 
-<link rel="stylesheet" type="text/css" href="akc.css" />
+<title>
+Look8US | Business Directory Kota Rajasthan
+</title>
 
-<link rel="stylesheet" type="text/css" href="css/style.css" />
-<link rel="stylesheet" type="text/css" href="css/form.css" />
+<meta
+name="description"
+content="Look8US Business Directory from Kota Rajasthan. Search trusted businesses, manufacturers, suppliers and exporters.">
 
+<meta
+name="keywords"
+content="business directory,kota,rajasthan,yellow pages,b2b,suppliers,manufacturers">
 
-		
-		
-<script language="JavaScript">
-<!--
-function FP_swapImg() {//v1.0
- var doc=document,args=arguments,elm,n; doc.$imgSwaps=new Array(); for(n=2; n<args.length;
- n+=2) { elm=FP_getObjectByID(args[n]); if(elm) { doc.$imgSwaps[doc.$imgSwaps.length]=elm;
- elm.$src=elm.src; elm.src=args[n+1]; } }
+<link rel="stylesheet" href="akc.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/form.css">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+
+<link rel="preconnect"
+href="https://fonts.gstatic.com"
+crossorigin>
+
+<link
+href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
+rel="stylesheet">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
 }
 
-function FP_preloadImgs() {//v1.0
- var d=document,a=arguments; if(!d.FP_imgs) d.FP_imgs=new Array();
- for(var i=0; i<a.length; i++) { d.FP_imgs[i]=new Image; d.FP_imgs[i].src=a[i]; }
+body{
+    font-family:'Roboto',sans-serif;
+    background:#f5f5f5;
+    color:#222;
+    line-height:1.5;
 }
 
-function FP_getObjectByID(id,o) {//v1.0
- var c,el,els,f,m,n; if(!o)o=document; if(o.getElementById) el=o.getElementById(id);
- else if(o.layers) c=o.layers; else if(o.all) el=o.all[id]; if(el) return el;
- if(o.id==id || o.name==id) return o; if(o.childNodes) c=o.childNodes; if(c)
- for(n=0; n<c.length; n++) { el=FP_getObjectByID(id,c[n]); if(el) return el; }
- f=o.forms; if(f) for(n=0; n<f.length; n++) { els=f[n].elements;
- for(m=0; m<els.length; m++){ el=FP_getObjectByID(id,els[n]); if(el) return el; } }
- return null;
+.container{
+    width:min(1200px,95%);
+    margin:auto;
 }
-// -->
+
+.logo{
+    text-align:center;
+    padding:30px 0;
+}
+
+.logo img{
+    max-width:100%;
+    height:auto;
+}
+
+.success{
+    background:#d1fae5;
+    color:#065f46;
+    padding:12px;
+    margin:20px 0;
+    border-radius:6px;
+    text-align:center;
+}
+
+.error{
+    background:#fee2e2;
+    color:#991b1b;
+    padding:12px;
+    margin:20px 0;
+    border-radius:6px;
+    text-align:center;
+}
+
+.search-form{
+    display:flex;
+    flex-wrap:wrap;
+    gap:15px;
+    justify-content:center;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+.search-form input{
+    flex:1;
+    min-width:240px;
+    padding:12px;
+    border:1px solid #ccc;
+    border-radius:6px;
+    font-size:15px;
+}
+
+.search-form button{
+    background:#0d6efd;
+    color:#fff;
+    border:none;
+    padding:12px 30px;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+.search-form button:hover{
+    background:#0b5ed7;
+}
+
+.radio-box{
+    text-align:center;
+    margin-bottom:30px;
+}
+
+.main-grid{
+    display:grid;
+    grid-template-columns:24% 50% 26%;
+    gap:20px;
+}
+
+.popular-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:25px;
+margin-top:20px;
+}
+
+.popular-grid h3{
+margin-bottom:10px;
+font-size:18px;
+color:#0d6efd;
+}
+
+.popular-grid ul{
+padding-left:20px;
+}
+
+.popular-grid li{
+margin-bottom:8px;
+line-height:1.5;
+}
+
+.popup-gallery{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:20px;
+margin-top:40px;
+}
+
+.popup-gallery img{
+width:100%;
+height:250px;
+object-fit:contain;
+border-radius:10px;
+box-shadow:0 5px 15px rgba(0,0,0,.12);
+transition:.3s;
+}
+
+.popup-gallery img:hover{
+transform:scale(1.04);
+}
+
+footer{
+margin-top:40px;
+}
+
+.card{
+background:#fff;
+border-radius:10px;
+padding:20px;
+box-shadow:0 3px 10px rgba(0,0,0,.08);
+}
+
+.card-title{
+font-size:22px;
+margin-bottom:20px;
+color:#0d6efd;
+}
+
+.scroll-box{
+max-height:520px;
+overflow-y:auto;
+}
+
+.category-item{
+padding:10px;
+border-bottom:1px solid #ececec;
+}
+
+.category-item:last-child{
+border-bottom:none;
+}
+
+.category-item a{
+text-decoration:none;
+color:#333;
+transition:.3s;
+font-size:15px;
+}
+
+.category-item a:hover{
+color:#0d6efd;
+padding-left:5px;
+}
+
+.category-grid{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:20px;
+}
+
+.detail-item{
+padding:8px 0;
+border-bottom:1px solid #f2f2f2;
+}
+
+.detail-item a{
+text-decoration:none;
+color:#444;
+font-size:15px;
+transition:.3s;
+}
+
+.detail-item a:hover{
+color:#0d6efd;
+padding-left:5px;
+}
+
+.btn-more{
+display:inline-block;
+background:#0d6efd;
+color:#fff;
+padding:12px 24px;
+border-radius:6px;
+text-decoration:none;
+transition:.3s;
+}
+
+.btn-more:hover{
+background:#084298;
+}
+
+.form-group{
+margin-bottom:15px;
+}
+
+.form-group label{
+display:block;
+font-weight:600;
+margin-bottom:6px;
+}
+
+.form-control{
+width:100%;
+padding:12px;
+border:1px solid #ccc;
+border-radius:6px;
+font-size:15px;
+}
+
+.form-control:focus{
+outline:none;
+border-color:#0d6efd;
+box-shadow:0 0 0 3px rgba(13,110,253,.15);
+}
+
+textarea.form-control{
+resize:vertical;
+min-height:120px;
+}
+
+.btn-submit{
+width:100%;
+padding:13px;
+border:none;
+border-radius:6px;
+background:#0d6efd;
+color:#fff;
+font-size:16px;
+cursor:pointer;
+transition:.3s;
+}
+
+.btn-submit:hover{
+background:#084298;
+}
+
+.mt-4{
+margin-top:30px;
+}
+
+.verified-slider{
+display:flex;
+gap:20px;
+overflow-x:auto;
+scroll-behavior:smooth;
+padding:10px 0;
+}
+
+.verified-slider::-webkit-scrollbar{
+height:8px;
+}
+
+.verified-slider::-webkit-scrollbar-thumb{
+background:#bbb;
+border-radius:20px;
+}
+
+.verified-card{
+min-width:220px;
+background:#fff;
+border-radius:10px;
+box-shadow:0 3px 10px rgba(0,0,0,.08);
+padding:15px;
+text-align:center;
+transition:.3s;
+}
+
+.verified-card:hover{
+transform:translateY(-5px);
+}
+
+.verified-card img{
+width:180px;
+height:145px;
+object-fit:contain;
+margin-bottom:10px;
+}
+
+.verified-card a{
+text-decoration:none;
+color:#333;
+}
+
+</style>
+
+<script>
+
+function clearText(el,text){
+
+    if(el.value===text){
+
+        el.value='';
+
+    }
+
+}
+
+function restoreText(el,text){
+
+    if(el.value===''){
+
+        el.value=text;
+
+    }
+
+}
+
 </script>
 
-
-		
-		
 </head>
+<body>
+<a class="inline" href="#inline_content"></a>
 
-<?php  
+<?php require_once 'header.php'; ?>
 
+<div class="container">
+<div class="logo">
+<img
+src="logo.jpg"
+alt="Look8US Logo">
 
-$msg=0;
+</div>
 
-	if (isset($_POST["submit"]))
-		{
-		
-		$st="insert into feedback values (NULL ,'". $_POST["city"]."','".$_POST["mname"]."','".$_POST["mobile"]."','".$_POST["txtmail"]."','".$_POST["remark"]."','".date("d-m-Y")."')";
-		mysqli_query($con,$st);
-		//echo $st;
-		$msg=1;
-			
-		}
-?>
+<?php if($msg): ?>
 
-<body topmargin="0" leftmargin="0" rightmargin="0" bottommargin="0" onload="FP_preloadImgs(/*url*/'images/button1C.jpg', /*url*/'images/button1D.jpg')">
+<div class="success">
+Your message has been sent successfully.
+</div>
 
-<a class='inline' href="#inline_content"></a>
+<?php endif; ?>
 
+<?php if($error !== ''): ?>
 
-<table border="0" width="100%" id="table1" style="border-collapse: collapse" bordercolor="#C0C0C0" cellpadding="0">
-	<tr>
-		<td height="20" bgcolor="#E2E2E2"><?php  require_once "header.php"; ?></td>
-	</tr>
-	<tr>
-		<td align="center" valign="top">
-		<table border="0" width="1010" id="table2" cellpadding="0" style="border-collapse: collapse" height="450">
-			<tr>
-				<td align="center" valign="top" style="border-top-width: 1px; border-bottom-width: 1px" bordercolor="#FFFFFF">
-				<table border="0" width="100%" id="table3" style="border-collapse: collapse">
-					<tr>
-						<td width="23%" valign="top" height="23">&nbsp;</td>
-						<td valign="top" height="23" width="49%">&nbsp;</td>
-						<td width="28%" valign="top" height="23">&nbsp;</td>
-					</tr>
-					<tr>
-						<td width="23%" valign="top" height="23">&nbsp;</td>
-						<td valign="top" height="23" width="49%" align="center">
-						<img border="0" src="logo.jpg"></td>
-						<td width="28%" valign="top" height="23">&nbsp;</td>
-					</tr>
-					<tr>
-						<td width="23%" valign="top" height="24">&nbsp;</td>
-						<td valign="top" height="24" width="49%">&nbsp;</td>
-						<td width="28%" valign="top" height="24">&nbsp;</td>
-					</tr>
-					<tr>
-						<td width="100%" valign="top" height="24" colspan="3">
-						<div align="center">
-						<form method="post" action="searchResult.php">
-							<table border="0" width="90%" id="table20" cellpadding="0" style="border-collapse: collapse">
-								<tr>
-									<td width="596" align="right" height="50">
-	<input  class="txtsea" type="text" name="item" id="item" tabindex="4" value="Enter your search Product or Company" onfocus="if(this.value=='Enter your search Product or Company'){this.value='';}" onblur="if(this.value==''){this.value='Enter your search Product or Company';}" size="1"/> </td>
-									<td width="161" align="left">
-	&nbsp;<input  class="txtloc" type="text" name="loc" id="loc" tabindex="4" value="Location" onfocus="if(this.value=='Location'){this.value='';}" onblur="if(this.value==''){this.value='Location';}" size="18"/></td>
-									<td align="left">
-	<input  class="subsea" type="submit" value="Go" name="submit0"/></td>
-								</tr>
-								
-								<tr><td align="right">
-								<table border="0" width="50%" id="table25" cellspacing="1" style="border-collapse: collapse">
-									<tr>
-										<td>&nbsp;</td>
-										<td width="321">Categories<input type="radio" name="sea" value="0"  checked><font size="2">&nbsp; </font>
-										Company<input type="radio" name="sea" value="1"  ><font size="2">
-										</font></td>
-									</tr>
-								</table>
-								</td><td></td>
-									<td></td></tr>
-							</table>
-							</form>
-						</div>
-						</td>
-					</tr>
-					<tr>
-						<td width="23%" valign="top" height="22">&nbsp;</td>
-						<td valign="top" height="22" width="49%" align="center"><?php if ($msg==1) echo "<h5>Your Message Send Successfully.</h5>"; ?></td>
-						<td width="28%" valign="top" height="22">&nbsp;</td>
-					</tr>
-					<tr>
-						<td width="23%" valign="top" height="22">&nbsp;</td>
-						<td valign="top" height="22" width="49%">&nbsp;</td>
-						<td width="28%" valign="top" height="22">&nbsp;</td>
-					</tr>
-					<tr>
-						<td width="24%" valign="top" height="390" bgcolor="#FFFFFF" rowspan="2">
-						<div align="left">
-							<table class="shadow1" border="0" width="100%" id="table12" cellspacing="1" style="border-collapse: collapse" height="333">
-								<tr>
-									<td bgcolor="#3399FF" height="40" align="center">
-									<font color="#FFFFFF"><b>&nbsp;Popular 
-									Category</b></font></td>
-								</tr>
-								<tr>
-									<td valign="top">
-									
+<div class="error">
 
- <div align="center" style="overflow: auto; height: 500px; width: 100%;" >
-									
- 	<table border="0" width="100%" id="table17" cellpadding="0" style="border-collapse: collapse" height="29"> 
-									
-<?php						
+<?= htmlspecialchars($error) ?>
 
+</div>
 
-$st="Select * from category where cstatus=1 order by cname";
-	$i=1;
-	$result=mysqli_query($con,$st);
-if (!$result) {
-    die(mysqli_error($con));
-}
+<?php endif; ?>
 
-	while ( ($row=mysqli_fetch_assoc($result)) && ($i<=50))
-	{	
-?>
-		
-	<tr>
-		
-			<td width="5" style="border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-style: solid; border-bottom-width: 1px" bordercolor="#E3E3E3" bgcolor="#F4F4F4"></td>	
-					
-					<td style="border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-style: solid; border-bottom-width: 1px" bordercolor="#E3E3E3" height="30" bgcolor="#F4F4F4">
-											<font size="2" color="#000000">										
-													<?php
-															
-														echo "<a class='a1' href='searchresult.php?id=".$row['cateid']."'>".$row["cname"]."</a>";	
-														
-														//	echo "<a href='#' class='a1' >".$row["cname"]."</a>";
-	
-																$i=$i+1;
-															?>
+<form
+method="post"
+action="searchResult.php">
+<div class="search-form">
 
-											</font></td>
-											
-							<td width="5" style="border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-style: solid; border-bottom-width: 1px" bordercolor="#E3E3E3" bgcolor="#F4F4F4"></td>								
-										</tr>
-										
-										<?php
-													}
-													?>
-													
+<input
+type="text"
+name="item"
+id="item"
+value="Enter your search Product or Company"
+onfocus="clearText(this,'Enter your search Product or Company')"
+onblur="restoreText(this,'Enter your search Product or Company')">
 
-										</table>
-										
-										</div>
-									</td>
-								</tr>
-							</table>
-						</div>
-						</td>
-						<td valign="top" height="340" width="50%">
-						<div align="center">
-							<table class="shadow1" border="1" width="97%" id="table8" style="border-collapse: collapse" height="335" bordercolor="#F4F4F4">
-								<tr>
-									<td height="40" bgcolor="#E3E3E3">
-									<font color="#000000">&nbsp;<b>Category in 
-									details </b></font></td>
-								</tr>
-								<tr>
-									<td valign="top">
-									<div align="right">
-									
-		<?php						
+<input
+type="text"
+name="loc"
+id="loc"
+value="Location"
+onfocus="clearText(this,'Location')"
+onblur="restoreText(this,'Location')">
 
-//$st="Select * from category order by cname";
+<button
+type="submit"
+name="submit0">
+Go
+</button>
+</div>
 
-$st="Select distinct(cdname) cdname,catdid from catedetail where cdstatus=1 order by cdname limit 185";
-//$st="Select distinct(cdname) cdname,catdid from catedetail where cdstatus=1 order by cdname";
+<div class="radio-box">
+<label>
+<input
+type="radio"
+name="sea"
+value="0"
+checked>
+Categories
+</label>
 
+&nbsp;&nbsp;
 
-//echo $st;
-$i=1;
-$result=mysqli_query($con,$st);
-if (!$result) {
-    die(mysqli_error($con));
-}
+<label>
+<input
+type="radio"
+name="sea"
+value="1">
 
-$num_rows = mysqli_num_rows($result);
+Company
+</label>
 
-$rno=round($num_rows/3);
+</div>
+</form>
 
-$rn=40;
+<div class="main-grid">
+<!-- ===========================
+     LEFT SIDEBAR
+=========================== -->
 
-//echo $num_rows;
-//echo $rno;
-?>	
-
-
-		 <div align="center" style="overflow: auto; height: 500px; width: 100%;" >
-
-	<table  border="0" width="98%" id="table18" cellpadding="0" style="border-collapse: collapse">
-											
-										<tr>
-										<td colspan="5" height="7" ></td>
-										
-										</tr>	
-											<tr>
-												<td width="33%" height="280" valign="top">  
-												
-												 <table class="table1" border="0" width="100%" id="table19" style="border-collapse: collapse" cellpadding="0">
-													
-	<?php
-	$i=1;
-	while ( ($i<$rn)&&($i<$rno)&&($row=mysqli_fetch_assoc($result)))
-	{	
-?>
-												
-	<tr>
-														<td height="25">
-														<?php
-															
-															echo "<a class='a5' href='searchresult1.php?id=".$row['catdid']."'>".$row["cdname"]."</a>"; 
-
-															//echo "<a href='#' class='a5' >".$row["cdname"]."</a>";
-	
-																$i=$i+1;
-															?>
-	
-	</td>
-													</tr>
-													
-													<?php
-													}
-													?>
-													
-													</table>
-												
-												 </td>
-												<td width="1" height="25" valign="top" bgcolor="#F4F4F4"></td>
-												<td width="33%" height="25" valign="top">
-												
-												<table class="table1" border="0" width="100%" id="table19" style="border-collapse: collapse" cellpadding="0" height="25">
-													
-	<?php
-	$i=1;
-	while ( ($i<$rn)&&($i<$rno)&&($row=mysqli_fetch_assoc($result)))
-	{	
-?>
-												
-	<tr>
-														<td height="25">
-														<?php
-														
-														echo "<a class='a5' href='searchresult1.php?id=".$row['catdid']."'>".$row["cdname"]."</a>";
-														//	echo "<a href='#' class='a5' >".$row["cdname"]."</a>";
-	
-																$i=$i+1;
-															?>
-	
-	</td>
-													</tr>
-													
-													<?php
-													}
-													?>
-													
-													</table>
-												
-												</td>
-												<td width="1" height="25" valign="top" bgcolor="#F4F4F4"></td>
-												<td height="25" valign="top" width="33%">
-												
-												<table class="table1" border="0" width="100%" id="table19" style="border-collapse: collapse" cellpadding="0">
-													
-	<?php
-	$i=1;
-	while ( ($i<$rn)&&($i<$rno)&&($row=mysqli_fetch_assoc($result)))
-	{	
-?>
-												
-	<tr>
-														<td height="25">
-														<?php
-
-															echo "<a class='a5' href='searchresult1.php?id=".$row['catdid']."'>".$row["cdname"]."</a>";
-															//echo "<a href='#' class='a5' >".$row["cdname"]."</a>";
-	
-																$i=$i+1;
-															?>
-	
-	</td>
-													</tr>
-													
-													<?php
-													}
-													?>
-													
-													
-													<tr><td  height="22"> &nbsp;<a href="index-subcate.php"><img border="0" id="img1" src="images/button1B.jpg" height="23" width="139" alt="more category" fp-style="fp-btn: Corporate 1; fp-font-color-normal: #FFFFFF; fp-proportional: 0" fp-title="more category" onmouseover="FP_swapImg(1,0,/*id*/'img1',/*url*/'images/button1C.jpg')" onmouseout="FP_swapImg(0,0,/*id*/'img1',/*url*/'images/button1B.jpg')" onmousedown="FP_swapImg(1,0,/*id*/'img1',/*url*/'images/button1D.jpg')" onmouseup="FP_swapImg(0,0,/*id*/'img1',/*url*/'images/button1C.jpg')"></a></td></tr>
-													</table>
-												
-												</td>
-												
-											</tr>
-											
-											
-											
-										</table>
-									</div>
-									</div>
-									</td>
-								</tr>
-								</table>
-						</div>
-						</td>
-						<td width="26%" valign="top" height="340" bgcolor="#F4F4F4">
-						<div align="right">
-							<table class="shadow1" border="0" width="100%" id="table4" cellpadding="0" style="border-collapse: collapse" height="298" bordercolor="#E3E3E3">
-								<tr>
-									<td height="40" bgcolor="#0099FF" align="center">
-									<font color="#000000"><b>&nbsp;Feedback 
-									&amp; Enquiry</b></font></td>
-								</tr>
-								<tr>
-									<td valign="top">
-									<form METHOD="post" action="home.php">
-									<table border="0" width="100%" id="table11" height="244" cellspacing="1" style="border-collapse: collapse">
-										<tr>
-											<td width="23%">
-											<font size="2" color="#333333">&nbsp;City</font></td>
-											<td width="75%">
-	<input  class="txtbox" type="text" name="city" id="city"  value="<?php if (isset($_POST['city'])) $city = $_POST['city'] ?? ''; else echo 'City';  ?>" onfocus="if(this.value=='City'){this.value='';}" onblur="if(this.value==''){this.value='City';}" size="1"/></td>
-										</tr>
-										<tr>
-											<td width="23%">
-											<font size="2" color="#333333">&nbsp;Name</font></td>
-											<td width="75%">
-	<input class="txtbox" type="text" name="mname" id="mname"  value="<?php if (isset($_POST['mname'])) $mname = $_POST['mname'] ?? ''; else echo 'Member Name';  ?>" onfocus="if(this.value=='Member Name'){this.value='';}" onblur="if(this.value==''){this.value='Member Name';}" size="1"/></td>
-										</tr>
-										<tr>
-											<td width="23%">
-											<font size="2" color="#333333">&nbsp;Mobile</font></td>
-											<td width="75%">
-	<input  class="txtbox" type="text" name="mobile" id="mobile" value="<?php if (isset($_POST['mobile'])) $mobile = $_POST['mobile'] ?? ''; else echo 'Mobile';  ?>" onfocus="if(this.value=='Mobile'){this.value='';}" onblur="if(this.value==''){this.value='Mobile';}"  size="1"/></td>
-										</tr>
-										<tr>
-											<td width="23%">
-											<font size="2" color="#333333">&nbsp;Email
-											</font></td>
-											<td width="75%">
-	<input class="txtbox" type="text" name="txtmail" id="txttmail" value="<?php if (isset($_POST['txtmail'])) $txtmail = $_POST['txtmail'] ?? ''; else echo 'Email ID';  ?>" onfocus="if(this.value=='Email ID'){this.value='';}" onblur="if(this.value==''){this.value='Email ID';}"  /></td>
-										</tr>
-										<tr>
-											<td width="23%">
-											<font color="#666666" size="2">&nbsp;</font><font color="#333333" size="2">Message</font></td>
-											<td width="75%">
-	<input  class="txtbox" type="text" name="remark" id="remark"  value="<?php if (isset($_POST['remark'])) $remark = $_POST['remark'] ?? ''; else echo 'Message';  ?>"  size="1"/></td>
-										</tr>
-										<tr>
-											<td colspan="2" align="center">
-	<input  class="subbox" type="submit" value="Submit" name="submit"/></td>
-										</tr>
-									</table></form>
-									</td>
-								</tr>
-							</table>
-						</div>
-						</td>
-					</tr>
-					
-					
-					
-					<tr>
-					
-						<td valign="top" colspan="2" align="right" >&nbsp;</td>
-
-</tr>						
-					<tr>
-						<td width="100%" valign="top" colspan="3">
-						<table class="shadow1" border="0" width="100%" id="table26" style="border-collapse: collapse" height="246">
-							
-							<tr>
-								<td bgcolor="#003366" height="40"><b>
-								<font size="4" color="#FFFFFF">&nbsp;Verified 
-								Business &amp; Services </font></b></td>
-							</tr>
-							<tr>
-								<td valign="top">
-								<table border="0" width="100%" id="table27" height="240" cellspacing="0" cellpadding="0" style="border-collapse: collapse" bordercolor="#E3E3E3">
-									<tr>
-										<td  align="left" >
-							
+<aside class="card">
+    <h2 class="card-title">
+        Popular Categories
+    </h2>
+    <div class="scroll-box">
 
 <?php
- $st="Select * from advert where astatus='H' order by  RAND() ";
- $result=mysqli_query($con,$st);
-if (!$result) {
-    die(mysqli_error($con));
+$stmt = $con->prepare("
+    SELECT
+        cateid,
+        cname
+    FROM category
+    WHERE cstatus = ?
+    ORDER BY cname
+");
+
+$status = 1;
+
+$stmt->bind_param("i", $status);
+$stmt->execute();
+$result = $stmt->get_result();
+$count = 0;
+
+while (($row = $result->fetch_assoc()) && ($count < 50)) :
+?>
+        <div class="category-item">
+            <a
+                class="a1"
+                href="searchresult.php?id=<?= (int)$row['cateid']; ?>">
+                <?= htmlspecialchars($row['cname']); ?>
+            </a>
+        </div>
+
+<?php
+$count++;
+endwhile;
+$stmt->close();
+?>
+
+    </div>
+</aside>
+
+
+<!-- ===========================
+     CENTER COLUMN
+=========================== -->
+
+<section class="card">
+<h2 class="card-title">
+Category Details
+</h2>
+
+<?php
+$stmt = $con->prepare("
+SELECT DISTINCT
+    catdid,
+    cdname
+FROM
+    catedetail
+WHERE
+    cdstatus = ?
+ORDER BY
+    cdname
+LIMIT 185
+");
+
+$status = 1;
+$stmt->bind_param("i", $status);
+$stmt->execute();
+$result = $stmt->get_result();
+$rows = [];
+
+while ($row = $result->fetch_assoc()) {
+    $rows[] = $row;
 }
- 
- $num_rows = mysqli_num_rows($result);
- 
- $i=1;						
+
+$stmt->close();
+$total = count($rows);
+$perColumn = (int) ceil($total / 3);
+$columns = array_chunk($rows, $perColumn);
+?>
+
+<div class="category-grid">
+
+<?php foreach ($columns as $column): ?>
+
+<div>
+
+<?php foreach ($column as $item): ?>
+
+<div class="detail-item">
+<a
+class="a5"
+href="searchresult1.php?id=<?= (int)$item['catdid']; ?>">
+
+<?= htmlspecialchars($item['cdname']); ?>
+</a>
+</div>
+
+<?php endforeach; ?>
+
+</div>
+
+<?php endforeach; ?>
+
+</div>
+
+
+<div
+style="
+margin-top:20px;
+text-align:right;
+">
+<a
+class="btn-more"
+href="index-subcate.php">
+
+More Categories →
+
+</a>
+</div>
+</section>
+<!-- ==========================================
+     RIGHT SIDEBAR - FEEDBACK & ENQUIRY
+========================================== -->
+
+<aside class="card">
+<h2 class="card-title">
+Feedback & Enquiry
+</h2>
+
+<form
+method="post"
+action="<?= htmlspecialchars($_SERVER['PHP_SELF']); ?>"
+autocomplete="off">
+
+<input
+type="hidden"
+name="csrf_token"
+value="<?= htmlspecialchars($_SESSION['csrf_token']); ?>">
+
+<div class="form-group">
+<label for="city">
+City
+</label>
+
+<input
+type="text"
+id="city"
+name="city"
+class="form-control"
+value="<?= htmlspecialchars($city ?? ''); ?>"
+required>
+
+</div>
+
+<div class="form-group">
+<label for="mname">
+Name
+</label>
+
+<input
+type="text"
+id="mname"
+name="mname"
+class="form-control"
+value="<?= htmlspecialchars($mname ?? ''); ?>"
+required>
+
+</div>
+
+<div class="form-group">
+<label for="mobile">
+Mobile
+</label>
+
+<input
+type="text"
+id="mobile"
+name="mobile"
+class="form-control"
+value="<?= htmlspecialchars($mobile ?? ''); ?>"
+required>
+
+</div>
+
+<div class="form-group">
+<label for="txtmail">
+Email
+</label>
+
+<input
+type="email"
+id="txtmail"
+name="txtmail"
+class="form-control"
+value="<?= htmlspecialchars($email ?? ''); ?>"
+required>
+
+</div>
+
+<div class="form-group">
+<label for="remark">
+Message
+</label>
+
+<textarea
+id="remark"
+name="remark"
+rows="5"
+class="form-control"
+required><?= htmlspecialchars($remark ?? ''); ?></textarea>
+
+</div>
+
+<button
+type="submit"
+name="submit"
+class="btn-submit">
+Submit
+</button>
+</form>
+</aside>
+</div>
+
+<!-- ==========================================
+     VERIFIED BUSINESSES
+========================================== -->
+
+<section class="card mt-4">
+<h2 class="card-title">
+Verified Business & Services
+</h2>
+
+<?php
+$stmt = $con->prepare("
+SELECT
+    aname,
+    website,
+    img
+FROM
+    advert
+WHERE
+    astatus = ?
+ORDER BY RAND()
+");
+
+$status = 'H';
+$stmt->bind_param("s", $status);
+$stmt->execute();
+$result = $stmt->get_result();
+?>
+
+<div class="verified-slider">
+
+<?php while ($row = $result->fetch_assoc()): ?>
+
+<?php if ($row['img'] !== '-'): ?>
+
+<div class="verified-card">
+<a
+href="https://<?= htmlspecialchars($row['website']); ?>"
+target="_blank"
+rel="noopener noreferrer">
+<img
+src="user/logo/<?= rawurlencode($row['img']); ?>"
+alt="<?= htmlspecialchars($row['aname']); ?>">
+<h4>
+<?= htmlspecialchars($row['aname']); ?>
+</h4>
+</a>
+</div>
+
+<?php endif; ?>
+
+<?php endwhile; ?>
+
+</div>
+
+<?php
+$stmt->close();
+?>
+
+</section>
+
+<script>
+const slider=document.querySelector('.verified-slider');
+
+if(slider){
+setInterval(()=>{
+slider.scrollBy({
+left:240,
+behavior:'smooth'
+});
+
+if(
+slider.scrollLeft+
+slider.clientWidth>=
+slider.scrollWidth-5
+){
+slider.scrollTo({
+left:0,
+behavior:'smooth'
+});
+
+}
+
+},3000);
+
+}
+
+</script>
+<!-- =====================================================
+     POPULAR FINDERS / BRANDS / SEARCHES
+====================================================== -->
+
+<section class="card mt-4">
+<h2 class="card-title">
+Popular Information
+</h2>
+
+<div class="popular-grid">
+<div>
+<h3>Popular Finders</h3>
+
+<ul>
+<li>Bus Route Finder</li>
+<li>Pin Code Finder</li>
+<li>School Finder</li>
+<li>Hotel Finder</li>
+<li>Bank SWIFT Code Finder</li>
+<li>Bank IFSC Code Finder</li>
+<li>Railway Station Finder</li>
+</ul>
+
+</div>
+<div>
+<h3>Popular Brands</h3>
+
+<ul>
+<li>Symphony Air Cooler Dealers</li>
+<li>Onida AC</li>
+<li>Hitachi AC</li>
+<li>Spice Mobile Phone Dealers</li>
+<li>Hero Cycles</li>
+<li>Jet Airways Flight Booking</li>
+<li>More Brands...</li>
+</ul>
+
+</div>
+<div>
+<h3>Popular Businesses</h3>
+
+<ul>
+<li>DTDC Courier & Cargo Ltd.</li>
+<li>Tirupati Travels</li>
+<li>Hotel City Home</li>
+<li>First Flight Courier</li>
+<li>Adarsh Kutir Udyog</li>
+<li>Wipro Ltd.</li>
+</ul>
+
+</div>
+
+<div>
+<h3>Popular Searches</h3>
+
+<ul>
+<li>Valentine Day Party Snacks</li>
+<li>Valentine Dinner</li>
+<li>Valentine Flowers</li>
+<li>Candy Bouquet</li>
+<li>Child Adoption</li>
+<li>Birthday Party Restaurants</li>
+</ul>
+
+</div>
+
+<div>
+<h3>Popular Branches</h3>
+
+<ul>
+<li>Union Bank ATM</li>
+<li>Thomas Cook</li>
+<li>Fabindia</li>
+<li>ICICI Prudential</li>
+<li>Overnite Express</li>
+<li>Tata Motor Finance</li>
+</ul>
+
+</div>
+
+</div>
+</section>
+
+
+<!-- =====================================================
+     HOME POPUP IMAGES
+====================================================== -->
+
+<?php
+
+$stmt = $con->prepare("
+SELECT
+    website,
+    img
+FROM
+    homeimg
+ORDER BY
+    aid DESC
+LIMIT 4
+");
+
+$stmt->execute();
+
+$result = $stmt->get_result();
 
 ?>
 
+<div id="inline_content" class="popup-gallery">
+
+<?php while($row = $result->fetch_assoc()): ?>
+
+<?php if($row['img'] !== '-'): ?>
+
+<a
+href="https://<?= htmlspecialchars($row['website']) ?>"
+target="_blank"
+rel="noopener noreferrer">
+
+<img
+src="user/logo/<?= rawurlencode($row['img']) ?>"
+alt="Advertisement">
+
+</a>
+
+<?php endif; ?>
+
+<?php endwhile; ?>
+
+</div>
+
 <?php
-if( $num_rows>0) 
-{
+
+$stmt->close();
+
 ?>
-	<table border="0" width="100%" id="table29" cellpadding="0" style="border-collapse: collapse" bordercolor="#E3E3E3">
-	<tr>
-		<td height="6" ></td>
-	</tr>
-</table>
 
-<marquee height="197" scrollamount="5" scrolldelay="80" width="98%" onmouseover="this.stop();" onmouseout="this.start();" >
-<table border="0"  id="table28" style="border-collapse: collapse" bordercolor="#E0E2FE" bgcolor="#FFFFFF" cellpadding="0" height="180">
-								<tr>
-									
-									
+<?php require_once 'footer.php'; ?>
 
-  
-	<?php 
-		
-		while ($row=mysqli_fetch_assoc($result))
-			{
-			if ($row['img']<>"-")
-			{
-			?>
-
-<td align="center" width="200">
-<a href="http://<?php  echo htmlspecialchars($row['website'] ); ?>" target="_blank" class="a5">
-	<img border="1" src="user/logo/<?php  echo htmlspecialchars($row['img']); ?>" width="180" height="145"> <?php  echo htmlspecialchars($row['aname']); ?>
-	</a>
-
-    </td>
-    
-    <?php
-    $i=$i+1;
-    
-    }
-    }
-    ?>
-
-
-
-								</tr>
-								
-								
-								
-							</table>
-							
-			
-
-<?php 
-			}
-			
-			
-	?>
-			
-							
-						
-					</marquee>
-							<table border="0" width="100%" id="table29" cellpadding="0" style="border-collapse: collapse" bordercolor="#E3E3E3">
-							<tr>
-								<td height="6" bgcolor="#E3E3E3"></td>
-							</tr>
-							</table>
-						
-							</td>
-									</tr>
-								</table>
-								</td>
-							</tr>
-						</table>
-						</td>
-					</tr>
-					
-					<tr>
-						<td width="99%" valign="top" colspan="3">
-						&nbsp;</td>
-					</tr>
-					
-					<tr>
-					<td colspan="3">&nbsp;</td>
-					</tr>
-					
-					<tr>
-					<td colspan="3">
-					<table class="shadow5" border="0" width="100%" id="table16" style="border-collapse: collapse">
-						<tr>
-							<td height="37" align="left" bgcolor="#EFEFEF"><b>
-							<font size="2" color="#071E43">&nbsp;Popular Finders</font></b></td>
-							<td height="37" align="left" bgcolor="#DBDBDB"><b>
-							<font size="2" color="#071E43">&nbsp;Popular Brands</font></b></td>
-							<td height="37" align="left" bgcolor="#D2D2D2"><b>
-							<font size="2" color="#071E43">&nbsp;Popular 
-							Businesses</font></b></td>
-							<td height="37" align="left" bgcolor="#BFBFBF"><b>
-							<font size="2" color="#071E43">&nbsp;Popular 
-							Searches</font></b></td>
-							<td height="37" align="left" bgcolor="#AAAAAA"><b>
-							<font size="2" color="#071E43">&nbsp;Popular 
-							Branches/Stores</font></b></td>
-						</tr>
-						<tr>
-							<td valign="top" height="172">
-							<p style="margin-left: 5px; margin-top: 5px; margin-bottom: 5px">
-							<font size="2" color="#0066FF">Bus Route Finder<br>
-							Pin Code Finder<br>
-							School Finder<br>
-							Hotel Finder<br>
-							Bank SWIFT Code Finder<br>
-							Bank IFSC Code Finder<br>
-							Railway station Finder</font></td>
-							<td valign="top" height="172">
-							<p style="margin-left: 5px; margin-top: 5px; margin-bottom: 5px">
-							<font size="2" color="#0066FF">Symphony Air Cooler 
-							Dealers<br>
-							Onida AC<br>
-							Hitachi AC<br>
-							Spice Mobile Phone Dealers<br>
-							Hero Cycles<br>
-							Jet Airways Flight Booking<br>
-							More brands &gt;<br>
-&nbsp;</font></td>
-							<td valign="top" height="172">
-							<p style="margin-left: 5px; margin-top: 5px; margin-bottom: 5px">
-							<font size="2" color="#0066FF">DTDC Courier &amp; Cargo 
-							Ltd.<br>
-							Tirupati Travels<br>
-							Hotel City Home<br>
-							First Flight Courier<br>
-							Adarsh Kutir Udyog<br>
-							Wipro Ltd.<br>
-&nbsp;</font></td>
-							<td valign="top" height="172">
-							<p style="margin-left: 5px; margin-top: 5px; margin-bottom: 5px">
-							<font size="2" color="#0066FF">Valentine Day Party 
-							Snacks<br>
-							Valentine Day Dinner<br>
-							Valentine Flowers Wholesale<br>
-							Valentine Candy Bouquet<br>
-							Child Adoption<br>
-							Birthday Party Restaurants<br>
-&nbsp;</font></td>
-							<td valign="top" height="172">
-							<p style="margin-left: 5px; margin-top: 5px; margin-bottom: 5px">
-							<font size="2" color="#0066FF">Union Bank of India 
-							ATM<br>
-							Thomas Cook<br>
-							Fabindia<br>
-							ICICI Prudential Life Insurance<br>
-							Overnite Express Ltd.<br>
-							Tata Motor Finance<br>
-&nbsp;</font></td>
-						</tr>
-					</table>
-					</td>
-					</tr>
-					
-					<tr>
-					<td colspan="3">&nbsp;</td>
-					</tr>
-					
-					<tr>
-					<td colspan="3">&nbsp;</td>
-					</tr>
-					
-				</table>
-				</td>
-			</tr>
-			
-		</table>
-		</td>
-	</tr>
-	<tr>
-		<td bgcolor="#F5F5F5" height="20"><?php  require_once "footer.php"; ?></td>
-	</tr>
-</table>
-<a href="<?php echo $path; ?>payment/subscribe.php" class="demoTest"></a>
-
-
-<?php 
-		 $st="Select * from homeimg order by aid desc";
-		 		 $result=mysqli_query($con,$st);
-if (!$result) {
-    die(mysqli_error($con));
-}
-		 		 
-		 		 $i=1;
-		$ns = mysqli_num_rows($result);
-
-
-
-			?>
-<div style='display:none'>
-			<div id='inline_content' style='padding:10px; background:#fff;'>
-			
-			
-
-			<table border="0" width="100%" id="table24" cellspacing="1" style="border-collapse: collapse" bordercolor="#E2E2E2">
-				<tr>
-					<td height="250" align="right" valign="top" width="49%">&nbsp;	
-					
-		
-<?php
-
-	if ($row=mysqli_fetch_assoc($result))
-			{
-			if ($row['img']<>"-")
-			{
-			?>
-
-<a href="http://<?php  echo htmlspecialchars($row['website'] ); ?>" target="_blank" class="a5">
-	<img border="1" src="user/logo/<?php  echo htmlspecialchars($row['img']); ?>" width="250" height="250"></a>
-<?php
-
-}
-}
-?>
-</td>
-					<td height="250" align="center" valign="top" width="2%">&nbsp;
-					</td>
-					<td height="250" align="left" valign="top" width="49%">&nbsp;
-					<?php
-
-	if ($row=mysqli_fetch_assoc($result))
-			{
-			if ($row['img']<>"-")
-			{
-			?>
-
-<a href="http://<?php  echo htmlspecialchars($row['website'] ); ?>" target="_blank" class="a5">
-	<img border="1" src="user/logo/<?php  echo htmlspecialchars($row['img']); ?>" width="250" height="250"></a>
-<?php
-
-}
-}
-?>
-</td>
-				</tr>
-				<tr>
-					<td height="10" align="center" valign="top" colspan="3" width="49%">
-					</td>
-				</tr>
-		<?php
-				
-				if ($ns>=4)
-			{
-			?>
-			
-				<tr>
-					<td height="250" align="right" valign="top" width="49%">&nbsp;
-					<?php
-
-	if ($row=mysqli_fetch_assoc($result))
-			{
-			if ($row['img']<>"-")
-			{
-			?>
-
-<a href="http://<?php  echo htmlspecialchars($row['website']); ?>" target="_blank" class="a5">
-	<img border="1" src="user/logo/<?php  echo htmlspecialchars($row['img']); ?>" width="250" height="250"></a>
-<?php
-
-}
-}
-?>
-</td>
-					<td height="250" align="center" valign="top" width="2%">&nbsp;</td>
-					<td height="250" align="left" valign="top" width="49%">&nbsp;<?php
-
-	if ($row=mysqli_fetch_assoc($result))
-			{
-			if ($row['img']<>"-")
-			{
-			?>
-
-<a href="http://<?php  echo htmlspecialchars($row['website']); ?>" target="_blank" class="a5">
-	<img border="1" src="user/logo/<?php  echo htmlspecialchars($row['img']); ?>" width="250" height="250"></a>
-<?php
-
-}
-}
-?></td>
-				</tr>
-					<?php
-		}
-		?>
-			</table>
-			</div>
-		</div>
-		
-	
-		
+</div>
 </body>
-
 </html>

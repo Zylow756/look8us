@@ -1,11 +1,11 @@
 <?php
 require_once __DIR__ . "/config.php";
 
+session_set_cookie_params(0,"/",".Look8us.com");
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-
-session_set_cookie_params(0,"/",".Look8us .com");
 
 ?>
 
@@ -18,35 +18,37 @@ session_set_cookie_params(0,"/",".Look8us .com");
 							<tr>
 								<td width="272" align="left">
 						&nbsp;
-						<img border="0" src="<?php echo $path; ?>headlogo.png" ></td>
+						<img border="0" src="<?= $path ?>headlogo.png"  alt="Look8us Logo"
+    loading="lazy"></td>
 								<td width="69">&nbsp;</td>
 								<td align="right">
 								<p style="margin-left:5px; margin-right:20px; margin-top:5px; margin-bottom:5px">
 				
 					<?php
-	if (! isset($_SESSION['user']))
+					$user = $_SESSION['user'] ?? '';
+	if (! isset($user))
 		 {
-		   $_SESSION['uname']="";
-		   $_SESSION['utype']="";
+		   $_SESSION['uname'] ??= '';
+$_SESSION['utype'] ??= '';
 		  // echo "Guest User";		
 		  ?>
-		<a class="a4" href="<?php echo $path; ?>user/login.php">Member login >></a> &nbsp;<font face="Arial" color="#FFFFFF" style="font-size: 8pt; font-weight: 700">Or</font>
+		<a class="a4" href="<?= $path ?>user/login.php">Member login >></a> &nbsp;<font face="Arial" color="#FFFFFF" style="font-size: 8pt; font-weight: 700">Or</font>
 	
-	<a class="a3" href="<?php echo $path; ?>user/index.php">Signup New </a> &nbsp;&nbsp;
+	<a class="a3" href="<?= $path ?>user/index.php">Signup New </a> &nbsp;&nbsp;
 		<?php
 	      }	
-	elseif ( $_SESSION['user']<>"" )
+	elseif ( !empty($user) )
 
 	{
 	?>	
 								
 									
-								<font color="#CCCCCC">&nbsp;</font>Welcome<font color="#CCCCCC">,</font><font color="#0000FF">&nbsp;<b><?php echo $_SESSION['user'] ; ?></b>&nbsp;
+								<font color="#CCCCCC">&nbsp;</font>Welcome<font color="#CCCCCC">,</font><font color="#0000FF">&nbsp;<b><?= htmlspecialchars($user, ENT_QUOTES, 'UTF-8'); ?></b>&nbsp;
 										
 							</font>
 										
 							<?php	
-							if (isset($_SESSION['typ'])) if ($_SESSION['typ']=="A")
+							if (isset($_SESSION['typ'])) if($_SESSION['typ'] === 'A')
 							{
 							echo "<a href='".$path."admin/home.php'>(Administrator)</a>";
 							}
@@ -59,26 +61,23 @@ session_set_cookie_params(0,"/",".Look8us .com");
 							}
 							?>  
 
-	| <a class="a4" href="<?php echo $path; ?>logout.php">Logout</a>
+	| <a class="a4" href="<?= $path ?>logout.php">Logout</a>
 							
 							
 	
 	<?php
 	}
-	elseif ( $_SESSION['user']=="" )
+	elseif ( $user=="" )
 	{
 	?>
 	  
 
-	<a class="a4" href="<?php echo $path; ?>user/login.php">Member login >></a> &nbsp;<font face="Arial" color="#FFFFFF" style="font-size: 8pt; font-weight: 700">Or</font>
+	<a class="a4" href="<?= $path ?>user/login.php">Member login >></a> &nbsp;<font face="Arial" color="#FFFFFF" style="font-size: 8pt; font-weight: 700">Or</font>
 	
-	<a class="a3" href="<?php echo $path; ?>user/index.php">Signup New </a> &nbsp;&nbsp;
+	<a class="a3" href="<?= $path ?>user/index.php">Signup New </a> &nbsp;&nbsp;
 	<?php 
 	} 
 	?>
-	
-	
-  	
 	</p>
 	</td>
 							</tr>
@@ -97,7 +96,8 @@ session_set_cookie_params(0,"/",".Look8us .com");
 	<tr>
 					<td width="20%" height="100" rowspan="2" align="right">
 					
-					<img border="0" src="<?php echo $path; ?>images/logon.png"></td>
+					<img border="0" src="<?= $path ?>images/logon.png" alt="Look8us Logo"
+    loading="lazy"></td>
 					<td valign="bottom" height="100" valign="bottom">
 					
 					<table class="table3" border="0" width="100%" id="table14" cellpadding="0" style="border-collapse: collapse">
@@ -118,16 +118,16 @@ session_set_cookie_params(0,"/",".Look8us .com");
 							<td  width="36%" align="right" height="40" >
 									
 							
-									<a  target="_blank" href="https://twitter.com/#">
+									<a  target="_blank" rel="noopener noreferrer" href="https://twitter.com/#">
 									
 							
-									<img border="0" src="<?php echo $path; ?>images/twitter-icon.png" width="32" height="32"></a>
-									<a  target="_blank" href="http://www.facebook.com/#">
-									<img border="0" src="<?php echo $path; ?>images/facebook-icon.png" width="32" height="32"></a>
-									<a  target="_blank" href="http://www.linkedin.com/profile/view?id=#trk=nav_responsive_tab_profile">
-									<img border="0" src="<?php echo $path; ?>images/linkedin-icon.png" width="32" height="32"></a>
-									<img border="0" src="<?php echo $path; ?>images/email-icon.png" width="32" height="32">
-									<img border="0" src="<?php echo $path; ?>images/rss-icon.png" width="32" height="32">&nbsp;
+									<img border="0" src="<?= $path ?>images/twitter-icon.png" width="32" height="32" alt="Look8us Logo"></a>
+									<a  target="_blank" rel="noopener noreferrer" href="http://www.facebook.com/#">
+									<img border="0" src="<?= $path ?>images/facebook-icon.png" width="32" height="32" alt="Look8us Logo"></a>
+									<a  target="_blank" rel="noopener noreferrer" href="http://www.linkedin.com/profile/view?id=#trk=nav_responsive_tab_profile">
+									<img border="0" src="<?= $path ?>images/linkedin-icon.png" width="32" height="32" alt="Look8us Logo"></a>
+									<img border="0" src="<?= $path ?>images/email-icon.png" width="32" height="32" alt="Look8us Logo">
+									<img border="0" src="<?= $path ?>images/rss-icon.png" width="32" height="32" alt="Look8us Logo">&nbsp;
 &nbsp;
 
 									</td>
