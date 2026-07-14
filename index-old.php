@@ -1,577 +1,700 @@
 <?php
-require_once __DIR__ . "/config.php";
+declare(strict_types=1);
+
+require_once __DIR__ . '/config.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-?>
-<html>
 
+// ---------------------------------------------------------------------
+// CSRF token — shared pattern with index.php. If both pages are live on
+// the same domain/session they can safely share $_SESSION['csrf_token'].
+// ---------------------------------------------------------------------
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+$csrfToken = $_SESSION['csrf_token'];
+
+/** Escapes a value for safe HTML output. */
+function h(?string $value): string
+{
+    return htmlspecialchars($value ?? '', ENT_QUOTES | ENT_HTML5, 'UTF-8');
+}
+
+// ---------------------------------------------------------------------
+// "Tell Us Your Need" enquiry form handling (new — see note above).
+// Old code built no query at all for this form; if you already have a
+// working handler elsewhere (e.g. a separate enquiry.php this form used
+// to point to via a template not shown to me), point the <form action>
+// below at that instead and delete this handling block to avoid a
+// duplicate insert path.
+// ---------------------------------------------------------------------
+$enquirySent = false;
+$enquiryError = null;
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
+    $submittedToken = $_POST['csrf_token'] ?? '';
+
+    if (!hash_equals($csrfToken, $submittedToken)) {
+        $enquiryError = 'Your session expired. Please try again.';
+    } else {
+        $categoryId = (int) ($_POST['cname'] ?? 0); // <select name="cname"> holds catdid
+        $city       = trim((string) ($_POST['city'] ?? ''));
+        $mname      = trim((string) ($_POST['mname'] ?? ''));
+        $mobile     = trim((string) ($_POST['mobile'] ?? ''));
+        $email      = trim((string) ($_POST['txtmail'] ?? ''));
+        $remark     = trim((string) ($_POST['remark'] ?? ''));
+
+        if ($mname === '' || $mobile === '') {
+            $enquiryError = 'Name and Mobile are required.';
+        } elseif ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $enquiryError = 'Please enter a valid email address.';
+        } else {
+            $stmt = $con->prepare(
+                'INSERT INTO enquiry (category_id, city, name, mobile, email, remark, created_at)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)'
+            );
+
+            if ($stmt === false) {
+                error_log('Enquiry prepare failed: ' . $con->error);
+                $enquiryError = 'Sorry, something went wrong. Please try again later.';
+            } else {
+                $createdAt = date('Y-m-d');
+                $stmt->bind_param('issssss', $categoryId, $city, $mname, $mobile, $email, $remark, $createdAt);
+
+                if ($stmt->execute()) {
+                    $enquirySent = true;
+                    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+                    $csrfToken = $_SESSION['csrf_token'];
+                    // Clear so the form doesn't re-populate with stale values.
+                    $_POST = [];
+                } else {
+                    error_log('Enquiry insert failed: ' . $stmt->error);
+                    $enquiryError = 'Sorry, something went wrong. Please try again later.';
+                }
+                $stmt->close();
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------
+// Browse Categories (3-column list)
+// Old code fetched the whole `category` table with no LIMIT and split
+// it across 3 <table> columns by continuing to pull from the same
+// mysqli result cursor across three while-loops (a "3 <= i < rno"
+// pattern). That's fragile — any future change to the loop order
+// silently breaks the split. Replaced with one fetch into a PHP array
+// and array_chunk() for a deterministic 3-way split.
+//
+// Old links were literally href="#" (dead links) — every category
+// looked clickable but went nowhere. That's fixed here to link to
+// searchresult.php?id=<cateid>, matching how the sibling index.php
+// page already links its own category list. Revert to '#' below if you
+// specifically want the old (broken) behaviour preserved.
+// ---------------------------------------------------------------------
+$browseCategories = [];
+$stmt = $con->prepare('SELECT cateid, cname FROM category ORDER BY cname');
+if ($stmt) {
+    $stmt->execute();
+    $res = $stmt->get_result();
+    while ($row = $res->fetch_assoc()) {
+        $browseCategories[] = $row;
+    }
+    $stmt->close();
+} else {
+    error_log('Category query failed: ' . $con->error);
+}
+$browseCategoryChunks = array_chunk($browseCategories, (int) ceil(count($browseCategories) / 3) ?: 1);
+
+// ---------------------------------------------------------------------
+// Category dropdown for the enquiry form
+// ---------------------------------------------------------------------
+$catDetails = [];
+$stmt = $con->prepare('SELECT catdid, cdname FROM catedetail ORDER BY cdname');
+if ($stmt) {
+    $stmt->execute();
+    $res = $stmt->get_result();
+    while ($row = $res->fetch_assoc()) {
+        $catDetails[] = $row;
+    }
+    $stmt->close();
+} else {
+    error_log('Catedetail query failed: ' . $con->error);
+}
+
+// Old code checked isset($_POST["cdname"]) to mark the selected <option>,
+// but the <select> itself is named "cname" — that comparison could never
+// be true, so the dropdown never actually kept the visitor's selection
+// after a failed submit. Fixed to read $_POST['cname'].
+$selectedCategoryId = $_POST['cname'] ?? null;
+
+// Static "Verified Business & Services" carousel entries (unchanged
+// content from the original markup; not database-driven).
+$carouselItems = [
+    ['img' => 'images/board_paper_solutions.jpg', 'name' => 'Tirupati Travels'],
+    ['img' => 'images/HC%20Verma%20solution.png', 'name' => 'Thomas Cook'],
+    ['img' => 'images/Irodo%20Solution.png', 'name' => 'Hero Cycles'],
+    ['img' => 'images/NCERT%20SOLUTION%20TOP.jpg', 'name' => 'Tata Motor Finance'],
+    ['img' => 'images/Previous%20AIEEE%20Papers.jpg', 'name' => 'Food Plaza'],
+    ['img' => 'images/Previous%20AIPMT%20papers.jpg', 'name' => 'Surya Hotel'],
+    ['img' => 'images/Puzzle.jpg', 'name' => 'Resonance'],
+];
+
+// Static "Popular Category" sidebar (unchanged content — not database-
+// driven in the original either; all links were href="#").
+$popularCategoryStatic = [
+    'Construction Material Dealers',
+    'Home Furniture Dealers',
+    'Refrigerator',
+    'Plumbing Contractors',
+    'Orchestra & Music Organisers',
+    'Department Stores',
+    'Fixtures & Fittings Dealers',
+    'Awnings & Canopies Contractors',
+    'Electricians',
+];
+
+// Static "New on Look8us.com" section content (unchanged from original).
+$newListings = [
+    ['title' => 'Construction & Renovation', 'items' => ['Bathroom & Sanitaryware', 'Bathroom Fittings', 'Fixtures & Fittings Dealers', 'Construction Material Dealers']],
+    ['title' => 'Decoration & Furniture', 'items' => ['Architects', 'Curtains & Blinds Dealers', 'Awnings & Canopies Contractors', 'Home Furniture Dealers']],
+    ['title' => 'Electronics & Appliances', 'items' => ['Audio Music System', 'Refrigerator', 'TV', 'Inverter Dealers & Services & Rentals']],
+    ['title' => 'Grocery & Home Supplies', 'items' => ['Crockery Stores', 'Department Stores', 'Grocery Stores', 'Allopathy Pharmacies']],
+    ['title' => 'Home Services & Repair', 'items' => ['Plumbing Contractors', 'Cleaning Services', 'Electricians', 'Painters']],
+    ['title' => 'Other Services', 'items' => ['Florists', 'Orchestra & Music Organisers', 'Cooking Gas Agencies', 'Generator Hire']],
+];
+?>
+<!DOCTYPE html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Online Directory</title>
- <link rel="stylesheet" type="text/css" href="akc.css" />
+<link rel="stylesheet" href="akc.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/form.css">
 
-<link rel="stylesheet" type="text/css" href="css/style.css" />
-<link rel="stylesheet" type="text/css" href="css/form.css" />
+<style>
+:root {
+    --color-primary: #003366;
+    --color-accent: #0099ff;
+    --color-bg-panel: #ffffff;
+    --color-bg-alt: #f4f4f4;
+    --color-border: #e3e3e3;
+    --color-link: #0066ff;
+    --radius: 6px;
+    --gap: 16px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    color: #222;
+    background: #f7f7f7;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px; height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.page-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--gap);
+}
+
+.logo-row { text-align: center; padding: 16px 0; }
+.site-logo { max-width: 100%; height: auto; }
+
+/* Search panel */
+.search-panel { margin-bottom: var(--gap); }
+.search-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+}
+.search-form input[type="text"] {
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: var(--radius);
+    font-size: 1rem;
+}
+.txtsea { flex: 1 1 320px; min-width: 200px; }
+.txtloc { flex: 0 1 180px; }
+.subsea, .subbox {
+    padding: 10px 20px;
+    border: none;
+    border-radius: var(--radius);
+    background: var(--color-accent);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+}
+.subsea:hover, .subbox:hover { background: #0077cc; }
+.search-options {
+    width: 100%;
+    text-align: center;
+    font-size: 0.9rem;
+    margin-top: 4px;
+}
+.search-options label { margin-left: 12px; }
+
+.alert {
+    text-align: center;
+    padding: 10px;
+    border-radius: var(--radius);
+    margin-top: 8px;
+}
+.alert-success { background: #e6f7e9; color: #1a7431; }
+.alert-error { background: #fdecea; color: #b3261e; }
+
+/* Three-column home layout, stacks on small screens */
+.home-columns {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--gap);
+    margin-bottom: var(--gap);
+}
+
+.panel {
+    background: var(--color-bg-panel);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+.panel-title {
+    margin: 0;
+    padding: 12px 16px;
+    background: var(--color-accent);
+    color: #fff;
+    font-size: 1rem;
+}
+.panel-title--accent { background: var(--color-primary); font-size: 1.2rem; }
+.panel-scroll { max-height: 420px; overflow-y: auto; padding: 8px 16px; }
+
+.link-list { list-style: none; margin: 0; padding: 0; }
+.link-list li { border-bottom: 1px solid var(--color-bg-alt); }
+.link-list a {
+    display: block;
+    padding: 8px 4px;
+    color: var(--color-link);
+    text-decoration: none;
+}
+.link-list a:hover { text-decoration: underline; }
+.link-list--plain li { padding: 4px 0; color: var(--color-link); border-bottom: none; }
+
+.category-columns {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--gap);
+}
+.more-link {
+    display: block;
+    text-align: center;
+    background: var(--color-primary);
+    color: #fff;
+    padding: 10px;
+    text-decoration: none;
+    border-radius: var(--radius);
+    margin-top: 8px;
+}
+
+/* Feedback form */
+.feedback-form {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px;
+}
+.feedback-form label { font-size: 0.85rem; color: #555; }
+.feedback-form input.txtbox {
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: var(--radius);
+    margin-bottom: 6px;
+}
+.feedback-form .subbox { align-self: center; margin-top: 6px; width: 60%; }
+
+/* Verified adverts */
+.verified-panel { margin-bottom: var(--gap); }
+.advert-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: var(--gap);
+    list-style: none;
+    padding: 16px;
+    margin: 0;
+}
+.advert-row img { width: 100%; height: auto; border-radius: var(--radius); display: block; }
+.advert-row a { color: inherit; text-decoration: none; text-align: center; display: block; }
+.empty-note { padding: 16px; color: #777; }
+
+/* Popular grid */
+.popular-grid-inner {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--gap);
+    padding: 16px;
+}
+.popular-col h3 {
+    font-size: 0.95rem;
+    color: var(--color-primary);
+    border-bottom: 2px solid var(--color-bg-alt);
+    padding-bottom: 6px;
+}
+
+/* Promo dialog (replaces the old hidden-div lightbox) */
+.promo-dialog {
+    border: none;
+    border-radius: var(--radius);
+    padding: 16px;
+    max-width: 90vw;
+}
+.promo-dialog::backdrop { background: rgba(0, 0, 0, 0.6); }
+.promo-dialog__close { text-align: right; }
+.promo-dialog__close button {
+    border: none;
+    background: none;
+    font-size: 1.4rem;
+    cursor: pointer;
+}
+.promo-dialog__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--gap);
+}
+.promo-dialog__grid img { width: 100%; height: auto; border-radius: var(--radius); }
 
 
-<script src="js/jquery-1.3.2.min.js" type="text/javascript"></script>
-<script src="js/jquery.easing.1.3.js" type="text/javascript"></script>
-<script src="js/jquery.timers-1.2.js" type="text/javascript"></script>
-<script src="js/jquery.dualSlider.0.3.min.js" type="text/javascript"></script>
+/* --- Added for index-old.php (Home / Enquiry / New listings / Carousel) --- */
 
+/* Enquiry ("Tell Us Your Need") form */
+.enquiry-form {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px;
+}
+.enquiry-form label { font-size: 0.85rem; color: #555; }
+.enquiry-form select,
+.enquiry-form input.txtbox {
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: var(--radius);
+    margin-bottom: 6px;
+    font-size: 0.95rem;
+    width: 100%;
+}
+.enquiry-form .subbox { align-self: center; margin-top: 6px; width: 70%; }
 
+/* "New on Look8us.com" section */
+.new-listings { margin-bottom: var(--gap); }
+.new-listings-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--gap);
+    padding: 16px;
+}
+.new-listings-card { border: 1px solid var(--color-border); border-radius: var(--radius); overflow: hidden; }
+.new-listings-card h3 {
+    margin: 0;
+    padding: 10px 12px;
+    color: #fff;
+    font-size: 0.95rem;
+}
+.new-listings-card ul {
+    list-style: none;
+    margin: 0;
+    padding: 10px 12px;
+    background: var(--color-bg-alt);
+    font-size: 0.9rem;
+    line-height: 1.7;
+}
+/* per-card accent colors, same intent as the old inline bgcolor per <td> */
+.new-listings-card--1 h3 { background: #0033cc; }
+.new-listings-card--2 h3 { background: #0066ff; }
+.new-listings-card--3 h3 { background: #0385af; }
+.new-listings-card--4 h3 { background: #6600ff; }
+.new-listings-card--5 h3 { background: #333399; }
+.new-listings-card--6 h3 { background: #000099; }
 
-<script type="text/javascript" src="js/jquery.simplyscroll.js"></script>
-<link rel="stylesheet" href="js/jquery.simplyscroll.css" media="all" type="text/css">
-<script type="text/javascript">
-(function($) {
-	$(function() {
-		$("#scroller").simplyScroll({
-			auto: false,
-			speed: 10
-		});
-	});
-})(jQuery);
+/* Verified Business & Services carousel — replaces jQuery simplyScroll */
+.carousel-panel { margin-bottom: var(--gap); }
+.carousel {
+    display: flex;
+    gap: var(--gap);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding: 16px;
+    scrollbar-width: thin;
+}
+.carousel figure {
+    flex: 0 0 240px;
+    scroll-snap-align: start;
+    margin: 0;
+    text-align: center;
+}
+.carousel img {
+    width: 100%;
+    height: 145px;
+    object-fit: cover;
+    border-radius: var(--radius);
+    display: block;
+}
+.carousel figcaption { margin-top: 6px; font-size: 0.9rem; }
+.carousel-controls {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding-bottom: 12px;
+}
+.carousel-controls button {
+    border: 1px solid var(--color-border);
+    background: #fff;
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+.carousel-controls button:hover { background: var(--color-bg-alt); }
+	</style>
+</head>
+<body>
+
+<header class="site-header">
+<?php require __DIR__ . '/header.php'; ?>
+</header>
+
+<main class="page-wrap">
+
+    <div class="home-columns">
+
+        <!-- Popular Category (static list, unchanged content) -->
+        <nav class="panel popular-category" aria-labelledby="popular-category-h">
+            <h2 id="popular-category-h" class="panel-title">Popular Category</h2>
+            <div class="panel-scroll">
+                <ul class="link-list">
+                    <?php foreach ($popularCategoryStatic as $label): ?>
+                        <li><a href="#"><?= h($label) ?></a></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Browse Categories -->
+        <section class="panel category-details" aria-labelledby="browse-categories-h">
+            <h2 id="browse-categories-h" class="panel-title">Browse Categories</h2>
+            <div class="panel-scroll">
+                <div class="category-columns">
+                    <?php foreach ($browseCategoryChunks as $chunk): ?>
+                        <ul class="link-list">
+                            <?php foreach ($chunk as $row): ?>
+                                <li>
+                                    <a href="searchresult.php?id=<?= (int) $row['cateid'] ?>">
+                                        <?= h($row['cname']) ?>
+                                    </a>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tell Us Your Need -->
+        <section class="panel enquiry-panel" aria-labelledby="enquiry-h">
+            <h2 id="enquiry-h" class="panel-title panel-title--accent">Tell Us Your Need, Get Instant Response!</h2>
+
+            <?php if ($enquirySent): ?>
+                <p class="alert alert-success" role="status">Thanks — we've received your request and will get back to you shortly.</p>
+            <?php elseif ($enquiryError !== null): ?>
+                <p class="alert alert-error" role="alert"><?= h($enquiryError) ?></p>
+            <?php endif; ?>
+
+            <form method="post" action="index-old.php" class="enquiry-form" novalidate>
+                <input type="hidden" name="csrf_token" value="<?= h($csrfToken) ?>">
+
+                <label for="cname">Category</label>
+                <select class="selbox" name="cname" id="cname">
+                    <option value="0">Please Select</option>
+                    <?php foreach ($catDetails as $row): ?>
+                        <option value="<?= (int) $row['catdid'] ?>"
+                            <?= ((string) $selectedCategoryId === (string) $row['catdid']) ? 'selected' : '' ?>>
+                            <?= h($row['cdname']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+
+                <label for="city">City</label>
+                <input class="txtbox" type="text" name="city" id="city" placeholder="City"
+                       value="<?= h($_POST['city'] ?? '') ?>">
+
+                <label for="mname">Name</label>
+                <input class="txtbox" type="text" name="mname" id="mname" placeholder="Member Name" required
+                       value="<?= h($_POST['mname'] ?? '') ?>">
+
+                <label for="mobile">Mobile</label>
+                <input class="txtbox" type="tel" name="mobile" id="mobile" placeholder="Mobile" required
+                       pattern="[0-9+\-\s]{6,15}"
+                       value="<?= h($_POST['mobile'] ?? '') ?>">
+
+                <label for="txtmail">Email</label>
+                <input class="txtbox" type="email" name="txtmail" id="txtmail" placeholder="Email ID"
+                       value="<?= h($_POST['txtmail'] ?? '') ?>">
+
+                <label for="remark">Detail</label>
+                <input class="txtbox" type="text" name="remark" id="remark" placeholder="Message"
+                       value="<?= h($_POST['remark'] ?? '') ?>">
+
+                <button class="subbox" type="submit" name="submit">Get Response</button>
+            </form>
+        </section>
+    </div>
+
+    <!-- New on Look8us.com -->
+    <section class="panel new-listings" aria-labelledby="new-listings-h">
+        <h2 id="new-listings-h" class="panel-title" style="background:#ffcc00;color:#000;">New on Look8us.com</h2>
+        <div class="new-listings-grid">
+            <?php foreach ($newListings as $i => $group): ?>
+                <div class="new-listings-card new-listings-card--<?= $i + 1 ?>">
+                    <h3><?= h($group['title']) ?></h3>
+                    <ul>
+                        <?php foreach ($group['items'] as $item): ?>
+                            <li><?= h($item) ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </section>
+
+    <!-- Verified Business & Services -->
+    <section class="panel carousel-panel" aria-labelledby="carousel-h">
+        <h2 id="carousel-h" class="panel-title" style="background:#ff0000;">
+            Verified Business &amp; Services <small>(Advertisements)</small>
+        </h2>
+        <div class="carousel" id="verifiedCarousel" tabindex="0" aria-label="Verified business listings, scrollable">
+            <?php foreach ($carouselItems as $item): ?>
+                <figure>
+                    <img loading="lazy" src="<?= h($item['img']) ?>" width="240" height="145"
+                         alt="<?= h($item['name']) ?>">
+                    <figcaption><?= h($item['name']) ?></figcaption>
+                </figure>
+            <?php endforeach; ?>
+        </div>
+        <div class="carousel-controls">
+            <button type="button" id="carouselPrev" aria-label="Scroll left">&larr;</button>
+            <button type="button" id="carouselNext" aria-label="Scroll right">&rarr;</button>
+        </div>
+    </section>
+
+    <!-- Popular Finders / Brands / Businesses / Searches / Branches -->
+    <section class="panel popular-grid" aria-labelledby="popular-grid-h">
+        <h2 id="popular-grid-h" class="visually-hidden">Popular links</h2>
+        <div class="popular-grid-inner">
+            <div class="popular-col">
+                <h3>Popular Finders</h3>
+                <ul class="link-list link-list--plain">
+                    <li>Bus Route Finder</li>
+                    <li>Pin Code Finder</li>
+                    <li>School Finder</li>
+                    <li>Hotel Finder</li>
+                    <li>Bank SWIFT Code Finder</li>
+                    <li>Bank IFSC Code Finder</li>
+                    <li>Railway Station Finder</li>
+                </ul>
+            </div>
+            <div class="popular-col">
+                <h3>Popular Brands</h3>
+                <ul class="link-list link-list--plain">
+                    <li>Symphony Air Cooler Dealers</li>
+                    <li>Onida AC</li>
+                    <li>Hitachi AC</li>
+                    <li>Spice Mobile Phone Dealers</li>
+                    <li>Hero Cycles</li>
+                    <li>Jet Airways Flight Booking</li>
+                    <li><a href="#">More brands &gt;</a></li>
+                </ul>
+            </div>
+            <div class="popular-col">
+                <h3>Popular Businesses</h3>
+                <ul class="link-list link-list--plain">
+                    <li>DTDC Courier &amp; Cargo Ltd.</li>
+                    <li>Tirupati Travels</li>
+                    <li>Hotel City Home</li>
+                    <li>First Flight Courier</li>
+                    <li>Adarsh Kutir Udyog</li>
+                    <li>Wipro Ltd.</li>
+                </ul>
+            </div>
+            <div class="popular-col">
+                <h3>Popular Searches</h3>
+                <ul class="link-list link-list--plain">
+                    <li>Valentine Day Party Snacks</li>
+                    <li>Valentine Day Dinner</li>
+                    <li>Valentine Flowers Wholesale</li>
+                    <li>Valentine Candy Bouquet</li>
+                    <li>Child Adoption</li>
+                    <li>Birthday Party Restaurants</li>
+                </ul>
+            </div>
+            <div class="popular-col">
+                <h3>Popular Branches/Stores</h3>
+                <ul class="link-list link-list--plain">
+                    <li>Union Bank of India ATM</li>
+                    <li>Thomas Cook</li>
+                    <li>Fabindia</li>
+                    <li>ICICI Prudential Life Insurance</li>
+                    <li>Overnite Express Ltd.</li>
+                    <li>Tata Motor Finance</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<footer class="site-footer">
+<?php require __DIR__ . '/footer.php'; ?>
+</footer>
+
+<a href="<?= h(($path ?? '') . 'payment/subscribe.php') ?>" class="demoTest"></a>
+
+<script>
+// Replaces jQuery 1.3.2 + easing + timers + dualSlider + simplyScroll
+// (five separate legacy script files, none maintained since ~2009-2011,
+// each a potential attack surface and a render-blocking network request)
+// with ~15 lines of vanilla JS. The carousel already works via native
+// touch/trackpad scrolling and CSS scroll-snap with zero JS; these
+// buttons are a small enhancement for mouse/keyboard users.
+document.addEventListener('DOMContentLoaded', () => {
+    const track = document.getElementById('verifiedCarousel');
+    const prev = document.getElementById('carouselPrev');
+    const next = document.getElementById('carouselNext');
+    if (!track || !prev || !next) return;
+
+    const scrollByCard = (direction) => {
+        const card = track.querySelector('figure');
+        const amount = card ? card.getBoundingClientRect().width + 16 : 240;
+        track.scrollBy({ left: direction * amount, behavior: 'smooth' });
+    };
+
+    prev.addEventListener('click', () => scrollByCard(-1));
+    next.addEventListener('click', () => scrollByCard(1));
+});
 </script>
 
-
-
-</head>
-<body topmargin="0" leftmargin="0" rightmargin="0" bottommargin="0">
-
-<table border="0" width="100%" id="table1" style="border-collapse: collapse" bordercolor="#C0C0C0" cellpadding="0">
-	<tr>
-		<td height="20" bgcolor="#E2E2E2"><?php  require_once "header.php"; ?></td>
-	</tr>
-	<tr>
-		<td align="center" valign="top">
-		<table border="0" width="1010" id="table2" cellpadding="0" style="border-collapse: collapse" height="450">
-			<tr>
-				<td align="center" valign="top" style="border-top-width: 1px; border-bottom-width: 1px" bordercolor="#FFFFFF">
-				<table border="0" width="100%" id="table3" style="border-collapse: collapse" height="882">
-					<tr>
-						<td width="23%" valign="top" height="23">&nbsp;</td>
-						<td valign="top" height="23" width="49%">&nbsp;</td>
-						<td width="28%" valign="top" height="23">&nbsp;</td>
-					</tr>
-					<tr>
-						<td width="23%" valign="top" height="340" bgcolor="#E0E2FE">
-						<div align="left">
-							<table class="shadow1" border="0" width="100%" id="table12" cellspacing="1" style="border-collapse: collapse" height="333">
-								<tr>
-									<td bgcolor="#3399FF" height="40" align="center">
-									<font color="#FFFFFF"><b>&nbsp;Popular 
-									Category</b></font></td>
-								</tr>
-								<tr>
-									<td valign="top">
-									<table border="0" width="100%" id="table17" cellpadding="0" style="border-collapse: collapse" height="29">
-										<tr>
-											<td style="border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-style: solid; border-bottom-width: 1px" bordercolor="#808080" height="30">
-											<font size="2" color="#000000">&nbsp;<a href="#" class="a3">Construction 
-											Material Dealers</a></font></td>
-										</tr>
-										<tr>
-											<td style="border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-style: solid; border-bottom-width: 1px" bordercolor="#808080" height="30"><font size="2" color="#000000">&nbsp;<a href="#" class="a3">Home 
-											Furniture Dealers</a></font></td>
-										</tr>
-										<tr>
-											<td style="border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-style: solid; border-bottom-width: 1px" bordercolor="#808080" height="30"><font size="2" color="#000000">&nbsp;<a href="#" class="a3">Refrigerator</a></font></td>
-										</tr>
-										<tr>
-											<td style="border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-style: solid; border-bottom-width: 1px" bordercolor="#808080" height="30"><font size="2" color="#000000">&nbsp;<a href="#" class="a3">Plumbing 
-												Contractors</a></font></td>
-										</tr>
-										<tr>
-											<td style="border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-style: solid; border-bottom-width: 1px" bordercolor="#808080" height="30"><font size="2" color="#000000">&nbsp;<a href="#" class="a3">Orchestra 
-											&amp; Music Organisers</a></font></td>
-										</tr>
-										<tr>
-											<td style="border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-style: solid; border-bottom-width: 1px" bordercolor="#808080" height="30"><font size="2" color="#000000">&nbsp;<a href="#" class="a3">Department 
-											Stores</a></font></td>
-										</tr>
-										<tr>
-											<td style="border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-style: solid; border-bottom-width: 1px" bordercolor="#808080" height="30"><font size="2" color="#000000">&nbsp;<a href="#" class="a3">Fixtures 
-											&amp; Fittings Dealers</a></font></td>
-										</tr>
-										<tr>
-											<td style="border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-style: solid; border-bottom-width: 1px" bordercolor="#808080" height="30"><font size="2" color="#000000">&nbsp;<a href="#" class="a3">Awnings 
-											&amp; Canopies Contractors</a></font></td>
-										</tr>
-										<tr>
-											<td style="border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-style: solid; border-bottom-width: 1px" bordercolor="#808080" height="30"><font size="2" color="#000000">&nbsp;<a href="#" class="a3">Electricians</a></font></td>
-										</tr>
-									</table>
-									</td>
-								</tr>
-							</table>
-						</div>
-						</td>
-						<td valign="top" height="340" width="49%">
-						<div align="center">
-							<table class="shadow1" border="1" width="96%" id="table8" style="border-collapse: collapse" height="335" bordercolor="#F4F4F4">
-								<tr>
-									<td height="40" bgcolor="#E3E3E3">
-									<font color="#000000">&nbsp;<b>Browse 
-									Categories</b></font></td>
-								</tr>
-								<tr>
-									<td valign="top">
-									<div align="right">
-									
-		<?php						
-
-$st="Select * from category order by cname";
-
-//echo $st;
-$i=1;
-$result=mysqli_query($con,$st);
-if (!$result) {
-    die(mysqli_error($con));
-}
-
-$num_rows = mysqli_num_rows($result);
-
-$rno=round($num_rows/3);
-
-//echo $num_rows;
-//echo $rno;
-?>	
-
-
-		<div align="center">
-
-	<table  border="0" width="100%" id="table18" cellpadding="0" style="border-collapse: collapse">
-											
-										<tr>
-										<td colspan="5" height="7" ></td>
-										
-										</tr>	
-											<tr>
-												<td width="33%" height="280" valign="top">  
-												
-												 <table class="table1" border="0" width="100%" id="table19" style="border-collapse: collapse" cellpadding="0">
-													
-	<?php
-	$i=1;
-	while ( ($row=mysqli_fetch_assoc($result))&&($i<$rno))
-	{	
-?>
-												
-	<tr>
-														<td height="25">
-														<?php
-															echo "<a href='#' class='a5' >".$row["cname"]."</a>";
-	
-																$i=$i+1;
-															?>
-	
-	</td>
-													</tr>
-													
-													<?php
-													}
-													?>
-													
-													</table>
-												
-												 </td>
-												<td width="1" height="25" valign="top" bgcolor="#F4F4F4"></td>
-												<td width="33%" height="25" valign="top">
-												
-												<table class="table1" border="0" width="100%" id="table19" style="border-collapse: collapse" cellpadding="0" height="25">
-													
-	<?php
-	$i=1;
-	while ( ($row=mysqli_fetch_assoc($result))&&($i<$rno))
-	{	
-?>
-												
-	<tr>
-														<td height="25">
-														<?php
-															echo "<a href='#' class='a5' >".$row["cname"]."</a>";
-	
-																$i=$i+1;
-															?>
-	
-	</td>
-													</tr>
-													
-													<?php
-													}
-													?>
-													
-													</table>
-												
-												</td>
-												<td width="1" height="25" valign="top" bgcolor="#F4F4F4"></td>
-												<td height="25" valign="top">
-												
-												<table class="table1" border="0" width="100%" id="table19" style="border-collapse: collapse" cellpadding="0">
-													
-	<?php
-	$i=1;
-	while ( ($row=mysqli_fetch_assoc($result))&&($i<$rno))
-	{	
-?>
-												
-	<tr>
-														<td height="25">
-														<?php
-															echo "<a href='#' class='a5' >".$row["cname"]."</a>";
-	
-																$i=$i+1;
-															?>
-	
-	</td>
-													</tr>
-													
-													<?php
-													}
-													?>
-													
-													</table>
-												
-												</td>
-												
-											</tr>
-											
-											
-											
-										</table>
-									</div>
-									</div>
-									</td>
-								</tr>
-								</table>
-						</div>
-						</td>
-						<td width="28%" valign="top" height="340" bgcolor="#F4F4F4">
-						<div align="right">
-							<table class="shadow1" border="0" width="100%" id="table4" cellpadding="0" style="border-collapse: collapse" height="335" bordercolor="#E3E3E3">
-								<tr>
-									<td height="40" bgcolor="#333333" align="center">
-									<b><font color="#F5F5F5" size="2">Tell Us 
-									Your Need, Get Instant Response!</font></b></td>
-								</tr>
-								<tr>
-									<td valign="top">
-									<table border="0" width="100%" id="table11" height="258" cellspacing="1" style="border-collapse: collapse">
-										<tr>
-											<td width="28%">
-											<font color="#666666" size="2">
-											<span class="ksic flt tp5">&nbsp;Category</span></font></td>
-											<td width="70%">
-	
-
-
-
-	<select  class="selbox" name="cname" id="cname" size="1" tabindex="5">
-	<option value='0' >Please Select</option>
-		<?php 
-		 $st="Select * from catedetail order by cdname";
-		 $result=mysqli_query($con,$st);
-if (!$result) {
-    die(mysqli_error($con));
-}
-		while ($row=mysqli_fetch_assoc($result))
-			{
-			?>
-		<option value='<?php echo htmlspecialchars($row["catdid"]); ?>' <?php if (isset($_POST["cdname"])){if ($_POST["cdname"]==$row["catdid"]) echo "Selected" ;} ?> > <?php echo htmlspecialchars($row["cdname"]); ?></option>
-			<?php
-			}
-			?>
-	
-	</select></td>
-										</tr>
-										<tr>
-											<td width="28%">
-											<font color="#666666" size="2">&nbsp;City</font></td>
-											<td width="70%">
-	<input  class="txtbox" type="text" name="city" id="city" tabindex="4" value="<?php if (isset($_POST['city'])) $city = $_POST['city'] ?? ''; else echo 'City';  ?>" onfocus="if(this.value=='City'){this.value='';}" onblur="if(this.value==''){this.value='City';}" size="1"/></td>
-										</tr>
-										<tr>
-											<td width="28%">
-											<font color="#666666" size="2">
-											<span class="ksic flt tp5">&nbsp;Name</span></font></td>
-											<td width="70%">
-	<input class="txtbox" type="text" name="mname" id="mname" tabindex="1" value="<?php if (isset($_POST['mname'])) $mname = $_POST['mname'] ?? ''; else echo 'Member Name';  ?>" onfocus="if(this.value=='Member Name'){this.value='';}" onblur="if(this.value==''){this.value='Member Name';}" size="1"/></td>
-										</tr>
-										<tr>
-											<td width="28%">
-											<font color="#666666" size="2">&nbsp;Mobile</font></td>
-											<td width="70%">
-	<input  class="txtbox" type="text" name="mobile" id="mobile" value="<?php if (isset($_POST['mobile'])) $mobile = $_POST['mobile'] ?? ''; else echo 'Mobile';  ?>" onfocus="if(this.value=='Mobile'){this.value='';}" onblur="if(this.value==''){this.value='Mobile';}" tabindex="10" size="1"/></td>
-										</tr>
-										<tr>
-											<td width="28%">
-											<font color="#666666" size="2">&nbsp;Email
-											</font></td>
-											<td width="70%">
-	<input class="txtbox" type="text" name="txtmail" id="txttmail" value="<?php if (isset($_POST['txtmail'])) $txtmail = $_POST['txtmail'] ?? ''; else echo 'Email ID';  ?>" onfocus="if(this.value=='Email ID'){this.value='';}" onblur="if(this.value==''){this.value='Email ID';}" tabindex="4" /></td>
-										</tr>
-										<tr>
-											<td width="28%">
-											<font color="#666666" size="2">&nbsp;Detail</font></td>
-											<td width="70%">
-	<input  class="txtbox" type="text" name="remark" id="remark" tabindex="3" value="<?php if (isset($_POST['remark'])) $remark = $_POST['remark'] ?? ''; else echo 'Message';  ?>"  size="1"/></td>
-										</tr>
-										<tr>
-											<td colspan="2" align="center">
-	<input  class="subbox" type="submit" value="Get Response" name="submit"/></td>
-										</tr>
-									</table>
-									</td>
-								</tr>
-							</table>
-						</div>
-						</td>
-					</tr>
-					
-					<tr>
-						<td valign="top" colspan="3" height="11">
-</td></tr>						
-					<tr>
-						<td valign="top" colspan="3">
-						<table class="shadow4" border="1" width="100%" id="table6" height="398" style="border-collapse: collapse" bordercolor="#E3E3E3">
-							<tr>
-								<td height="40" bgcolor="#FFCC00">
-								<font size="4">&nbsp;</font><i><font size="5" color="#000000" face="Times New Roman">New 
-								on Look8us.com</font></i></td>
-							</tr>
-							<tr>
-								<td valign="top" bgcolor="#F7F7F7">
-								<div align="center">
-&nbsp;<table border="0" width="99%" id="table13" style="border-collapse: collapse" height="148">
-										<tr>
-											<td height="35" bgcolor="#0033CC" width="32%">&nbsp;<font color="#FFFFFF"><b>Construction 
-											&amp; Renovation</b></font></td>
-											<td height="35" bgcolor="#FFFFFF" width="1%">&nbsp;</td>
-											<td height="35" bgcolor="#0066FF" width="34%">&nbsp;<b><font color="#FFFFFF">Decoration 
-											&amp; Furniture</font></b></td>
-											<td height="35" bgcolor="#FFFFFF" width="1%">&nbsp;</td>
-											<td height="35" bgcolor="#0385AF" width="32%">&nbsp;<b><font color="#FFFFFF">Electronics 
-											&amp; Appliances</font></b></td>
-										</tr>
-										<tr>
-											<td valign="top" bgcolor="#F4F4F4" width="32%">
-											<font size="2">&nbsp;</font><font size="2" color="#000000">Bathroom 
-											&amp; Sanitaryware<br>
-&nbsp;Bathroom Fittings<br>
-&nbsp;Fixtures &amp; Fittings Dealers<br>
-&nbsp;Construction Material Dealers</font></td>
-											<td valign="top" bgcolor="#FFFFFF" width="1%">&nbsp;</td>
-											<td valign="top" bgcolor="#F4F4F4" width="34%">
-											<font size="2">&nbsp;</font><font size="2" color="#000000">Architects<br>
-&nbsp;Curtains &amp; Blinds Dealers<br>
-&nbsp;Awnings &amp; Canopies Contractors<br>
-&nbsp;Home Furniture Dealers</font></td>
-											<td valign="top" bgcolor="#FFFFFF" width="1%">&nbsp;</td>
-											<td valign="top" bgcolor="#F4F4F4" width="32%">
-											<font size="2">&nbsp;</font><font size="2" color="#000000">Audio 
-											Music System<br>
-&nbsp;Refrigerator<br>
-&nbsp;TV<br>
-&nbsp;Inverter Dealers &amp; Services &amp; Rentals</font></td>
-										</tr>
-									</table>
-									<div align="center">
-&nbsp;<table border="0" width="99%" id="table14" style="border-collapse: collapse" height="149">
-											<tr>
-												<td height="35" bgcolor="#6600FF" width="32%">
-												<b><font color="#FFFFFF">&nbsp;Grocery 
-												&amp; Home Supplies</font></b></td>
-												<td height="35" bgcolor="#FFFFFF" width="1%">&nbsp;</td>
-												<td height="35" bgcolor="#333399" width="34%">&nbsp;<b><font color="#FFFFFF">Home 
-												Services &amp; Repair</font></b></td>
-												<td height="35" bgcolor="#FFFFFF" width="1%">&nbsp;</td>
-												<td height="35" bgcolor="#000099" width="32%">
-												<b><font color="#FFFFFF">&nbsp;Other 
-												Services</font></b></td>
-											</tr>
-											<tr>
-												<td valign="top" bgcolor="#F4F4F4" width="32%">
-												<font size="2">&nbsp;</font><font size="2" color="#000000">Crockery 
-												Stores<br>
-&nbsp;Department Stores<br>
-&nbsp;Grocery Stores<br>
-&nbsp;Allopathy Pharmacies</font></td>
-												<td valign="top" bgcolor="#FFFFFF" width="1%">&nbsp;</td>
-												<td valign="top" bgcolor="#F4F4F4" width="34%">
-												<font size="2">&nbsp;</font><font size="2" color="#000000">Plumbing 
-												Contractors<br>
-&nbsp;Cleaning Services<br>
-&nbsp;Electricians<br>
-&nbsp;Painters</font></td>
-												<td valign="top" bgcolor="#FFFFFF" width="1%">&nbsp;</td>
-												<td valign="top" bgcolor="#F4F4F4" width="32%">
-												<font size="2">&nbsp;</font><font size="2" color="#000000">Florists<br>
-&nbsp;Orchestra &amp; Music Organisers<br>
-&nbsp;Cooking Gas Agencies<br>
-&nbsp;Generator Hire<br>
-												<br>
-&nbsp;</font></td>
-											</tr>
-										</table>
-									</div>
-								</div>
-								</td>
-							</tr>
-						</table>
-						</td>
-					</tr>
-					<tr>
-						<td width="99%" valign="top" height="22" colspan="3">&nbsp;</td>
-					</tr>
-					<tr>
-						<td width="99%" valign="top" height="254" colspan="3">
-						<table class="shadow2" border="0" width="100%" id="table9" style="border-collapse: collapse" height="246">
-							<tr>
-								<td bgcolor="#FF0000" height="40"><b>
-								<font size="4" color="#FFFFFF">&nbsp;Verified 
-								Business &amp; Services </font>
-								<font size="1" color="#FFFFFF">(Advertisements)</font></b></td>
-							</tr>
-							<tr>
-								<td valign="top" bgcolor="#F0F0FF">
-								<table border="0" width="100%" id="table10" height="240" cellspacing="0" cellpadding="0" style="border-collapse: collapse" bordercolor="#E3E3E3">
-									<tr>
-										<td valign="middle"  align="center" height="240">
-							
-							<table border="0" width="1000" id="table15" style="border-collapse: collapse" bordercolor="#E0E2FE" bgcolor="#FFFFFF" cellpadding="0">
-								<tr>
-									<td valign="middle">
-									
-
-<ul id="scroller">
-    <li>
-	<img border="0" src="images/board_paper_solutions.jpg" width="240" height="145">&nbsp;&nbsp;Tirupati Travels</li>
-    <li>
-	<img border="0" src="images/HC%20Verma%20solution.png" width="240" height="145">&nbsp;&nbsp;Thomas Cook</li>
-    <li>
-	<img border="0" src="images/Irodo%20Solution.png" width="240" height="145">&nbsp;&nbsp;&nbsp;Hero Cycles</li>
-    <li>
-	<img border="0" src="images/NCERT%20SOLUTION%20TOP.jpg" width="240" height="145">&nbsp;&nbsp;&nbsp;Tata Motor Finance</li>
-    <li>
-	<img border="0" src="images/Previous%20AIEEE%20Papers.jpg" width="240" height="145">&nbsp;&nbsp;Food Plaza</li>
-    <li>
-	<img border="0" src="images/Previous%20AIPMT%20papers.jpg" width="240" height="145">&nbsp;&nbsp;Surya Hotel</li>
-	<li>
-	<img border="0" src="images/Puzzle.jpg" width="240" height="145">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Resonance</li>
-</ul>
-
-</td>
-								</tr>
-							</table></td>
-									</tr>
-								</table>
-								</td>
-							</tr>
-						</table>
-						</td>
-					</tr>
-					
-					<tr>
-					<td colspan="3">&nbsp;</td>
-					</tr>
-					
-					<tr>
-					<td colspan="3">
-					<table class="shadow5" border="0" width="100%" id="table16" style="border-collapse: collapse">
-						<tr>
-							<td height="37" align="left" bgcolor="#EFEFEF"><b>
-							<font size="2" color="#071E43">&nbsp;Popular Finders</font></b></td>
-							<td height="37" align="left" bgcolor="#DBDBDB"><b>
-							<font size="2" color="#071E43">&nbsp;Popular Brands</font></b></td>
-							<td height="37" align="left" bgcolor="#D2D2D2"><b>
-							<font size="2" color="#071E43">&nbsp;Popular 
-							Businesses</font></b></td>
-							<td height="37" align="left" bgcolor="#BFBFBF"><b>
-							<font size="2" color="#071E43">&nbsp;Popular 
-							Searches</font></b></td>
-							<td height="37" align="left" bgcolor="#AAAAAA"><b>
-							<font size="2" color="#071E43">&nbsp;Popular 
-							Branches/Stores</font></b></td>
-						</tr>
-						<tr>
-							<td valign="top" height="172">
-							<p style="margin-left: 5px; margin-top: 5px; margin-bottom: 5px">
-							<font size="2" color="#0066FF">Bus Route Finder<br>
-							Pin Code Finder<br>
-							School Finder<br>
-							Hotel Finder<br>
-							Bank SWIFT Code Finder<br>
-							Bank IFSC Code Finder<br>
-							Railway station Finder</font></td>
-							<td valign="top" height="172">
-							<p style="margin-left: 5px; margin-top: 5px; margin-bottom: 5px">
-							<font size="2" color="#0066FF">Symphony Air Cooler 
-							Dealers<br>
-							Onida AC<br>
-							Hitachi AC<br>
-							Spice Mobile Phone Dealers<br>
-							Hero Cycles<br>
-							Jet Airways Flight Booking<br>
-							More brands &gt;<br>
-&nbsp;</font></td>
-							<td valign="top" height="172">
-							<p style="margin-left: 5px; margin-top: 5px; margin-bottom: 5px">
-							<font size="2" color="#0066FF">DTDC Courier &amp; Cargo 
-							Ltd.<br>
-							Tirupati Travels<br>
-							Hotel City Home<br>
-							First Flight Courier<br>
-							Adarsh Kutir Udyog<br>
-							Wipro Ltd.<br>
-&nbsp;</font></td>
-							<td valign="top" height="172">
-							<p style="margin-left: 5px; margin-top: 5px; margin-bottom: 5px">
-							<font size="2" color="#0066FF">Valentine Day Party 
-							Snacks<br>
-							Valentine Day Dinner<br>
-							Valentine Flowers Wholesale<br>
-							Valentine Candy Bouquet<br>
-							Child Adoption<br>
-							Birthday Party Restaurants<br>
-&nbsp;</font></td>
-							<td valign="top" height="172">
-							<p style="margin-left: 5px; margin-top: 5px; margin-bottom: 5px">
-							<font size="2" color="#0066FF">Union Bank of India 
-							ATM<br>
-							Thomas Cook<br>
-							Fabindia<br>
-							ICICI Prudential Life Insurance<br>
-							Overnite Express Ltd.<br>
-							Tata Motor Finance<br>
-&nbsp;</font></td>
-						</tr>
-					</table>
-					</td>
-					</tr>
-					
-					<tr>
-					<td colspan="3">&nbsp;</td>
-					</tr>
-					
-					<tr>
-					<td colspan="3">&nbsp;</td>
-					</tr>
-					
-				</table>
-				</td>
-			</tr>
-			
-		</table>
-		</td>
-	</tr>
-	<tr>
-		<td bgcolor="#F5F5F5" height="20"><?php  require_once "footer.php"; ?></td>
-	</tr>
-</table>
-<a href="<?php echo $path; ?>payment/subscribe.php" class="demoTest"></a>
 </body>
-
 </html>

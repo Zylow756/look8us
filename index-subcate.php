@@ -1,747 +1,587 @@
 <?php
-require_once __DIR__ . "/config.php";
+declare(strict_types=1);
+
+require_once __DIR__ . '/config.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-?>
-<html>
 
+/** Escapes a value for safe HTML output. */
+function h(?string $value): string
+{
+    return htmlspecialchars($value ?? '', ENT_QUOTES | ENT_HTML5, 'UTF-8');
+}
+
+/**
+ * Normalizes a stored "website" value into a safe absolute URL, same
+ * helper used on index.php. Old code always prepended "http://", which
+ * breaks if a row already stores a full URL.
+ */
+function externalUrl(?string $website): string
+{
+    $website = trim((string) $website);
+    if ($website === '') {
+        return '#';
+    }
+    if (!preg_match('#^https?://#i', $website)) {
+        $website = 'https://' . $website;
+    }
+    return $website;
+}
+
+$catDetails = [];
+$stmt = $con->prepare(
+    'SELECT DISTINCT cdname, catdid FROM catedetail ORDER BY cdname'
+);
+if ($stmt) {
+    $stmt->execute();
+    $res = $stmt->get_result();
+    while ($row = $res->fetch_assoc()) {
+        $catDetails[] = $row;
+    }
+    $stmt->close();
+} else {
+    error_log('Catedetail query failed: ' . $con->error);
+}
+$catDetailChunks = array_chunk($catDetails, (int) ceil(count($catDetails) / 4) ?: 1);
+
+// ---------------------------------------------------------------------
+// Verified Business & Services adverts (same query/shape as index.php)
+// ---------------------------------------------------------------------
+$adverts = [];
+$stmt = $con->prepare("SELECT aname, website, img FROM advert WHERE astatus = 'H' ORDER BY aname");
+if ($stmt) {
+    $stmt->execute();
+    $res = $stmt->get_result();
+    while ($row = $res->fetch_assoc()) {
+        if ($row['img'] !== '-' && $row['img'] !== null && $row['img'] !== '') {
+            $adverts[] = $row;
+        }
+    }
+    $stmt->close();
+} else {
+    error_log('Advert query failed: ' . $con->error);
+}
+$advertChunks = array_chunk($adverts, 5); // preserves the old "5 per row" grouping
+
+// ---------------------------------------------------------------------
+// Homepage lightbox images ("homeimg") — same source/behaviour as
+// index.php's popup, rebuilt as a native <dialog> instead of the
+// Colorbox jQuery plugin (which, together with a second, separate copy
+// of jQuery loaded from Google's CDN, was pulled in only for this one
+// popup).
+// ---------------------------------------------------------------------
+$homeImages = [];
+$stmt = $con->prepare('SELECT aid, website, img FROM homeimg ORDER BY aid DESC');
+if ($stmt) {
+    $stmt->execute();
+    $res = $stmt->get_result();
+    while ($row = $res->fetch_assoc()) {
+        if (($row['img'] ?? '-') !== '-' && $row['img'] !== '') {
+            $homeImages[] = $row;
+        }
+    }
+    $stmt->close();
+} else {
+    error_log('Homeimg query failed: ' . $con->error);
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta http-equiv="Content-Language" content="en-us">
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Look8US : Business Directory Kota, Rajasthan, India — Online Business Directory, Yellow Pages, Verified Businesses, Exporters, Manufacturers, Suppliers Directory, B2B Business Directory</title>
+<meta name="description" content="Look8us.com from Kota Rajasthan is your local business directory and yellow pages. Business details, contacts, products, services and verified businesses, exporters, manufacturers, suppliers directory.">
+<meta name="keywords" content="Look8us.com, yellow pages Kota Rajasthan, business directory Kota Rajasthan India, business search engine, Indian business directory, online business directory, Indian manufacturers, suppliers, Indian exporters directory, b2b portal, b2b business directory, manufacturer, importers, traders, dealers, buyers">
+<link rel="stylesheet" href="akc.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/form.css">
+<style>
+:root {
+    --color-primary: #003366;
+    --color-accent: #0099ff;
+    --color-bg-panel: #ffffff;
+    --color-bg-alt: #f4f4f4;
+    --color-border: #e3e3e3;
+    --color-link: #0066ff;
+    --radius: 6px;
+    --gap: 16px;
+}
 
-<title>Look8US :Business Directory Kota, Rajasthan , India, Online Business Directory Kota,  Yellow Pages  kota Rajasthan , Trusted & Verified Businesses, Exporters, Manufacturers, Suppliers Directory, B2B Business Directory </title>
-<meta name="description" content="Look8us.com from Kota Rajasthan is Your local Business Directory , yellow pages  Business Directory. Business Details, Contacts, Products, Services & Verified Businesses, Exporters, Manufacturers, Suppliers Directory">
-<meta name="keywords" content=" Look8us.com , yellow pages Kota Rajasthan , business directory Kota Rajasthan india,business search engine, indian business directory, online business directory, Indian manufacturers, suppliers, Indian exporters directory, b2b portal, b2b business directory,manufacturer, importers, traders, dealers, buyers, ">
+* { box-sizing: border-box; }
 
+body {
+    margin: 0;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    color: #222;
+    background: #f7f7f7;
+}
 
- <link rel="stylesheet" type="text/css" href="akc.css" />
+.visually-hidden {
+    position: absolute;
+    width: 1px; height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
 
-<link rel="stylesheet" type="text/css" href="css/style.css" />
-<link rel="stylesheet" type="text/css" href="css/form.css" />
+.page-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--gap);
+}
 
+.logo-row { text-align: center; padding: 16px 0; }
+.site-logo { max-width: 100%; height: auto; }
 
-<script src="js/jquery-1.3.2.min.js" type="text/javascript"></script>
-<script src="js/jquery.easing.1.3.js" type="text/javascript"></script>
-<script src="js/jquery.timers-1.2.js" type="text/javascript"></script>
-<script src="js/jquery.dualSlider.0.3.min.js" type="text/javascript"></script>
+/* Search panel */
+.search-panel { margin-bottom: var(--gap); }
+.search-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+}
+.search-form input[type="text"] {
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: var(--radius);
+    font-size: 1rem;
+}
+.txtsea { flex: 1 1 320px; min-width: 200px; }
+.txtloc { flex: 0 1 180px; }
+.subsea, .subbox {
+    padding: 10px 20px;
+    border: none;
+    border-radius: var(--radius);
+    background: var(--color-accent);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+}
+.subsea:hover, .subbox:hover { background: #0077cc; }
+.search-options {
+    width: 100%;
+    text-align: center;
+    font-size: 0.9rem;
+    margin-top: 4px;
+}
+.search-options label { margin-left: 12px; }
 
+.alert {
+    text-align: center;
+    padding: 10px;
+    border-radius: var(--radius);
+    margin-top: 8px;
+}
+.alert-success { background: #e6f7e9; color: #1a7431; }
+.alert-error { background: #fdecea; color: #b3261e; }
 
+/* Three-column home layout, stacks on small screens */
+.home-columns {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--gap);
+    margin-bottom: var(--gap);
+}
 
-<script type="text/javascript" src="js/jquery.simplyscroll.js"></script>
-<link rel="stylesheet" href="js/jquery.simplyscroll.css" media="all" type="text/css">
-<script type="text/javascript">
-(function($) {
-	$(function() {
-		$("#scroller").simplyScroll({
-			auto: false,
-			speed: 10
-		});
-	});
-})(jQuery);
-</script>
+.panel {
+    background: var(--color-bg-panel);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+.panel-title {
+    margin: 0;
+    padding: 12px 16px;
+    background: var(--color-accent);
+    color: #fff;
+    font-size: 1rem;
+}
+.panel-title--accent { background: var(--color-primary); font-size: 1.2rem; }
+.panel-scroll { max-height: 420px; overflow-y: auto; padding: 8px 16px; }
 
+.link-list { list-style: none; margin: 0; padding: 0; }
+.link-list li { border-bottom: 1px solid var(--color-bg-alt); }
+.link-list a {
+    display: block;
+    padding: 8px 4px;
+    color: var(--color-link);
+    text-decoration: none;
+}
+.link-list a:hover { text-decoration: underline; }
+.link-list--plain li { padding: 4px 0; color: var(--color-link); border-bottom: none; }
 
+.category-columns {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--gap);
+}
+.more-link {
+    display: block;
+    text-align: center;
+    background: var(--color-primary);
+    color: #fff;
+    padding: 10px;
+    text-decoration: none;
+    border-radius: var(--radius);
+    margin-top: 8px;
+}
 
+/* Feedback form */
+.feedback-form {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px;
+}
+.feedback-form label { font-size: 0.85rem; color: #555; }
+.feedback-form input.txtbox {
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: var(--radius);
+    margin-bottom: 6px;
+}
+.feedback-form .subbox { align-self: center; margin-top: 6px; width: 60%; }
 
-<link rel="stylesheet" href="colorbox-master/example1/colorbox.css" />
-			<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-	<script src="colorbox-master/jquery.colorbox.js"></script>
-		<script>
-			$(document).ready(function(){
-				//Examples of how to assign the Colorbox event to elements
-				$(".group1").colorbox({rel:'group1'});
-				$(".inline").colorbox({inline:true, width:"50%"});
+/* Verified adverts */
+.verified-panel { margin-bottom: var(--gap); }
+.advert-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: var(--gap);
+    list-style: none;
+    padding: 16px;
+    margin: 0;
+}
+.advert-row img { width: 100%; height: auto; border-radius: var(--radius); display: block; }
+.advert-row a { color: inherit; text-decoration: none; text-align: center; display: block; }
+.empty-note { padding: 16px; color: #777; }
 
-			
-				//Example of preserving a JavaScript event for inline calls.
-				$("#click").click(function(){ 
-					$('#click').css({"background-color":"#f00", "color":"#fff", "cursor":"inherit"}).text("Open this window again and this message will still be here.");
-					return false;
-				});
-				
-				//setTimeout(function() { $(".inline").trigger('click'); },10);
-    
-			});
-		</script>
-		
-		
+/* Popular grid */
+.popular-grid-inner {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--gap);
+    padding: 16px;
+}
+.popular-col h3 {
+    font-size: 0.95rem;
+    color: var(--color-primary);
+    border-bottom: 2px solid var(--color-bg-alt);
+    padding-bottom: 6px;
+}
+
+/* Promo dialog (replaces the old hidden-div lightbox) */
+.promo-dialog {
+    border: none;
+    border-radius: var(--radius);
+    padding: 16px;
+    max-width: 90vw;
+}
+.promo-dialog::backdrop { background: rgba(0, 0, 0, 0.6); }
+.promo-dialog__close { text-align: right; }
+.promo-dialog__close button {
+    border: none;
+    background: none;
+    font-size: 1.4rem;
+    cursor: pointer;
+}
+.promo-dialog__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--gap);
+}
+.promo-dialog__grid img { width: 100%; height: auto; border-radius: var(--radius); }
+
+/* --- Added for index-old.php (Home / Enquiry / New listings / Carousel) --- */
+
+/* Enquiry ("Tell Us Your Need") form */
+.enquiry-form {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px;
+}
+.enquiry-form label { font-size: 0.85rem; color: #555; }
+.enquiry-form select,
+.enquiry-form input.txtbox {
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: var(--radius);
+    margin-bottom: 6px;
+    font-size: 0.95rem;
+    width: 100%;
+}
+.enquiry-form .subbox { align-self: center; margin-top: 6px; width: 70%; }
+
+/* "New on Look8us.com" section */
+.new-listings { margin-bottom: var(--gap); }
+.new-listings-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--gap);
+    padding: 16px;
+}
+@media (min-width: 800px) {
+    .new-listings-grid { grid-template-columns: repeat(3, 1fr); }
+}
+.new-listings-card { border: 1px solid var(--color-border); border-radius: var(--radius); overflow: hidden; }
+.new-listings-card h3 {
+    margin: 0;
+    padding: 10px 12px;
+    color: #fff;
+    font-size: 0.95rem;
+}
+.new-listings-card ul {
+    list-style: none;
+    margin: 0;
+    padding: 10px 12px;
+    background: var(--color-bg-alt);
+    font-size: 0.9rem;
+    line-height: 1.7;
+}
+/* per-card accent colors, same intent as the old inline bgcolor per <td> */
+.new-listings-card--1 h3 { background: #0033cc; }
+.new-listings-card--2 h3 { background: #0066ff; }
+.new-listings-card--3 h3 { background: #0385af; }
+.new-listings-card--4 h3 { background: #6600ff; }
+.new-listings-card--5 h3 { background: #333399; }
+.new-listings-card--6 h3 { background: #000099; }
+
+/* Verified Business & Services carousel — replaces jQuery simplyScroll */
+.carousel-panel { margin-bottom: var(--gap); }
+.carousel {
+    display: flex;
+    gap: var(--gap);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding: 16px;
+    scrollbar-width: thin;
+}
+.carousel figure {
+    flex: 0 0 240px;
+    scroll-snap-align: start;
+    margin: 0;
+    text-align: center;
+}
+.carousel img {
+    width: 100%;
+    height: 145px;
+    object-fit: cover;
+    border-radius: var(--radius);
+    display: block;
+}
+.carousel figcaption { margin-top: 6px; font-size: 0.9rem; }
+.carousel-controls {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding-bottom: 12px;
+}
+.carousel-controls button {
+    border: 1px solid var(--color-border);
+    background: #fff;
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+.carousel-controls button:hover { background: var(--color-bg-alt); }
+
+/* --- Added for index-subcate.php (4-column category grid) --- */
+.category-columns--4 {
+    grid-template-columns: 1fr;
+}
+.panel-scroll--tall { max-height: 700px; }
+	</style>
 </head>
+<body>
 
-<?php 
-$msg=0;
+<header class="site-header">
+<?php require __DIR__ . '/header.php'; ?>
+</header>
 
-	
-?>
+<main class="page-wrap">
 
-<body topmargin="0" leftmargin="0" rightmargin="0" bottommargin="0">
+    <div class="logo-row">
+        <img src="logo.jpg" alt="Look8US logo" class="site-logo">
+    </div>
 
-<a class='inline' href="#inline_content"></a>
+    <!-- Search -->
+    <section class="search-panel" aria-label="Business search">
+        <form method="post" action="searchresult.php" class="search-form">
+            <div class="search-fields">
+                <label class="visually-hidden" for="item">Search product or company</label>
+                <input type="text" class="txtsea" name="item" id="item"
+                       placeholder="Enter your search Product or Company" autocomplete="off">
 
+                <label class="visually-hidden" for="loc">Location</label>
+                <input type="text" class="txtloc" name="loc" id="loc"
+                       placeholder="Location" autocomplete="off">
 
-<table border="0" width="100%" id="table1" style="border-collapse: collapse" bordercolor="#C0C0C0" cellpadding="0">
-	<tr>
-		<td height="20" bgcolor="#E2E2E2"><?php  require_once "header.php"; ?></td>
-	</tr>
-	<tr>
-		<td align="center" valign="top">
-		<table border="0" width="1010" id="table2" cellpadding="0" style="border-collapse: collapse" height="450">
-			<tr>
-				<td align="center" valign="top" style="border-top-width: 1px; border-bottom-width: 1px" bordercolor="#FFFFFF">
-				<table border="0" width="100%" id="table3" style="border-collapse: collapse">
-					<tr>
-						<td width="23%" valign="top" height="23">&nbsp;</td>
-						<td valign="top" height="23" width="49%">&nbsp;</td>
-						<td width="28%" valign="top" height="23">&nbsp;</td>
-					</tr>
-					<tr>
-						<td width="23%" valign="top" height="23">&nbsp;</td>
-						<td valign="top" height="23" width="49%" align="center">
-						<img border="0" src="logo.jpg"></td>
-						<td width="28%" valign="top" height="23">&nbsp;</td>
-					</tr>
-					<tr>
-						<td width="23%" valign="top" height="24">&nbsp;</td>
-						<td valign="top" height="24" width="49%">&nbsp;</td>
-						<td width="28%" valign="top" height="24">&nbsp;</td>
-					</tr>
-					<tr>
-						<td width="100%" valign="top" height="24" colspan="3">
-						<div align="center">
-						<form method="post" action="searchResult.php">
-							<table border="0" width="90%" id="table20" cellpadding="0" style="border-collapse: collapse">
-								<tr>
-									<td width="596" align="right" height="50">
-	<input  class="txtsea" type="text" name="item" id="item" tabindex="4" value="Enter your search Product or Company" onfocus="if(this.value=='Enter your search Product or Company'){this.value='';}" onblur="if(this.value==''){this.value='Enter your search Product or Company';}" size="1"/> </td>
-									<td width="161" align="left">
-	&nbsp;<input  class="txtloc" type="text" name="loc" id="loc" tabindex="4" value="Location" onfocus="if(this.value=='Location'){this.value='';}" onblur="if(this.value==''){this.value='Location';}" size="18"/></td>
-									<td align="left">
-	<input  class="subsea" type="submit" value="Go" name="submit0"/></td>
-								</tr>
-								
-								<tr><td align="right">
-								<table border="0" width="50%" id="table25" cellspacing="1" style="border-collapse: collapse">
-									<tr>
-										<td>&nbsp;</td>
-										<td width="321">Categories<input type="radio" name="sea" value="0"  checked><font size="2">&nbsp; </font>
-										Company<input type="radio" name="sea" value="1"  ><font size="2">
-										</font></td>
-									</tr>
-								</table>
-								</td><td></td>
-									<td></td></tr>
-							</table>
-							</form>
-						</div>
-						</td>
-					</tr>
-					<tr>
-						<td width="23%" valign="top" height="22" colspan="3">&nbsp;</td>
-					</tr>
-					<tr>
-						<td width="23%" valign="top" height="22" colspan="3">&nbsp;</td>
-					</tr>
-					<tr>
-						<td valign="top" height="340" colspan="3">
-						<div align="center">
-							<table class="shadow1" border="1" width="101%" id="table8" style="border-collapse: collapse" height="335" bordercolor="#F4F4F4">
-								<tr>
-									<td height="40" bgcolor="#E3E3E3">
-									<font color="#000000">&nbsp;<b>Category in 
-									details </b></font></td>
-								</tr>
-								<tr>
-									<td valign="top">
-									<div align="right">
-									
-		<?php						
+                <button type="submit" class="subsea" name="submit0">Go</button>
+            </div>
 
-//$st="Select * from category order by cname";
-$st="Select distinct(cdname) cdname,catdid from catedetail order by cdname";
+            <div class="search-options">
+                <span>Categories</span>
+                <label><input type="radio" name="sea" value="0" checked> Company</label>
+                <label><input type="radio" name="sea" value="1"> Product</label>
+            </div>
+        </form>
+    </section>
 
+    <!-- Category in details (full list, 4 columns) -->
+    <section class="panel category-details" aria-labelledby="category-details-h">
+        <h2 id="category-details-h" class="panel-title">Category in details</h2>
+        <div class="panel-scroll panel-scroll--tall">
+            <div class="category-columns category-columns--4">
+                <?php foreach ($catDetailChunks as $chunk): ?>
+                    <ul class="link-list">
+                        <?php foreach ($chunk as $row): ?>
+                            <li>
+                                <a href="searchresult1.php?id=<?= (int) $row['catdid'] ?>">
+                                    <?= h($row['cdname']) ?>
+                                </a>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </section>
 
-//echo $st;
-$i=1;
-$result=mysqli_query($con,$st);
-if (!$result) {
-    die(mysqli_error($con));
-}
+    <!-- Verified Business & Services -->
+    <section class="panel verified-panel" aria-labelledby="verified-h">
+        <h2 id="verified-h" class="panel-title panel-title--accent">Verified Business &amp; Services</h2>
 
-$num_rows = mysqli_num_rows($result);
+        <?php if (empty($advertChunks)): ?>
+            <p class="empty-note">No verified listings to show right now.</p>
+        <?php else: ?>
+            <?php foreach ($advertChunks as $chunk): ?>
+                <ul class="advert-row">
+                    <?php foreach ($chunk as $row): ?>
+                        <li>
+                            <a href="<?= h(externalUrl($row['website'])) ?>" target="_blank" rel="noopener noreferrer">
+                                <img loading="lazy" src="user/logo/<?= h($row['img']) ?>"
+                                     width="180" height="145" alt="<?= h($row['aname']) ?>">
+                                <span><?= h($row['aname']) ?></span>
+                            </a>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php endforeach; ?>
+        <?php endif; ?>
+    </section>
 
-$rno=round($num_rows/4);
+    <!-- Popular Finders / Brands / Businesses / Searches / Branches -->
+    <section class="panel popular-grid" aria-labelledby="popular-grid-h">
+        <h2 id="popular-grid-h" class="visually-hidden">Popular links</h2>
+        <div class="popular-grid-inner">
+            <div class="popular-col">
+                <h3>Popular Finders</h3>
+                <ul class="link-list link-list--plain">
+                    <li>Bus Route Finder</li>
+                    <li>Pin Code Finder</li>
+                    <li>School Finder</li>
+                    <li>Hotel Finder</li>
+                    <li>Bank SWIFT Code Finder</li>
+                    <li>Bank IFSC Code Finder</li>
+                    <li>Railway Station Finder</li>
+                </ul>
+            </div>
+            <div class="popular-col">
+                <h3>Popular Brands</h3>
+                <ul class="link-list link-list--plain">
+                    <li>Symphony Air Cooler Dealers</li>
+                    <li>Onida AC</li>
+                    <li>Hitachi AC</li>
+                    <li>Spice Mobile Phone Dealers</li>
+                    <li>Hero Cycles</li>
+                    <li>Jet Airways Flight Booking</li>
+                    <li><a href="#">More brands &gt;</a></li>
+                </ul>
+            </div>
+            <div class="popular-col">
+                <h3>Popular Businesses</h3>
+                <ul class="link-list link-list--plain">
+                    <li>DTDC Courier &amp; Cargo Ltd.</li>
+                    <li>Tirupati Travels</li>
+                    <li>Hotel City Home</li>
+                    <li>First Flight Courier</li>
+                    <li>Adarsh Kutir Udyog</li>
+                    <li>Wipro Ltd.</li>
+                </ul>
+            </div>
+            <div class="popular-col">
+                <h3>Popular Searches</h3>
+                <ul class="link-list link-list--plain">
+                    <li>Valentine Day Party Snacks</li>
+                    <li>Valentine Day Dinner</li>
+                    <li>Valentine Flowers Wholesale</li>
+                    <li>Valentine Candy Bouquet</li>
+                    <li>Child Adoption</li>
+                    <li>Birthday Party Restaurants</li>
+                </ul>
+            </div>
+            <div class="popular-col">
+                <h3>Popular Branches/Stores</h3>
+                <ul class="link-list link-list--plain">
+                    <li>Union Bank of India ATM</li>
+                    <li>Thomas Cook</li>
+                    <li>Fabindia</li>
+                    <li>ICICI Prudential Life Insurance</li>
+                    <li>Overnite Express Ltd.</li>
+                    <li>Tata Motor Finance</li>
+                </ul>
+            </div>
+        </div>
+    </section>
 
-//echo $num_rows;
-//echo $rno;
-?>	
+</main>
 
+<footer class="site-footer">
+<?php require __DIR__ . '/footer.php'; ?>
+</footer>
 
-		 <div align="center" style="overflow: auto; height: 700px; width: 100%;" >
+<a href="<?= h(($path ?? '') . 'payment/subscribe.php') ?>" class="demoTest"></a>
 
-	<table  border="0" width="98%" id="table18" cellpadding="0" style="border-collapse: collapse">
-											
-										<tr>
-										<td colspan="5" height="7" ></td>
-										
-										</tr>	
-											<tr>
-												<td width="24%" height="280" valign="top">  
-												
-												 <table class="table1" border="0" width="100%" id="table19" style="border-collapse: collapse" cellpadding="0">
-													
-	<?php
-	$i=1;
-	while ( ($i<$rno)&&($row=mysqli_fetch_assoc($result)))
-	{	
-?>
-												
-	<tr>
-														<td height="25">
-														<?php
-															
-															echo "<a class='a5' href='searchresult1.php?id=".$row['catdid']."'>".$row["cdname"]."</a>"; 
-
-															//echo "<a href='#' class='a5' >".$row["cdname"]."</a>";
-	
-																$i=$i+1;
-															?>
-	
-	</td>
-													</tr>
-													
-													<?php
-													}
-													?>
-													
-													</table>
-												
-												 </td>
-												<td width="1" height="25" valign="top" bgcolor="#F4F4F4"></td>
-												<td width="25%" height="25" valign="top">
-												
-												<table class="table1" border="0" width="100%" id="table19" style="border-collapse: collapse" cellpadding="0" height="25">
-													
-	<?php
-	$i=1;
-	while ( ($i<$rno)&&($row=mysqli_fetch_assoc($result)))
-	{	
-?>
-												
-	<tr>
-														<td height="25">
-														<?php
-														
-														echo "<a class='a5' href='searchresult1.php?id=".$row['catdid']."'>".$row["cdname"]."</a>";
-														//	echo "<a href='#' class='a5' >".$row["cdname"]."</a>";
-	
-																$i=$i+1;
-															?>
-	
-	</td>
-													</tr>
-													
-													<?php
-													}
-													?>
-													
-													</table>
-												
-												</td>
-												<td width="1" height="25" valign="top" bgcolor="#F4F4F4"></td>
-												<td height="25" valign="top" width="25%">
-												
-												<table class="table1" border="0" width="100%" id="table19" style="border-collapse: collapse" cellpadding="0">
-													
-	<?php
-	$i=1;
-	while ( ($i<$rno)&&($row=mysqli_fetch_assoc($result)))
-	{	
-?>
-												
-	<tr>
-														<td height="25">
-														<?php
-
-															echo "<a class='a5' href='searchresult1.php?id=".$row['catdid']."'>".$row["cdname"]."</a>";
-															//echo "<a href='#' class='a5' >".$row["cdname"]."</a>";
-	
-																$i=$i+1;
-															?>
-	
-	</td>
-													</tr>
-													
-													<?php
-													}
-													?>
-													
-													</table>
-												
-												</td>
-												
-												<td width="1" height="25" valign="top" bgcolor="#F4F4F4"></td>
-												
-												<td height="25" valign="top" width="25%">
-												
-												<table class="table1" border="0" width="100%" id="table19" style="border-collapse: collapse" cellpadding="0">
-													
-	<?php
-	$i=1;
-	while ( ($i<$rno)&&($row=mysqli_fetch_assoc($result)))
-	{	
-?>
-												
-	<tr>
-														<td height="25">
-														<?php
-
-															echo "<a class='a5' href='searchresult1.php?id=".$row['catdid']."'>".$row["cdname"]."</a>";
-															//echo "<a href='#' class='a5' >".$row["cdname"]."</a>";
-	
-																$i=$i+1;
-															?>
-	
-	</td>
-													</tr>
-													
-													<?php
-													}
-													?>
-													
-													</table>
-												
-												</td>
-												
-											</tr>
-											
-											
-											
-										</table>
-									</div>
-									</div>
-									</td>
-								</tr>
-								</table>
-						</div>
-						</td>
-					</tr>
-					
-					
-					
-					<tr>
-					
-						<td valign="top" colspan="2" align="right" >&nbsp;</td>
-
-</tr>						
-					<tr>
-						<td width="100%" valign="top" colspan="3">
-						<table class="shadow1" border="0" width="100%" id="table26" style="border-collapse: collapse" height="246">
-							
-							<tr>
-								<td bgcolor="#003366" height="40"><b>
-								<font size="4" color="#FFFFFF">&nbsp;Verified 
-								Business &amp; Services </font></b></td>
-							</tr>
-							<tr>
-								<td valign="top">
-								<table border="0" width="100%" id="table27" height="240" cellspacing="0" cellpadding="0" style="border-collapse: collapse" bordercolor="#E3E3E3">
-									<tr>
-										<td  align="left" height="240">
-							
-
-<?php
- $st="Select * from advert where astatus='H' order by aname";
- $result=mysqli_query($con,$st);
-if (!$result) {
-    die(mysqli_error($con));
-}
- 
- $num_rows = mysqli_num_rows($result);
- 
- $i=1;						
-
-?>
-
-<?php
-if( $num_rows>0) 
-{
-?>
-	<table border="0" width="100%" id="table29" cellpadding="0" style="border-collapse: collapse" bordercolor="#E3E3E3">
-	<tr>
-		<td height="6" ></td>
-	</tr>
-</table><table border="0"  id="table28" style="border-collapse: collapse" bordercolor="#E0E2FE" bgcolor="#FFFFFF" cellpadding="0" height="180">
-								<tr>
-									
-									
-
-  
-	<?php 
-		
-		while (($i<6)&&($row=mysqli_fetch_assoc($result)))
-			{
-			if ($row['img']<>"-")
-			{
-			?>
-
-<td align="center" width="200">
-<a href="http://<?php  echo htmlspecialchars($row['website']) ; ?>" target="_blank" class="a5">
-	<img border="1" src="user/logo/<?php  echo htmlspecialchars($row['img']) ; ?>" width="180" height="145"> <?php  echo htmlspecialchars($row['aname']) ; ?>
-	</a>
-
-    </td>
-    
-    <?php
-    $i=$i+1;
-    
+<?php if (!empty($homeImages)): ?>
+<!--
+    Lightbox popup, rebuilt with the native <dialog> element instead of
+    jQuery Colorbox. The old page loaded a SECOND, different jQuery
+    version (1.10.2 from Google's CDN) on top of the 1.3.2 copy already
+    included at the top of the file purely to power this one popup —
+    two full copies of the same library, both render-blocking. <dialog>
+    needs neither.
+-->
+<dialog id="promoDialog" class="promo-dialog">
+    <form method="dialog" class="promo-dialog__close">
+        <button aria-label="Close">&times;</button>
+    </form>
+    <div class="promo-dialog__grid">
+        <?php foreach (array_slice($homeImages, 0, 4) as $img): ?>
+            <a href="<?= h(externalUrl($img['website'])) ?>" target="_blank" rel="noopener noreferrer">
+                <img loading="lazy" src="user/logo/<?= h($img['img']) ?>" width="250" height="250"
+                     alt="Promoted listing">
+            </a>
+        <?php endforeach; ?>
+    </div>
+</dialog>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const dialog = document.getElementById('promoDialog');
+    if (dialog && typeof dialog.showModal === 'function') {
+        dialog.showModal();
     }
-    }
-    ?>
+});
+</script>
+<?php endif; ?>
 
-
-
-								</tr>
-								
-								
-								
-							</table>
-			
-<table border="0" width="100%" id="table29" cellpadding="0" style="border-collapse: collapse" bordercolor="#E3E3E3">
-	<tr>
-		<td height="6" bgcolor="#E3E3E3"></td>
-	</tr>
-</table>
-<?php 
-			}
-			
-			
-			$i=1; 
-			
-			if( $num_rows>5) 
-{
-
-			?>				
-							</p>
-							<table border="0"  id="table28" style="border-collapse: collapse" bordercolor="#E0E2FE" bgcolor="#FFFFFF" cellpadding="0" height="180">
-								<tr>
-									
-									
-
-  
-	<?php 
-		
-		while (($i<6)&&($row=mysqli_fetch_assoc($result)) )
-			{
-			if ($row['img']<>"-")
-			{
-			?>
-
-<td align="center"  width="200">
-<a href="http://<?php  echo htmlspecialchars($row['website']) ; ?>" target="_blank" class="a5">
-	<img border="1" src="user/logo/<?php  echo htmlspecialchars($row['img']) ; ?>" width="180" height="145"> <?php  echo htmlspecialchars($row['aname']) ; ?>
-	</a>
-
-    </td>
-    
-    <?php
-    $i=$i+1;
-    
-    }
-    }
-    ?>
-
-
-
-								</tr>
-								
-								
-								
-							</table>
-							
-							<table border="0" width="100%" id="table29" cellpadding="0" style="border-collapse: collapse" bordercolor="#E3E3E3">
-	<tr>
-		<td height="6" bgcolor="#E3E3E3"></td>
-	</tr>
-</table>
-							
-							<?php
-							
-}
-
- $i=1;
- 
-if( $num_rows>10) 
-{
- ?>
-							
-							<table border="0"  id="table28" style="border-collapse: collapse" bordercolor="#E0E2FE" bgcolor="#FFFFFF" cellpadding="0" height="180">
-								<tr>
-									
-									
-
-  
-	<?php 
-		
-		while (($i<6)&&($row=mysqli_fetch_assoc($result)) )
-			{
-			if ($row['img']<>"-")
-			{
-			?>
-
-<td align="center"  width="200">
-<a href="http://<?php  echo htmlspecialchars($row['website']) ; ?>" target="_blank" class="a5">
-	<img border="1" src="user/logo/<?php  echo htmlspecialchars($row['img']) ; ?>" width="180" height="145"> <?php  echo htmlspecialchars($row['aname']) ; ?>
-	</a>
-
-    </td>
-    
-    <?php
-    $i=$i+1;
-    
-    }
-    }
-    ?>
-
-
-
-								</tr>
-								
-								
-								
-							</table>
-							
-							<?php
-							}
-							?>
-							
-							</td>
-									</tr>
-								</table>
-								</td>
-							</tr>
-						</table>
-						</td>
-					</tr>
-					
-					<tr>
-						<td width="99%" valign="top" colspan="3">
-						&nbsp;</td>
-					</tr>
-					
-					<tr>
-					<td colspan="3">&nbsp;</td>
-					</tr>
-					
-					<tr>
-					<td colspan="3">
-					<table class="shadow5" border="0" width="100%" id="table16" style="border-collapse: collapse">
-						<tr>
-							<td height="37" align="left" bgcolor="#EFEFEF"><b>
-							<font size="2" color="#071E43">&nbsp;Popular Finders</font></b></td>
-							<td height="37" align="left" bgcolor="#DBDBDB"><b>
-							<font size="2" color="#071E43">&nbsp;Popular Brands</font></b></td>
-							<td height="37" align="left" bgcolor="#D2D2D2"><b>
-							<font size="2" color="#071E43">&nbsp;Popular 
-							Businesses</font></b></td>
-							<td height="37" align="left" bgcolor="#BFBFBF"><b>
-							<font size="2" color="#071E43">&nbsp;Popular 
-							Searches</font></b></td>
-							<td height="37" align="left" bgcolor="#AAAAAA"><b>
-							<font size="2" color="#071E43">&nbsp;Popular 
-							Branches/Stores</font></b></td>
-						</tr>
-						<tr>
-							<td valign="top" height="172">
-							<p style="margin-left: 5px; margin-top: 5px; margin-bottom: 5px">
-							<font size="2" color="#0066FF">Bus Route Finder<br>
-							Pin Code Finder<br>
-							School Finder<br>
-							Hotel Finder<br>
-							Bank SWIFT Code Finder<br>
-							Bank IFSC Code Finder<br>
-							Railway station Finder</font></td>
-							<td valign="top" height="172">
-							<p style="margin-left: 5px; margin-top: 5px; margin-bottom: 5px">
-							<font size="2" color="#0066FF">Symphony Air Cooler 
-							Dealers<br>
-							Onida AC<br>
-							Hitachi AC<br>
-							Spice Mobile Phone Dealers<br>
-							Hero Cycles<br>
-							Jet Airways Flight Booking<br>
-							More brands &gt;<br>
-&nbsp;</font></td>
-							<td valign="top" height="172">
-							<p style="margin-left: 5px; margin-top: 5px; margin-bottom: 5px">
-							<font size="2" color="#0066FF">DTDC Courier &amp; Cargo 
-							Ltd.<br>
-							Tirupati Travels<br>
-							Hotel City Home<br>
-							First Flight Courier<br>
-							Adarsh Kutir Udyog<br>
-							Wipro Ltd.<br>
-&nbsp;</font></td>
-							<td valign="top" height="172">
-							<p style="margin-left: 5px; margin-top: 5px; margin-bottom: 5px">
-							<font size="2" color="#0066FF">Valentine Day Party 
-							Snacks<br>
-							Valentine Day Dinner<br>
-							Valentine Flowers Wholesale<br>
-							Valentine Candy Bouquet<br>
-							Child Adoption<br>
-							Birthday Party Restaurants<br>
-&nbsp;</font></td>
-							<td valign="top" height="172">
-							<p style="margin-left: 5px; margin-top: 5px; margin-bottom: 5px">
-							<font size="2" color="#0066FF">Union Bank of India 
-							ATM<br>
-							Thomas Cook<br>
-							Fabindia<br>
-							ICICI Prudential Life Insurance<br>
-							Overnite Express Ltd.<br>
-							Tata Motor Finance<br>
-&nbsp;</font></td>
-						</tr>
-					</table>
-					</td>
-					</tr>
-					
-					<tr>
-					<td colspan="3">&nbsp;</td>
-					</tr>
-					
-					<tr>
-					<td colspan="3">&nbsp;</td>
-					</tr>
-					
-				</table>
-				</td>
-			</tr>
-			
-		</table>
-		</td>
-	</tr>
-	<tr>
-		<td bgcolor="#F5F5F5" height="20"><?php  require_once "footer.php"; ?></td>
-	</tr>
-</table>
-<a href="<?php echo $path; ?>payment/subscribe.php" class="demoTest"></a>
-
-
-<?php 
-		 $st="Select * from homeimg order by aid desc";
-		 		 $result=mysqli_query($con,$st);
-if (!$result) {
-    die(mysqli_error($con));
-}
-		 		 
-		 		 $i=1;
-		$ns = mysqli_num_rows($result);
-
-
-
-			?>
-<div style='display:none'>
-			<div id='inline_content' style='padding:10px; background:#fff;'>
-			
-			
-
-			<table border="0" width="100%" id="table24" cellspacing="1" style="border-collapse: collapse" bordercolor="#E2E2E2">
-				<tr>
-					<td height="250" align="right" valign="top" width="49%">&nbsp;	
-					
-		
-<?php
-
-	if ($row=mysqli_fetch_assoc($result))
-			{
-			if ($row['img']<>"-")
-			{
-			?>
-
-<a href="http://<?php  echo htmlspecialchars($row['website']) ; ?>" target="_blank" class="a5">
-	<img border="1" src="user/logo/<?php  echo htmlspecialchars($row['img']) ; ?>" width="250" height="250"></a>
-<?php
-
-}
-}
-?>
-</td>
-					<td height="250" align="center" valign="top" width="2%">&nbsp;
-					</td>
-					<td height="250" align="left" valign="top" width="49%">&nbsp;
-					<?php
-
-	if ($row=mysqli_fetch_assoc($result))
-			{
-			if ($row['img']<>"-")
-			{
-			?>
-
-<a href="http://<?php  echo htmlspecialchars($row['website']) ; ?>" target="_blank" class="a5">
-	<img border="1" src="user/logo/<?php  echo htmlspecialchars($row['img']) ; ?>" width="250" height="250"></a>
-<?php
-
-}
-}
-?>
-</td>
-				</tr>
-				<tr>
-					<td height="10" align="center" valign="top" colspan="3" width="49%">
-					</td>
-				</tr>
-		<?php
-				
-				if ($ns>=4)
-			{
-			?>
-			
-				<tr>
-					<td height="250" align="right" valign="top" width="49%">&nbsp;
-					<?php
-
-	if ($row=mysqli_fetch_assoc($result))
-			{
-			if ($row['img']<>"-")
-			{
-			?>
-
-<a href="http://<?php  echo htmlspecialchars($row['website']) ; ?>" target="_blank" class="a5">
-	<img border="1" src="user/logo/<?php  echo htmlspecialchars($row['img']) ; ?>" width="250" height="250"></a>
-<?php
-
-}
-}
-?>
-</td>
-					<td height="250" align="center" valign="top" width="2%">&nbsp;</td>
-					<td height="250" align="left" valign="top" width="49%">&nbsp;<?php
-
-	if ($row=mysqli_fetch_assoc($result))
-			{
-			if ($row['img']<>"-")
-			{
-			?>
-
-<a href="http://<?php  echo htmlspecialchars($row['website']) ; ?>" target="_blank" class="a5">
-	<img border="1" src="user/logo/<?php  echo htmlspecialchars($row['img']) ; ?>" width="250" height="250"></a>
-<?php
-
-}
-}
-?></td>
-				</tr>
-					<?php
-		}
-		?>
-			</table>
-			</div>
-		</div>
-		
-	
-		
 </body>
-
 </html>
