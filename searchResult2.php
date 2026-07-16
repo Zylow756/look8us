@@ -1,458 +1,595 @@
 <?php
-require_once __DIR__ . "/config.php";
-
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+declare(strict_types=1);
+require_once __DIR__ . "/config.php";/*
+|--------------------------------------------------------------------------
+| Secure Session Handling
+|--------------------------------------------------------------------------
+*/
+if (session_status() === PHP_SESSION_NONE) {    session_set_cookie_params([
+        'lifetime' => 0,
+        'path'     => '/',
+        'domain'   => '',
+        'secure'   => isset($_SERVER['HTTPS']),
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);    session_start();
 }
+/*
+|--------------------------------------------------------------------------
+| Helper Functions
+|--------------------------------------------------------------------------
+*/function e(?string $value): string
+{
+    return htmlspecialchars(
+        $value ?? '',
+        ENT_QUOTES | ENT_HTML5,
+        'UTF-8'
+    );
+}
+function valueOrEmpty(?string $value): string
+{
+    return ($value !== null && $value !== "-")
+        ? e($value)
+        : '';
+}
+function buildWebsiteUrl(?string $url): string
+{
+    if (empty($url) || $url === "-") {
+        return '#';
+    }    if (!preg_match('#^https?://#i', $url)) {
+        return 'https://' . $url;
+    }    return $url;
+}/*
+|--------------------------------------------------------------------------
+| Search Processing
+|--------------------------------------------------------------------------
+*/$item = trim($_GET['item'] ?? '');
+$loc  = trim($_GET['loc'] ?? '');$members = [];
+try {   
+	    if (
+        $item === "Enter your search Product or Company" ||
+        $item === ""
+    ) {        if (
+            $loc !== "" &&
+            $loc !== "Location"
+        ) {            $sql = "
+                SELECT *
+                FROM member
+                WHERE city LIKE ?
+                ORDER BY RAND()
+                LIMIT 15
+            ";            $stmt = mysqli_prepare($con, $sql);            $searchLoc = $loc . "%";            mysqli_stmt_bind_param(
+                $stmt,
+                "s",
+                $searchLoc
+            );        } else {            $sql = "
+                SELECT *
+                FROM member
+                ORDER BY RAND()
+                LIMIT 15
+            ";            $stmt = mysqli_prepare($con, $sql);
+        }
+    } else {
+        if (
+            $loc !== "" &&
+            $loc !== "Location"
+        ) {            $sql = "
+                SELECT *
+                FROM member
+                WHERE 
+                (
+                    mname LIKE ?
+                    OR
+                    compname LIKE ?
+                )
+                AND city LIKE ?
+                ORDER BY rating, RAND()
+                LIMIT 15
+            ";            $stmt = mysqli_prepare($con, $sql);
+            $searchItem1 = $item . "%";
+            $searchItem2 = "%" . $item . "%";
+            $searchLoc    = $loc . "%";
+            mysqli_stmt_bind_param(
+                $stmt,
+                "sss",
+                $searchItem1,
+                $searchItem2,
+                $searchLoc
+            );
+        } else {
+            $sql = "
+                SELECT *
+                FROM member
+                WHERE
+                (
+                    mname LIKE ?
+                    OR
+                    compname LIKE ?
+                )
+                ORDER BY rating, RAND()
+                LIMIT 15
+            ";
+            $stmt = mysqli_prepare($con, $sql);
+            $searchItem1 = $item . "%";
+            $searchItem2 = "%" . $item . "%";
+            mysqli_stmt_bind_param(
+                $stmt,
+                "ss",
+                $searchItem1,
+                $searchItem2
+            );        }    }
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    while ($row = mysqli_fetch_assoc($result)) {        $members[] = $row;    }
+    mysqli_stmt_close($stmt);
+} catch (Throwable $error) {    error_log(
+        "Search Error : " . $error->getMessage()
+    );    $members = [];}
 ?>
-
-<html>
-
-<head>
-<meta http-equiv="Content-Language" content="en-us">
-<meta charset="UTF-8">
-<title>Online Directory Service</title>
- <link rel="stylesheet" type="text/css" href="akc.css" />
-
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+<title>
+Online Directory Service - Search Result
+</title>
+<meta name="description"
+      content="Search company and business listings in our online directory service">
+<link rel="stylesheet"
+      href="akc.css">
+<style>
+body {    margin:0;    padding:0;    background:#f4f4f4;    font-family:
+    Arial,
+    Helvetica,
+    sans-serif;}
+.page-container {    width:100%;    max-width:1200px;    margin:auto;}
+.page-title {    background:#d2d2d2;    padding:20px;    margin-bottom:20px;}
+.page-title h1 {    margin:0;    color:#333;    font-size:clamp(
+        24px,
+        4vw,
+        38px
+    );}
+.search-wrapper {    background:#fff;    padding:20px;    border-radius:8px;    box-shadow:
+    0 2px 8px rgba(
+        0,
+        0,
+        0,
+        .1
+    );}.search-header {
+    background:#0066ff;    color:white;    padding:12px;    font-size:16px;    font-weight:bold;    border-radius:5px 5px 0 0;}.member-card {
+    background:white;    border-bottom:
+    5px solid #e3e3e3;    padding:20px 10px;}
+.member-card img {
+    max-width:100%;    height:auto;}@media(max-width:768px){
+.page-container{    padding:10px;}
+.search-wrapper{    padding:10px;}
+.member-card{    padding:15px 5px;}
+}
+.company-top {    display:flex;    flex-wrap:wrap;    gap:20px;    align-items:flex-start;}.company-logo {    width:120px;    text-align:center;}
+.company-logo img {    width:90px;    height:85px;    object-fit:contain;    border-radius:5px;}.company-info {    flex:1;    min-width:250px;}
+.company-info h2 {
+    color:#003399;    font-size:clamp(
+        20px,
+        3vw,
+        28px
+    );    margin:0 0 10px;}
+.company-info p {
+    margin:5px 0;    line-height:1.6;}
+.tagline {
+    color:#cc3300;    font-weight:bold;}
+.member-details {
+    display:flex;    flex-wrap:wrap;    gap:20px;    margin-top:20px;}.company-gallery {
+    flex:0 0 210px;    text-align:center;
+}.company-gallery img {
+    width:190px;    height:180px;    object-fit:cover;    border:1px solid #ddd;    border-radius:8px;}.company-contact {
+    flex:1;    min-width:280px;}.contact-table {
+    width:100%;    border-collapse:collapse;}
+.contact-table td {
+    padding:8px;    vertical-align:top;    color:#121212;}
+.contact-extra {    width:100%;    margin-top:15px;}.contact-table td:first-child {
+    width:120px;}.contact-table a {
+    color:#003399;    text-decoration:none;}.contact-table a:hover {
+    text-decoration:underline;}.social-section {
+    margin-top:20px;    padding:10px 0;
+}.social-icons {
+    display:flex;    gap:10px;    margin-top:10px;
+}.social-icons img {
+    width:28px;    height:28px;    object-fit:contain;    transition:
+    transform .2s ease;
+}.social-icons img:hover {
+    transform:scale(1.15);
+}.about-company {
+    margin-top:20px;    padding:15px;    background:#fafafa;    border-left:4px solid #0066ff;    line-height:1.7;
+}.about-company p {
+    margin:8px 0;    text-align:justify;
+}
+.rating-section {
+    display:flex;    justify-content:space-between;    align-items:center;    padding:15px;    margin-top:15px;    border-top:1px solid #eee;
+}.rating-box {
+    color:#121212;    font-size:14px;
+}.verified-logo {
+    width:80px;    height:auto;
+}.premium-detail {
+    margin-top:15px;
+}.detail-button {
+    width:166px;    height:26px;    cursor:pointer;
+}.more-search {
+    text-align:center;    margin:25px 0;
+}.more-button {
+    background:#0066ff;    color:white;    border:none;    padding:10px 35px;    border-radius:5px;    font-size:16px;    cursor:pointer;
+}.more-button:hover {
+    background:#004dcc;
+}
+</style>
 </head>
-
-<body topmargin="0" leftmargin="0" rightmargin="0" bottommargin="2" background="images/bg.png">
-
-
-<div align="center">
-<?php require_once "header.php"; ?>
-<table border="0" width="100%" height="100" cellpadding="0" style="border-collapse: collapse">
-	<tr>
-		<td bgcolor="#D2D2D2">
-		<div align="center">
-			<table border="0" width="1010" id="table33" style="border-collapse: collapse" height="40" cellpadding="0">
-				<tr>
-					<td><font size="6">&nbsp;</font><font color="#333333" size="5">Search 
-					Result</font></td>
-				</tr>
-			</table>
-		</div>
-		</td>
-	</tr>
-</table>
-	<table border="0" width="1020" id="table1" style="border-collapse: collapse" bordercolor="#F2F2F2" bgcolor="#FFFFFF" cellpadding="0">
-		<tr>
-			<td valign="top">
-			<div align="center">
-			<table border="0" width="100%" id="table2" cellpadding="0" style="border-collapse: collapse" bordercolor="#FFFFCC">
-				
-				<tr>
-					<td valign="top">
-					<table border="0" width="100%" id="table8" cellpadding="0" style="border-collapse: collapse">
-						<tr>
-							<td  valign="top" bgcolor="#FFFFFF">
-							<table border="0" width="100%" id="table10" cellpadding="0" style="border-collapse: collapse" height="384" >
-								<tr>
-									
-									<td align="right" valign="top">
-									<p align="left" class="p1" style="text-align: justify">
-									<p align="left" class="p1">&nbsp;</p>
-									<table border="0" width="96%" id="table34" style="border-collapse: collapse">
-											<tr>
-												<td><form action="searchResult2.php" method="get">
-					
-					<br>	<?php						
-
-if (isset($_GET["item"]))
-{
-
+<body>
+<div class="page-container">
+<?php
+ require_once "header.php"; ?><section class="page-title"><h1>
+Search Result
+</h1></section><section class="search-wrapper">
+<form action="searchResult2.php" method="get"><?php if (!empty($item) || !empty($loc)) : ?>
+<div class="search-header">Search Company Result For :
+<?= e($item) ?></div>
+<div class="results-container">
+<?php
+ foreach ($members as $row): ?>
+<article class="member-card">
+<div class="member-top">
+<?php
+$isPremium =
+    ($row['mplan'] ?? '') === "Gold" ||
+    ($row['mplan'] ?? '') === "Platinum";
 ?>
+<?php
+ if ($isPremium && !empty($row['logo']) && $row['logo'] !== "-") : ?>
+<div class="company-logo"><a href="<?= e(buildWebsiteUrl($row['web'] ?? '')) ?>"
+   target="_blank"
+   rel="noopener noreferrer">
+<img
+src="user/logo/<?= e($row['logo']) ?>"
+alt="<?= e($row['compname'] ?? 'Company Logo') ?>"
+loading="lazy"
+>
+</a></div>
+<?php
+ endif; ?><div class="company-info">
+<h2><?= e($row['compname'] ?? '') ?></h2><p><strong>
+Contact :
+</strong><?= e(
+    ucwords($row['mname'] ?? '')
+) ?>
+</p><?php
+if (
+    !empty($row['tagline']) &&
+    $row['tagline'] !== "-"
+) : ?>
+<p class="tagline"><u><?= e($row['tagline']) ?></u></p>
+<?php 
+endif; ?>
+</div></div>
+<div class="member-details">
+<?php
+ if ($isPremium): ?>
+<?php
+$image = "user/logo/no-images.jpg";
+$imageQuery = "
+SELECT img
+FROM memberimage
+WHERE mid = ?
+LIMIT 1
+";
+$imageStmt = mysqli_prepare(
+    $con,
+    $imageQuery
+);
 
-	<table   width="96%" id="table5" border="0"    >
-								<tr>
-									<td bgcolor="#0066FF" width="99%" style="text-align: left" colspan="2" height="35">
-									<b><font size="2" color="#000000">&nbsp;</font><font size="2" color="#FFFFFF"> </font>
-									<font size="2" color="#FFFF00">Search 
-									Company Search for :</font><font size="2" color="#FFFFFF">
-									
-		<?php
-									
-	$item = $_GET["item"] ?? '';
-	
-	?>
-	
-
-									
-									</font></b></td>
-								</tr>
-			<?php						
-
-if ($_GET["item"]=="Enter your search Product or Company")
-{
-if ($_GET["loc"]<>"Location")
-	$st="Select * from member where city like '".$_GET["loc"] ."%' order by RAND()  limit 15 ";
-else
-    $st="Select * from member order by RAND()  limit 15";
-
-}
-else
-{
-if ($_GET["loc"]<>"Location")
-	$st="Select * from member where ( mname like '".$_GET["item"]."%'|| compname like '%".$_GET["item"]."%' ) and city like '".$_GET["loc"] ."%' order by rating,RAND() limit 15";
-else
-    $st="Select * from member where  mname like '".$_GET["item"]."%'|| compname like '%".$_GET["item"]."%'  order by rating, RAND() limit 15";
-    
-}
-
-	//$st="Select * from category,catedetail where category.cateid=catedetail.cateid and cdname like '%".$_POST["item"]."%' and  order by cdname";
-
-//echo $st;
-$i=1;
-$result=mysqli_query($con,$st);
-if (!$result) {
-    die(mysqli_error($con));
-}
-
-	while ($row=mysqli_fetch_assoc($result))
-	{	
-	
-	?>
-				
-								<tr>
-									<td height="29" width="4%" style="text-align: center; border-left-width:1px; border-right-width:1px; border-top-width:1px; " bordercolor="#E3E3E3">&nbsp;<?php //echo $i; ?></td>
-									<td height="29" width="95%" style="border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; " bordercolor="#E3E3E3">
-									
-	
-				
-									
-									<table class="table1" border="0" width="100%" id="table35" style="border-collapse: collapse" bordercolor="#E3E3E3" cellpadding="0">
-										<tr>
-											<td >
-											<table border="0" width="100%" id="table36" style="border-collapse: collapse" height="100">
-												<tr>
-												<?php 
-										if (($row['mplan']=="Gold") ||($row['mplan']=="Platinum"))
-										{
-										?>
-	
-			<?php
-			if ($row['logo']<>"-")
-			{
-			?>			<td width="107" align="center" height="107">
-	
-<a href="http://<?php  echo htmlspecialchars($row['web']) ; ?>" target="_blank" class="a5">
-	<img  src="user/logo/<?php  echo htmlspecialchars($row['logo']) ; ?>" width="89" height="84"></a>
-		
-	</td>
-	<?php
-			}
-			?>
-	<?php
-	}
-	?>
-													<td width="460"><b>
-													<font size="4" color="#003399"><?php echo htmlspecialchars($row["compname"]) ; ?>
-											</font></b>
-											<p style="line-height: 20px; margin-left:2px; margin-top:4px">
-											<font size="4" color="#003399">Contact : <?php echo htmlspecialchars(ucwords($row["mname"])) ; ?>
-											</font>
-											<br>
-											<b> 
-											<font size="2" color="#CC3300">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-											<u><?php if(($row["tagline"]<>"-") &&($row["tagline"]<>"") ) echo htmlspecialchars($row['tagline']);  ?>											
-											</u>											
-											</font></b>
-											
-											</td>
-													<td valign="top">
-													&nbsp;</td>
-												</tr>
-											</table>
-											</td>
-										</tr>
-										
-										<tr>
-											<td height="25">
-											<table border="0" width="100%" id="table39" style="border-collapse: collapse" height="200">
-												<tr>
-													
-											<?php 
-										if (($row['mplan']=="Gold") ||($row['mplan']=="Platinum"))
-										{
-											$st="Select * from memberimage where mid=".$row["mid"];
-											$result2=mysqli_query($con,$st);
-if (!$result2) {
-    die(mysqli_error($con));
-}
-										?>
-		
-													<td width="204" align="center" rowspan="2" valign="top">
-<table border="1" class="tbBG" width="190" id="table42" height="180" style="border-collapse: collapse" bordercolor="#E2E2E2" background="<?php if ($row2=mysqli_fetch_assoc($result2)){ echo 'user/logo/'.$row2['img'] ; } else {echo 'user/logo/no-images.jpg' ; } ?>" >
-														<tr>
-															<td align="center">
-															
-
-	<a href="clientSlide.php?id=<?php  echo htmlspecialchars($row['mid']) ; ?>" ><img class="imgshad" border="0" src="images/transp.png" width="190" height="176"></a>
-	
-
-
-														
-															
-															</td>
-														</tr>
-													</table>
-													</td>
-													
-													<?php
-													}
-													?>
-													
-													<td width="363" valign="top" rowspan="2">
-													<table border="0" width="100%" id="table40" cellspacing="1" style="border-collapse: collapse">
-														<tr>
-											<td height="25" width="56%" colspan="2"><table border="0" width="100%" id="table44" style="border-collapse: collapse">
-												<tr>
-													<td width="78"   valign="top" >
-													&nbsp;<font size="2" color="#121212"><b>Address&nbsp; :&nbsp;
-													</b></font>
-													</td>
-													<td valign="top">
-													<p style="line-height: 25px"><font size="2" color="#121212">
-													<?php if(($row["shopno"]<>"-")&&($row["shopno"]<>"")) echo ucwords($row["shopno"])."," ; ?>
-													 <?php if(($row["address"]<>"-")&&($row["address"]<>"")) echo ucwords($row["address"]) ; ?></font>
-													</td>
-												</tr>
-												<tr>
-													<td width="78"  height="6" valign="top" >
-													<p style="line-height: 25px">
-													<font size="2" color="#121212">
-													<b>&nbsp;Area&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-													: </b></font></td>
-													<td valign="top"><p style="line-height: 25px">
-													<font size="2" color="#121212"><?php if(($row["area"]<>"-") &&($row["area"]<>"") ) echo ucwords($row["area"]).","  ; ?> 
-											
-											
-</font></td>
-												</tr>
-												<tr>
-													<td width="78"  height="6" valign="top" >
-													<p style="line-height: 25px">&nbsp;<font size="2" color="#121212"><b>City/State:</b></font></td>
-													<td valign="top"><p style="line-height: 25px"><font size="2" color="#121212"><?php echo ucwords($row["city"]) ; ?> <?php  if ($row["pin"]<>"-") echo "-".$row["pin"];  ?>,
-											<?php echo ucwords($row["state1"]) ; ?></font>
-													</td>
-												</tr>
-											</table>
-
-
-
-
-
+$mid = (int)$row['mid'];
+mysqli_stmt_bind_param(
+    $imageStmt,
+    "i",
+    $mid
+);
+mysqli_stmt_execute(
+    $imageStmt
+);
+$imageResult =
+mysqli_stmt_get_result(
+    $imageStmt
+);if ($imageRow = mysqli_fetch_assoc($imageResult)) {
+    if (
+        !empty($imageRow['img']) &&
+        $imageRow['img'] !== "-"
+    ) {        $image =
+        "user/logo/" .
+        $imageRow['img'];    }}
+mysqli_stmt_close($imageStmt);
+?><div class="company-gallery">
+<a href="clientSlide.php?id=<?= e($row['mid']) ?>">
+<img
+src="<?= e($image) ?>"alt="Company Image"loading="lazy">
+</a>
+</div>
+<?php
+ endif; ?><div class="company-contact">
+<table class="contact-table">
+<tr><td>
+<strong>
+Address :
+</strong>
 </td>
-														</tr>
-														<tr>
-											<td height="13" width="21%">
-											<p style="line-height: 25px"><font color="#121212">
-											&nbsp;<b><font size="2"> Phone&nbsp;&nbsp;&nbsp;&nbsp; : </font></b></font>
-
-
-
+<td><?= 
+valueOrEmpty(
+    ucwords($row['shopno'] ?? '')
+)
+?>
+<?= 
+valueOrEmpty(
+    ucwords($row['address'] ?? '')
+)
+?>
 </td>
-											<td height="13" width="77%">
-											<font size="2" color="#121212"><?php echo htmlspecialchars($row["phone"] ); ?>
-										<?php if ($row["phone1"]<>"-") echo " , " .htmlspecialchars($row["phone1"]) ; ?>
-											
-											</font></td>
-														</tr>
-														<tr>
-											<td height="12" width="21%">
-											<p style="line-height: 25px">&nbsp;<font size="2" color="#121212"><b> Mobile&nbsp;&nbsp;&nbsp; :</b></font> </b>
-
-
-
+</tr><tr><td><strong>
+Area :
+</strong></td>
+<td><?= 
+valueOrEmpty(
+    ucwords($row['area'] ?? '')
+)
+?>
 </td>
-											<td height="12" width="77%">
-												<font size="2" color="#121212"> 
-<?php echo htmlspecialchars($row["mobile"] ); ?>
-											<?php if ($row["mobile1"]<>"-") echo " , " .$row["mobile1"] ; ?></font>
-											</td>
-														</tr>
-														<tr>
-											<td height="25" width="56%" colspan="2">  
-											&nbsp; <font color="#121212"><b><font size="2"> 
-											Email&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;: </font></b></font><font size="2" color="#121212"> 
-											&nbsp;<?php echo htmlspecialchars($row["email"] ); ?> 
-											
-
-
-											</font>
-
-
-
-											</td>
-														</tr>
-														<tr>
-											<td height="25" width="56%" colspan="2">  
-											<font color="#121212" size="2"><b>&nbsp; 
-											Website&nbsp; : </b> 
-											&nbsp;
-					<a href="http://<?php  echo htmlspecialchars($row['web']) ; ?>" target="_blank" class="a5">
-<?php echo htmlspecialchars($row["web"]) ; ?> </a>
-
-
-
-											</font> 
-
-
-
-											</td>
-														</tr>
-														<?php 
-										if (($row['mplan']=="Gold") ||($row['mplan']=="Platinum"))
-										{
-										?>
-										<tr>
-											<td height="35" width="100%" colspan="2" >
-											<table border="0" width="100%" id="table41" cellpadding="0" style="border-collapse: collapse" bordercolor="#0033CC" height="31">
-												<tr>
-													<td width="76">
-													<font color="#121212" size="2">
-													<b>
-											&nbsp;
-											Follow&nbsp;&nbsp;&nbsp; :&nbsp; </b></font></td>
-													<td width="256" valign="bottom">
-													&nbsp;
-
-	<?php if ($row['twiter']<>"-") { ?>		<a  target="_blank" href="http://<?php  echo htmlspecialchars($row['twiter'] ); ?>"><img border="0" src="<?php echo $path; ?>images/twitter-icon.png" width="25" height="25"></a>    <?php } ?>
-	<?php if ($row['facebook']<>"-") { ?>		<a  target="_blank" href="http://<?php  echo htmlspecialchars($row['facebook'] ); ?>"> <img border="0" src="<?php echo $path; ?>images/facebook-icon.png" width="25" height="25"></a>  <?php } ?>
-	<?php if ($row['linken']<>"-") { ?>		<a  target="_blank" href="http://<?php  echo htmlspecialchars($row['linken'] ); ?>"> 	<img border="0" src="<?php echo $path; ?>images/linkedin-icon.png" width="25" height="25"></a>   <?php } ?>
-	<?php if ($row['ytube']<>"-") { ?>		<a href="http://<?php  echo htmlspecialchars($row['ytube'] ); ?>"> <img border="0" src="<?php echo $path; ?>images/uTube.png" width="25" height="25"></a>  <?php } ?>
-									
-									</td>
-
-													<td>
-													&nbsp;
-									</td>
-
-												</tr>
-											</table>
-
-											</td>
-										</tr>
-										
-											<?php
-										}
-										?>		</table>
-													</td>
-													<td height="122" valign="top">
-										<?php 
-										if ($row["remark"]<>"-")
-										{
-										?>
-
-										
-											<p style="margin-left: 5px; margin-right: 10px; line-height:25px; text-align:justify; margin-top:5px; margin-bottom:5px">
-											<font size="2" color="#000000"><b>
-											About Us :</b>&nbsp;&nbsp; <?php echo htmlspecialchars($row["remark"]); ?>
-											&nbsp;</font>
-											<?php
-										}
-										?></td>												</tr>
-												<tr>
-													
-													<td height="78" valign="top">
-										<div align="center">
-													<table border="0" width="90%" id="table43" style="border-collapse: collapse" bordercolor="#F4F4F4">
-														<tr>
-															<td>&nbsp;<font color="#121212" size="2"><b><?php if ($row['a']<>"-") { ?>Rating :&nbsp;<?php  echo htmlspecialchars($row['a'] ); } ?> </b></font></td>
-															<td width="136">&nbsp;
-													<?php if ($row['verify'] == "Verified") { ?>  
-															<img border="0" src="images/VerifiedLogo.jpg"> <?php } ?></td>
-														</tr>
-													</table>
-												</div>
-											</td>												</tr>
-											</table>
-
-
-
-
+</tr><tr><td><strong>
+City/State :
+</strong></td>
+<td>
+<?= 
+e(
+ucwords($row['city'] ?? '')
+)
+?>
+<?php
+ if (
+    !empty($row['pin']) &&
+    $row['pin'] !== "-"
+): ?>-
+<?= e($row['pin']) ?>
+<?php
+ endif; ?>
+,<?= 
+e(
+ucwords($row['state1'] ?? '')
+)
+?>
 </td>
-										</tr>
-										
-										
-										
-										
-										
-										
-										<?php 
-										if ($row['mplan']=="Platinum")
-										{
-										?>
-										
-										<tr>
-											<td height="25">
-								
-										<a href="clientweb.php?id=<?php echo htmlspecialchars($row['mid']); ?> ">
-											<img border="0" id="img1" src="images/button22.jpg" onmouseover="this.src='images/button23.jpg'" onmouseout="this.src='images/button22.jpg'"  height="26" width="166" alt="View more detail &gt;&gt;" >
-											
-											</a>			
-											&nbsp;&nbsp;&nbsp;
+</tr>
+</table>
+</div>
+<div class="contact-extra">
+<table class="contact-table">
+<tr><td>
+<strong>
+Phone :
+</strong>
+</td>
+<td><?= e($row['phone'] ?? '') ?>
+<?php
+ if (
+    !empty($row['phone1']) &&
+    $row['phone1'] !== "-"
+): ?>,
+<?= e($row['phone1']) ?><?php endif; ?>
+</td></tr><tr><td>
+<strong>
+Mobile :
+</strong>
+</td>
+<td><?= e($row['mobile'] ?? '') ?>
+<?php
+ if (
+    !empty($row['mobile1']) &&
+    $row['mobile1'] !== "-"
+): ?>,
+<?= e($row['mobile1']) ?><?php endif; ?>
+</td></tr><tr><td>
+<strong>
+Email :
+</strong>
+</td>
+<td>
+<a href="mailto:<?= e($row['email'] ?? '') ?>"><?= e($row['email'] ?? '') ?></a>
+</td>
+</tr><tr><td>
+<strong>
+Website :
+</strong>
+</td>
+<td>
+<?php
+ if (
+    !empty($row['web']) &&
+    $row['web'] !== "-"
+): ?>
+<a href="<?= e(buildWebsiteUrl($row['web'])) ?>"
+   target="_blank"
+   rel="noopener noreferrer">
+<?= e($row['web']) ?>
+</a>
+<?php
+ endif; ?>
+</td>
+</tr></table>
+</div>
+<?php 
+if ($isPremium): ?>
+<div class="social-section">
+<strong>
+Follow :
+</strong>
+<div class="social-icons">
+<?php
+ if (
+    !empty($row['twiter']) &&
+    $row['twiter'] !== "-"
+): ?><a href="<?= e(buildWebsiteUrl($row['twiter'])) ?>"
+   target="_blank"
+   rel="noopener noreferrer">
+<img 
+src="<?= e($path) ?>images/twitter-icon.png"
+alt="Twitter"
+loading="lazy">
+</a>
+<?php
+ endif; ?>
+<?php
+ if (
+    !empty($row['facebook']) &&
+    $row['facebook'] !== "-"
+): ?>
+<a href="<?= e(buildWebsiteUrl($row['facebook'])) ?>"
+   target="_blank"
+   rel="noopener noreferrer">
+<img 
+src="<?= e($path) ?>images/facebook-icon.png"
+alt="Facebook"
+loading="lazy">
+</a>
+<?php 
+endif; ?>
+<?php 
+if (
+    !empty($row['linken']) &&
+    $row['linken'] !== "-"
+): ?>
+<a href="<?= e(buildWebsiteUrl($row['linken'])) ?>"
+   target="_blank"
+   rel="noopener noreferrer">
+<img 
+src="<?= e($path) ?>images/linkedin-icon.png"
+alt="LinkedIn"
+loading="lazy">
+</a>
+<?php
+ endif; ?><?php if (
+    !empty($row['ytube']) &&
+    $row['ytube'] !== "-"
+): ?>
+<a href="<?= e(buildWebsiteUrl($row['ytube'])) ?>"
+   target="_blank"
+   rel="noopener noreferrer">
+<img 
+src="<?= e($path) ?>images/uTube.png"
+alt="YouTube"
+loading="lazy">
+</a>
+<?php
+ endif; ?>
+</div>
+</div>
+<?php
+ endif; ?>
+<?php 
+if (
+    !empty($row['remark']) &&
+    $row['remark'] !== "-"
+): ?>
+<div class="about-company">
+<strong>
+About Us :
+</strong>
+<p><?= e($row['remark']) ?>
+</p>
+</div>
+<?php 
+endif; ?>
+<div class="rating-section">
+<div class="rating-box">
+<?php
+ if (
+    !empty($row['a']) &&
+    $row['a'] !== "-"
+): ?>
+<strong>
+Rating :
+</strong>
+<?= e($row['a']) ?>
+<?php
+ endif; ?>
+</div>
+<div class="verification-box">
+<?php 
+if (
+    ($row['verify'] ?? '') === "Verified"
+): ?>
+<img
+src="images/VerifiedLogo.jpg"alt="Verified Business"loading="lazy"class="verified-logo">
+<?php 
+endif; ?>
+</div>
+</div>
+<?php 
+if (
+    ($row['mplan'] ?? '') === "Platinum"
+): ?>
+<div class="premium-detail">
+<a href="clientweb.php?id=<?= e($row['mid']) ?>">
+<img
+src="images/button22.jpg"alt="View more details"class="detail-button"
+>
+</a>
+</div>
+<?php 
+endif; ?>
+</div>
+<!-- End member-details -->
+</article>
+<!-- End member-card -->
+<?php endforeach; ?>
+</div>
+<!-- End results-container -->
 
-																						</td>
-										</tr>
-										<?php
-										}
-										?>
-										
-										
-									</table>
-									<p>
-									
-									
-	
-				
-									
-									</td>
-								</tr>
-								<tr><td colspan="2" bgcolor="#E3E3E3" height="5"></td></tr>
-								<?php
-								$i=$i+1;
 
-								}
-								
-								
-								?>
-							</table>
-							
-							
-							<p align="center">
-							
-							
-							<?php
-							}
-							
-							?>
-							
-							
-							<input   type="hidden" name="item" id="item" tabindex="4" value="<?php $item = $_GET['item'] ?? ''; echo $item; ?>"  size="1"/>
-							<input   type="hidden" name="loc" id="loc" value="<?php $loc = $_GET['loc'] ?? ''; echo $loc; ?>" />
-							
-							<input  class="subbox11" type="submit" value="More" name="submit" style="float: center"/></p>
-												</form>&nbsp;</td>
-											</tr>
-										</table></td>
-								</tr>
-							</table>
-							</td>
-						</tr>
-						</table>
-					</td>
-				</tr>
-			</table>
-			</div>
-			</td>
-		</tr>
-	</table>
+<div class="more-search">
+
+<input
+type="hidden"
+name="item"
+value="<?= e($item) ?>"
+>
+
+<input
+type="hidden"
+name="loc"
+value="<?= e($loc) ?>"
+>
+
+
+<button
+type="submit"
+class="more-button"
+>
+More
+</button>
+
 </div>
 
-<div align="center">
-	<?php require_once "footer.php"; ?>
+
+<?php endif; ?>
+
+
+</form>
+
+
+</section>
+
+
+<footer class="site-footer">
+
+<?php require_once "footer.php"; ?>
+
+</footer>
+
+
 </div>
+
 
 </body>
 

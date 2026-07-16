@@ -1,103 +1,291 @@
 <?php
-require_once __DIR__ . "/config.php";
+declare(strict_types=1);
+require_once __DIR__ . '/config.php';
 
-if (session_status() === PHP_SESSION_NONE) {
+/*
+|--------------------------------------------------------------------------
+| Secure Session Configuration
+|--------------------------------------------------------------------------
+*/
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path'     => '/',
+        'domain'   => '',
+        'secure'   => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
+
     session_start();
 }
+
+/*
+|--------------------------------------------------------------------------
+| Security Headers
+|--------------------------------------------------------------------------
+*/
+header('X-Frame-Options: SAMEORIGIN');
+header('X-Content-Type-Options: nosniff');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header("Permissions-Policy: geolocation=(), microphone=(), camera=()");
 ?>
-
-<html>
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta http-equiv="Content-Language" content="en-us">
+
 <meta charset="UTF-8">
-<title>Look8US :Business Directory Kota, Rajasthan , India, Online Business Directory Kota,  Yellow Pages  kota Rajasthan , Trusted & Verified Businesses, Exporters, Manufacturers, Suppliers Directory, B2B Business Directory </title>
-<meta name="description" content="Look8us.com from Kota Rajasthan is Your local Business Directory , yellow pages  Business Directory. Business Details, Contacts, Products, Services & Verified Businesses, Exporters, Manufacturers, Suppliers Directory">
-<meta name="keywords" content=" Look8us.com , yellow pages Kota Rajasthan , business directory Kota Rajasthan india,business search engine, indian business directory, online business directory, Indian manufacturers, suppliers, Indian exporters directory, b2b portal, b2b business directory,manufacturer, importers, traders, dealers, buyers, ">
- <link rel="stylesheet" type="text/css" href="akc.css" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>
+Look8US | Return & Refund Policy | Business Directory Kota Rajasthan India
+</title>
+
+<meta
+    name="description"
+    content="Read the Return and Refund Policy of Look8US. Learn about cancellations, refunds, subscriptions, and support information for products and services offered through Look8US."
+>
+
+<meta
+    name="keywords"
+    content="Look8US Return Policy, Refund Policy, Cancellation Policy, Business Directory Kota, Rajasthan, India, Yellow Pages, Manufacturers, Suppliers, Exporters"
+>
+
+<meta name="author" content="Look8US">
+
+<meta name="robots" content="index, follow">
+
+<link rel="canonical" href="https://www.look8us.com/ReturnPolicy.php">
+
+<!-- Existing CSS -->
+<link rel="stylesheet" href="akc.css">
+
+<style>
+
+/************************************************
+    CSS RESET
+************************************************/
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    background:
+        #f5f5f5
+        url("images/bg.png")
+        repeat;
+
+    color:#333;
+
+    line-height:1.7;
+}
+
+/************************************************
+    PAGE WRAPPER
+************************************************/
+
+.wrapper{
+
+    width:min(1020px,96%);
+    margin:auto;
+}
+
+/************************************************
+    PAGE TITLE
+************************************************/
+
+.page-title{
+
+    background:#d2d2d2;
+    padding:28px 15px;
+    margin-bottom:25px;
+}
+
+.page-title h1{
+
+    font-size:clamp(1.6rem,3vw,2.2rem);
+
+    font-weight:600;
+
+    color:#333;
+}
+
+/************************************************
+    CONTENT BOX
+************************************************/
+
+.content-box{
+
+    background:#ffffff;
+
+    border:1px solid #dddddd;
+
+    border-radius:8px;
+
+    padding:35px;
+
+    box-shadow:
+
+        0 3px 12px rgba(0,0,0,.08);
+
+    margin-bottom:30px;
+}
+
+/************************************************
+    SECTION TITLE
+************************************************/
+
+.section-title{
+
+    font-size:clamp(1.3rem,2vw,1.8rem);
+
+    color:#222;
+
+    margin-bottom:20px;
+
+    font-weight:bold;
+}
+
+/************************************************
+    PARAGRAPHS
+************************************************/
+
+.content-box p{
+
+    font-size:16px;
+
+    margin-bottom:18px;
+
+    text-align:justify;
+}
+
+.content-box a{
+
+    color:#0056b3;
+
+    text-decoration:none;
+
+    font-weight:600;
+}
+
+.content-box a:hover{
+
+    text-decoration:underline;
+}
+</style>
+
+<!-- Facebook SDK -->
+<div id="fb-root"></div>
+
+<script async defer crossorigin="anonymous"
+src="https://connect.facebook.net/en_GB/sdk.js#xfbml=1&version=v23.0">
+</script>
 
 </head>
 
-<body topmargin="0" leftmargin="0" rightmargin="0" bottommargin="2" background="images/bg.png">
-<div id="fb-root"></div>
-<script>(function(d, s, id) {
-  var js, fjs = d.getElementsByTagName(s)[0];
-  if (d.getElementById(id)) return;
-  js = d.createElement(s); js.id = id;
-  js.src = "//connect.facebook.net/en_GB/all.js#xfbml=1&appId=1403091889904611";
-  fjs.parentNode.insertBefore(js, fjs);
-}(document, 'script', 'facebook-jssdk'));</script>
+<body>
 
+<div class="wrapper">
 
+<?php require_once __DIR__ . '/header.php'; ?>
 
-<div align="center">
-<?php require_once "header.php"; ?>
-<table border="0" width="100%" height="100" cellpadding="0" style="border-collapse: collapse">
-	<tr>
-		<td bgcolor="#D2D2D2">
-		<div align="center">
-			<table border="0" width="1010" id="table33" style="border-collapse: collapse" height="40" cellpadding="0">
-				<tr>
-					<td><font size="6">&nbsp;</font><font color="#333333" size="5">RETURN AND REFUND POLICY </font></td>
-				</tr>
-			</table>
-		</div>
-		</td>
-	</tr>
-</table>
-	<table border="0" width="1020" id="table1" style="border-collapse: collapse" bordercolor="#F2F2F2" bgcolor="#FFFFFF" cellpadding="0">
-		<tr>
-			<td valign="top">
-			<div align="center">
-			<table border="0" width="100%" id="table2" cellpadding="0" style="border-collapse: collapse" bordercolor="#FFFFCC">
-				
-				<tr>
-					<td valign="top">
-					<table border="0" width="100%" id="table8" cellpadding="0" style="border-collapse: collapse">
-						<tr>
-							<td  valign="top" bgcolor="#FFFFFF">
-							<table border="0" width="100%" id="table10" cellpadding="0" style="border-collapse: collapse" height="171" >
-								<tr>
-									
-									<td align="right" valign="top">
-									<p class="p2">
-Cancellation and Refund Policy</p><br>
-									<p align="left" class="p1">
-									<font size="2">
-									As of now we do not provide any option for cancellation of products and/or services you have purchased or subscribed. Once a product/service has been purchased by you, we cannot provide any refund, either totally or partially. We suggest that first you go through the demos and/or free to use contents/products/services before you subscribe to or purchase from Look8us .com 
-									. For more 
-									detail you can contact 
+<div class="page-title">
 
-</font><font size="2" face="Verdana" color="#697779">8955989444or email at </font>
-									<font size="2" face="Verdana" color="#000000">
-									&nbsp;</font><font face="Verdana" color="#000000"><a href="mailto:look8us@yahoo.com">look8us@yahoo.com</a> 
-									or <a href="mailto:support@look8us.com">
-									support@look8us.com</a> </font>
-									<p align="left" class="p1">
-									<font size="2" face="Verdana" color="#697779">.</font><p align="left" class="p1">
-									&nbsp;<p align="left" class="p1">
-									&nbsp;<p align="left" class="p1">
-									&nbsp;<p align="left" class="p1">
-									&nbsp;<p align="left" class="p1">
-									&nbsp;</td>
-								</tr>
-							</table>
-							</td>
-						</tr>
-						</table>
-					</td>
-				</tr>
-			</table>
-			</div>
-			</td>
-		</tr>
-	</table>
+    <h1>Return &amp; Refund Policy</h1>
+
 </div>
+<div class="content-box">
+	    <section aria-labelledby="refund-policy-heading">
 
-<div align="center">
-	<?php require_once "footer.php"; ?>
+        <h2 id="refund-policy-heading" class="section-title">
+            Cancellation &amp; Refund Policy
+        </h2>
+
+        <p>
+            As of now, Look8US does not provide any option for cancellation of
+            products and/or services that have already been purchased or
+            subscribed to.
+        </p>
+
+        <p>
+            Once a product or service has been purchased, we are unable to
+            provide a refund, either in full or in part. Therefore, we strongly
+            recommend that users carefully review all available information,
+            demonstrations, trial features, and free content before making any
+            purchase or subscription.
+        </p>
+
+        <p>
+            We encourage every customer to evaluate our products and services
+            thoroughly before completing a transaction to ensure that they meet
+            their requirements.
+        </p>
+
+        <p>
+            If you require additional information regarding our Return and
+            Refund Policy, or if you have any questions related to a purchase,
+            subscription, or service, please feel free to contact our support
+            team.
+        </p>
+
+        <p>
+
+            <strong>Phone:</strong>
+
+            <a href="tel:+918955989444">
+                +91 8955989444
+            </a>
+
+        </p>
+
+        <p>
+
+            <strong>Email:</strong>
+
+            <a href="mailto:look8us@yahoo.com">
+                look8us@yahoo.com
+            </a>
+
+            <br><br>
+
+            <strong>Support:</strong>
+
+            <a href="mailto:support@look8us.com">
+                support@look8us.com
+            </a>
+
+        </p>
+
+        <hr style="margin:30px 0; border:0; border-top:1px solid #dddddd;">
+
+        <p style="font-size:15px;color:#666666;">
+
+            This Return and Refund Policy is applicable to all products,
+            subscriptions, advertisements, listings, promotional services,
+            digital services, and other offerings made available through
+            Look8US unless explicitly stated otherwise in writing.
+
+        </p>
+
+    </section>
+
 </div>
+<?php require_once __DIR__ . '/footer.php'; ?>
 
+</div>
 </body>
-
 </html>

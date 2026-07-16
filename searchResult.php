@@ -1,162 +1,439 @@
 <?php
-require_once __DIR__ . "/config.php";
+declare(strict_types=1);
 
+require_once __DIR__ . '/config.php';
+
+/*
+|--------------------------------------------------------------------------
+| Secure Session Handling
+|--------------------------------------------------------------------------
+*/
 if (session_status() === PHP_SESSION_NONE) {
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path' => '/',
+        'domain' => '',
+        'secure' => !empty($_SERVER['HTTPS']),
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
+
     session_start();
 }
 
-if (isset($_POST["sea"]))
-{
- if ($_POST["sea"]=="1")
- 	{echo "x";
- 		 header("location: searchResult2.php?item=".$_POST["item"]."&loc=".$_POST["loc"]);
- 		// header("location: login.php?r=0");
- 	 }
-//echo "a";
-}
-?>
+/*
+|--------------------------------------------------------------------------
+| Security Headers
+|--------------------------------------------------------------------------
+*/
+header('X-Frame-Options: SAMEORIGIN');
+header('X-Content-Type-Options: nosniff');
+header('Referrer-Policy: strict-origin-when-cross-origin');
 
-<html>
+/*
+|--------------------------------------------------------------------------
+| Validate Search Redirect
+|--------------------------------------------------------------------------
+*/
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sea'])) {
+
+    if ($_POST['sea'] === '1') {
+
+        $item = trim($_POST['item'] ?? '');
+        $loc  = trim($_POST['loc'] ?? '');
+
+        header(
+            'Location: searchResult2.php?item=' .
+            urlencode($item) .
+            '&loc=' .
+            urlencode($loc)
+        );
+        exit;
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| Search Variables
+|--------------------------------------------------------------------------
+*/
+$itemSearch = trim($_POST['item'] ?? '');
+$categoryId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+
+$pageTitle = "Search by Category | Online Directory Service";
+?>
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
-<meta http-equiv="Content-Language" content="en-us">
+
 <meta charset="UTF-8">
-<title>Online Directory Service</title>
- <link rel="stylesheet" type="text/css" href="akc.css" />
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0">
+
+<title><?= htmlspecialchars($pageTitle) ?></title>
+
+<meta
+    name="description"
+    content="Browse categories and refine your search using our online directory service.">
+
+<meta
+    name="keywords"
+    content="directory, category search, business directory">
+
+<meta
+    name="robots"
+    content="index,follow">
+
+<link
+    rel="stylesheet"
+    href="akc.css">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    background:#f5f5f5 url("images/bg.png") repeat;
+
+    color:#333;
+
+    line-height:1.6;
+}
+
+a{
+
+    color:#0066cc;
+    text-decoration:none;
+    transition:.25s;
+}
+
+a:hover{
+
+    color:#d60000;
+}
+
+.container{
+
+    width:min(1200px,96%);
+    margin:auto;
+}
+
+.page-header{
+
+    background:#d2d2d2;
+    padding:30px 20px;
+    margin-bottom:20px;
+}
+
+.page-header h1{
+
+    font-size:clamp(28px,4vw,42px);
+    color:#333;
+    font-weight:600;
+}
+
+.content{
+
+    background:#fff;
+    padding:25px;
+    border-radius:10px;
+
+    box-shadow:
+        0 4px 20px rgba(0,0,0,.08);
+}
+
+.notice{
+
+    background:#d2d2d2;
+    padding:12px 18px;
+
+    font-weight:bold;
+
+    margin-bottom:20px;
+
+    border-radius:6px;
+}
+
+.result-table{
+
+    width:100%;
+    border-collapse:collapse;
+}
+
+.result-table tr{
+
+    transition:.25s;
+}
+
+.result-table tr:hover{
+
+    background:#fafafa;
+}
+
+.result-table td{
+
+    padding:14px 10px;
+
+    border-bottom:
+        1px dotted #ccc;
+
+    vertical-align:middle;
+}
+
+.serial{
+
+    width:70px;
+
+    text-align:center;
+
+    font-weight:bold;
+
+    color:#555;
+}
+
+.category{
+
+    font-size:15px;
+}
+
+.category a{
+
+    font-weight:600;
+}
+
+.count{
+
+    color:#666;
+    font-weight:bold;
+}
+</style>
 
 </head>
 
-<body topmargin="0" leftmargin="0" rightmargin="0" bottommargin="2" background="images/bg.png">
+<body>
 
+<?php require_once __DIR__ . '/header.php'; ?>
 
-<div align="center">
-<?php require_once "header.php"; ?>
-<table border="0" width="100%" height="100" cellpadding="0" style="border-collapse: collapse">
-	<tr>
-		<td bgcolor="#D2D2D2">
-		<div align="center">
-			<table border="0" width="1010" id="table33" style="border-collapse: collapse" height="40" cellpadding="0">
-				<tr>
-					<td><font size="6">&nbsp;</font><font color="#333333" size="5">Search 
-					by Category </font></td>
-				</tr>
-			</table>
-		</div>
-		</td>
-	</tr>
-</table>
-	<table border="0" width="1020" id="table1" style="border-collapse: collapse" bordercolor="#F2F2F2" bgcolor="#FFFFFF" cellpadding="0">
-		<tr>
-			<td valign="top">
-			<div align="center">
-			<table border="0" width="100%" id="table2" cellpadding="0" style="border-collapse: collapse" bordercolor="#FFFFCC">
-				
-				<tr>
-					<td valign="top">
-					<table border="0" width="100%" id="table8" cellpadding="0" style="border-collapse: collapse">
-						<tr>
-							<td  valign="top" bgcolor="#FFFFFF">
-							<table border="0" width="100%" id="table10" cellpadding="0" style="border-collapse: collapse" height="384" >
-								<tr>
-									
-									<td align="right" valign="top">
-									<p align="left" class="p1" style="text-align: justify">
-									<p align="left" class="p1">&nbsp;</p>
-									<table border="0" width="96%" id="table34" style="border-collapse: collapse">
-											<tr>
-												<td><form action="Search.php" method="get">
-					
-					<br>	
+<section class="page-header">
 
-	<table class="table2"  width="96%" id="table5" border="0"    >
-								<tr>
-									<td bgcolor="#D2D2D2" width="99%" style="text-align: left" colspan="2" height="35">
-									
-									&nbsp;<b><font size="2">Refine your search by 
-									clicking any of the links below
-									</font></b>
-									</td>
-								</tr>
-			<?php						
+    <div class="container">
 
-if (isset($_POST["item"]))
-	$st="Select * from category,catedetail where category.cateid=catedetail.cateid and cdname like '%".$_POST["item"]."%' order by cdname";
+        <h1>
+            Search by Category
+        </h1>
 
-elseif (isset($_GET["id"]))
-	$st="Select * from category,catedetail where category.cateid=catedetail.cateid and catedetail.cateid=".$_GET["id"]." order by cdname";
-else
-	$st="Select * from category,catedetail where category.cateid=catedetail.cateid order by cdname";
-	
+    </div>
 
-	//$st="Select * from category,catedetail where category.cateid=catedetail.cateid and cdname like '%".$_POST["item"]."%' and  order by cdname";
+</section>
 
-//echo $st;
-$i=1;
-$result=mysqli_query($con,$st);
+<div class="container">
+
+<div class="content">
+
+<form
+    action="Search.php"
+    method="get"
+    autocomplete="off">
+
+<div class="notice">
+
+Refine your search by clicking any of the links below.
+
+</div>
+
+<table class="result-table">
+<?php
+if ($itemSearch !== '') {
+
+    $sql = "
+        SELECT
+            category.*,
+            catedetail.*,
+            (
+                SELECT COUNT(*)
+                FROM memberdetail md
+                WHERE md.catdid = catedetail.catdid
+            ) AS member_count
+        FROM category
+        INNER JOIN catedetail
+            ON category.cateid = catedetail.cateid
+        WHERE catedetail.cdname LIKE ?
+        ORDER BY catedetail.cdname ASC
+    ";
+
+    $stmt = mysqli_prepare($con, $sql);
+
+    if (!$stmt) {
+        throw new RuntimeException(mysqli_error($con));
+    }
+
+    $searchTerm = '%' . $itemSearch . '%';
+
+    mysqli_stmt_bind_param(
+        $stmt,
+        "s",
+        $searchTerm
+    );
+
+} elseif ($categoryId !== null && $categoryId !== false) {
+
+    $sql = "
+        SELECT
+            category.*,
+            catedetail.*,
+            (
+                SELECT COUNT(*)
+                FROM memberdetail md
+                WHERE md.catdid = catedetail.catdid
+            ) AS member_count
+        FROM category
+        INNER JOIN catedetail
+            ON category.cateid = catedetail.cateid
+        WHERE catedetail.cateid = ?
+        ORDER BY catedetail.cdname ASC
+    ";
+
+    $stmt = mysqli_prepare($con, $sql);
+
+    if (!$stmt) {
+        throw new RuntimeException(mysqli_error($con));
+    }
+
+    mysqli_stmt_bind_param(
+        $stmt,
+        "i",
+        $categoryId
+    );
+
+} else {
+
+    $sql = "
+        SELECT
+            category.*,
+            catedetail.*,
+            (
+                SELECT COUNT(*)
+                FROM memberdetail md
+                WHERE md.catdid = catedetail.catdid
+            ) AS member_count
+        FROM category
+        INNER JOIN catedetail
+            ON category.cateid = catedetail.cateid
+        ORDER BY catedetail.cdname ASC
+    ";
+
+    $stmt = mysqli_prepare($con, $sql);
+
+    if (!$stmt) {
+        throw new RuntimeException(mysqli_error($con));
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| Execute Query
+|--------------------------------------------------------------------------
+*/
+
+mysqli_stmt_execute($stmt);
+
+$result = mysqli_stmt_get_result($stmt);
+
 if (!$result) {
-    die(mysqli_error($con));
+    throw new RuntimeException(mysqli_error($con));
 }
 
-	while ($row=mysqli_fetch_assoc($result))
-	{	
-	
-	?>
-				
-								<tr>
-									<td height="29" width="4%" style="text-align: center; border-left-width:1px; border-right-width:1px; border-top-width:1px; border-bottom-style:dotted; border-bottom-width:1px" bordercolor="#E3E3E3">&nbsp;<?php echo $i; ?></td>
-									<td height="29" width="95%" style="border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-style: dotted; border-bottom-width: 1px" bordercolor="#E3E3E3">&nbsp;
-									<?php echo "<a class='a1' href='searchresult1.php?id=".$row['catdid']."'>".$row["cdname"]."</a>"; ?>
-									
-	<?php
-									
-$st="Select * from memberdetail where catdid =".$row['catdid'];
-$result1=mysqli_query($con,$st);
-if (!$result1) {
-    die(mysqli_error($con));
-}
+$serial = 1;
 
-$ns = mysqli_num_rows($result1);
-echo "(".$ns.")";
-	?>
-				
-									
-									</td>
-								</tr>
-								
-								<?php
-								$i=$i+1;
+/*
+|--------------------------------------------------------------------------
+| Display Results
+|--------------------------------------------------------------------------
+*/
 
-								}
-								
-								
-								
-								?>
-							</table>
-							
-							
-							
-							
-							</form></td>
-											</tr>
-										</table></td>
-								</tr>
-							</table>
-							</td>
-						</tr>
-						</table>
-					</td>
-				</tr>
-			</table>
-			</div>
-			</td>
-		</tr>
-	</table>
+if (mysqli_num_rows($result) > 0):
+
+while ($row = mysqli_fetch_assoc($result)):
+
+?>
+<tr>
+
+    <td class="serial">
+
+        <?= $serial ?>
+
+    </td>
+
+    <td class="category">
+
+        <a
+            class="a1"
+            href="searchresult1.php?id=<?= (int)$row['catdid'] ?>">
+
+            <?= htmlspecialchars($row['cdname'], ENT_QUOTES, 'UTF-8') ?>
+
+        </a>
+
+        <span class="count">
+
+            (<?= (int)$row['member_count'] ?>)
+
+        </span>
+
+    </td>
+
+</tr>
+
+<?php
+
+$serial++;
+
+endwhile;
+
+else:
+
+?>
+
+<tr>
+
+    <td colspan="2" style="padding:30px;text-align:center;">
+
+        <strong>No categories found.</strong>
+
+    </td>
+
+</tr>
+
+<?php
+
+endif;
+
+mysqli_free_result($result);
+mysqli_stmt_close($stmt);
+
+?>
+
+</table>
+
+</form>
+
 </div>
 
-<div align="center">
-	<?php require_once "footer.php"; ?>
 </div>
+<?php require_once __DIR__ . '/footer.php'; ?>
 
 </body>
-
 </html>

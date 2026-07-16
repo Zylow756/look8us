@@ -1,177 +1,344 @@
 <?php
-require_once __DIR__ . "/config.php";
+declare(strict_types=1);
 
-if (session_status() === PHP_SESSION_NONE) {
+require_once __DIR__ . '/config.php';
+
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path'     => '/',
+        'domain'   => '',
+        'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
     session_start();
 }
-?>
+header('X-Frame-Options: SAMEORIGIN');
+header('X-Content-Type-Options: nosniff');
+header('Referrer-Policy: strict-origin-when-cross-origin');
 
-<html>
+?>
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
-<meta http-equiv="Content-Language" content="en-us">
 <meta charset="UTF-8">
-<title>Look8US :Business Directory Kota, Rajasthan , India, Online Business Directory Kota,  Yellow Pages  kota Rajasthan , Trusted & Verified Businesses, Exporters, Manufacturers, Suppliers Directory, B2B Business Directory </title>
-<meta name="description" content="Look8us.com from Kota Rajasthan is Your local Business Directory , yellow pages  Business Directory. Business Details, Contacts, Products, Services & Verified Businesses, Exporters, Manufacturers, Suppliers Directory">
-<meta name="keywords" content=" Look8us.com ,Search job kota, best job offer , apply job, goverment jobs, job portal , online job portal, online business directory, IT job in kota, marketing job in kota ">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1">
+<title>
+Look8US :
+Business Directory Kota, Rajasthan, India |
+Jobs |
+Online Business Directory |
+Yellow Pages |
+Trusted & Verified Businesses
+</title>
 
- <link rel="stylesheet" type="text/css" href="akc.css" />
+<meta name="description"
+content="Look8US.com from Kota Rajasthan is your local Business Directory. Find employers, job opportunities, job seekers, manufacturers, exporters, suppliers and verified businesses.">
 
+<meta name="keywords"
+content="look8us, jobs kota, jobs in kota, government jobs, IT jobs, marketing jobs, job portal, online business directory, employers, resume upload">
 
-<script language="JavaScript">
-<!--
-function FP_swapImg() {//v1.0
- var doc=document,args=arguments,elm,n; doc.$imgSwaps=new Array(); for(n=2; n<args.length;
- n+=2) { elm=FP_getObjectByID(args[n]); if(elm) { doc.$imgSwaps[doc.$imgSwaps.length]=elm;
- elm.$src=elm.src; elm.src=args[n+1]; } }
+<meta name="robots"
+content="index,follow">
+
+<meta name="author"
+content="Look8US">
+
+<link rel="canonical"
+href="https://look8us.com/jobs.php">
+
+<link rel="stylesheet"
+href="akc.css">
+
+<style>
+*,
+*::before,
+*::after{
+    box-sizing:border-box;
 }
 
-function FP_preloadImgs() {//v1.0
- var d=document,a=arguments; if(!d.FP_imgs) d.FP_imgs=new Array();
- for(var i=0; i<a.length; i++) { d.FP_imgs[i]=new Image; d.FP_imgs[i].src=a[i]; }
+html{
+    scroll-behavior:smooth;
 }
 
-function FP_getObjectByID(id,o) {//v1.0
- var c,el,els,f,m,n; if(!o)o=document; if(o.getElementById) el=o.getElementById(id);
- else if(o.layers) c=o.layers; else if(o.all) el=o.all[id]; if(el) return el;
- if(o.id==id || o.name==id) return o; if(o.childNodes) c=o.childNodes; if(c)
- for(n=0; n<c.length; n++) { el=FP_getObjectByID(id,c[n]); if(el) return el; }
- f=o.forms; if(f) for(n=0; n<f.length; n++) { els=f[n].elements;
- for(m=0; m<els.length; m++){ el=FP_getObjectByID(id,els[n]); if(el) return el; } }
- return null;
+body.jobs-page{
+    margin:0;
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+    background:
+        #f5f5f5
+        url("images/bg.png");
+    color:#333;
+    line-height:1.6;
 }
-// -->
-</script>
 
+.container{
+    width:min(1200px,96%);
+    margin:auto;
+}
 
+.page-banner{
+    background:#d2d2d2;
+    padding:25px 20px;
+}
+
+.page-title{
+    margin:0;
+    font-size:clamp(2rem,4vw,2.8rem);
+    color:#333;
+    font-weight:600;
+}
+
+.main-wrapper{
+    background:#fff;
+    margin:30px auto;
+    border-radius:8px;
+    box-shadow:
+        0 5px 18px rgba(0,0,0,.12);
+    padding:35px;
+}
+
+.text-center{
+    text-align:center;
+}
+
+.mt-2{
+    margin-top:20px;
+}
+
+.mt-3{
+    margin-top:30px;
+}
+
+.mt-4{
+    margin-top:40px;
+}
+
+img{
+    max-width:100%;
+    height:auto;
+    border:none;
+}
+
+.jobs-content{
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+
+.content-panel{
+    width:100%;
+}
+
+.section-gap{
+    margin-top:40px;
+}
+
+.section-gap-small{
+    margin-top:20px;
+}
+
+.jobs-grid{
+    width:100%;
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:30px;
+    margin:30px auto;
+}
+
+.job-card{
+    background:#ffffff;
+    border-radius:10px;
+    overflow:hidden;
+    box-shadow:0 10px 25px rgba(0,0,0,.12);
+    transition:.30s ease;
+}
+
+.job-card:hover{
+    transform:translateY(-6px);
+    box-shadow:0 15px 35px rgba(0,0,0,.18);
+}
+
+.job-card-header{
+    padding:18px;
+    color:#fff;
+    text-align:center;
+    font-size:1.75rem;
+    font-weight:700;
+}
+
+.job-card-header.red{
+    background:#d32f2f;
+}
+
+.job-card-header.blue{
+    background:#1e40af;
+}
+
+.job-card-body{
+    padding:35px 25px;
+    text-align:center;
+    min-height:220px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+}
+
+.job-card-body img{
+    max-width:220px;
+    width:100%;
+    height:auto;
+    transition:.25s;
+}
+
+.job-card-body img:hover{
+    transform:scale(1.03);
+}
+
+.job-card-body p{
+    margin-top:18px;
+    color:#003366;
+    font-size:.95rem;
+    line-height:1.7;
+}
+
+.card-bg-blue{
+    background:#d8e6fc;
+}
+
+.card-bg-yellow{
+    background:#ffe9bb;
+}
+
+.card-bg-pink{
+    background:#ffe6ff;
+}
+
+.card-bg-cream{
+    background:#ffffcc;
+}
+
+.job-advertisement{
+    width:100%;
+    text-align:center;
+    margin-top:40px;
+}
+
+.job-banner{
+    width:100%;
+    max-width:800px;
+    height:auto;
+    border-radius:10px;
+    display:block;
+    margin:0 auto;
+    box-shadow:0 8px 25px rgba(0,0,0,.15);
+}
+</style>
 </head>
+<body class="jobs-page">
+<div class="text-center">
+<?php require_once __DIR__ . '/header.php'; ?>
+<section class="page-banner">
+    <div class="container">
+        <h1 class="page-title">
+            Jobs
+        </h1>
+    </div>
+</section>
+<main class="container">
+    <section class="main-wrapper">
+        <div class="text-center">
+            <br>
+        </div>
 
-<body topmargin="0" leftmargin="0" rightmargin="0" bottommargin="2" background="images/bg.png" onload="FP_preloadImgs(/*url*/'images/button4B.jpg',/*url*/'images/button4A.jpg',/*url*/'images/button3F.jpg',/*url*/'images/button3E.jpg',/*url*/'images/button33.jpg',/*url*/'images/button32.jpg',/*url*/'images/button4E.jpg',/*url*/'images/button4D.jpg')">
+        <div class="jobs-content">
+<section class="jobs-grid">
+    <article class="job-card">
+        <div class="job-card-header red">
+            View Listed
+        </div>
 
+        <div class="job-card-body card-bg-blue">
+            <a href="jobsOfferView.php">
+                <img
+                    src="images/button49.jpg"
+loading="lazy"
+decoding="async"
+                    alt="View Job Offers">
+            </a>
+            <p>
+                View all listed Job Offers uploaded by Employers.
+            </p>
+        </div>
 
+        <div class="job-card-body card-bg-pink">
+            <a href="jobsSeekerView.php">
+                <img
+                    src="images/button31.jpg"
+loading="lazy"
+decoding="async"
+                    alt="View Job Seekers CV">
+            </a>
+            <p>
+                Companies can browse and search candidate CVs
+                according to their hiring requirements.
+            </p>
+        </div>
+    </article>
+    <article class="job-card">
+        <div class="job-card-header blue">
+            Post / Upload
+        </div>
 
+        <div class="job-card-body card-bg-yellow">
+            <a href="jobSeeker.php">
+                <img
+                    src="images/button3D.jpg"
+loading="lazy"
+decoding="async"
+                    alt="Post Your Resume">
+            </a>
+            <p>
+                Upload your Resume / CV so employers can
+                discover your profile.
+            </p>
+        </div>
 
-
-<div align="center">
-<?php require_once "header.php"; ?>
-<table border="0" width="100%" height="100" cellpadding="0" style="border-collapse: collapse">
-	<tr>
-		<td bgcolor="#D2D2D2">
-		<div align="center">
-			<table border="0" width="1010" id="table33" style="border-collapse: collapse" height="40" cellpadding="0">
-				<tr>
-					<td><font size="6">&nbsp;</font><font size="5" color="#333333">Jobs</font></td>
-				</tr>
-			</table>
-		</div>
-		</td>
-	</tr>
-</table>
-	<table border="0" width="1020" id="table1" style="border-collapse: collapse" bordercolor="#F2F2F2" bgcolor="#FFFFFF" cellpadding="0">
-		<tr>
-			<td valign="top">
-			<div align="center">
-			<table border="0" width="100%" id="table2" cellpadding="0" style="border-collapse: collapse" bordercolor="#FFFFCC">
-				
-				<tr>
-					<td valign="top">
-					<table border="0" width="100%" id="table8" cellpadding="0" style="border-collapse: collapse">
-						<tr>
-							<td  valign="top" bgcolor="#FFFFFF">
-							<table border="0" width="100%" id="table10" cellpadding="0" style="border-collapse: collapse" height="326" >
-								<tr>
-									
-									<td align="center" valign="top"> <br>
-									<p align="center">&nbsp;</p>
-									<div align="center">
-										
-									
-									
-									
-									
-									
-								
-										
-										<table border="0" width="98%" id="table34" cellspacing="1" style="border-collapse: collapse">
-										<tr>
-											<td align="center" valign="top">
-									<table class="shadow3" border="0" width="650" id="table35" height="392" style="border-collapse: collapse">
-										<tr>
-											<td width="298" height="60" align="center"  style="background:rgba(255,0,0,0.9);" >
-											<font size="6" color="#F5F5F5">
-											View Listed&nbsp; </font></td>
-											<td height="60" align="center" bgcolor="#3333FF" style="opacity:.80;">
-											<font size="6" color="#FFFFFF">
-											Post/Upload </font></td>
-										</tr>
-										<tr>
-											<td  height="140" width="298" bgcolor="#D8E6FC">
-											<p align="center">
-											<a href="jobsOfferView.php">
-											<img border="0" id="img3" src="images/button49.jpg" height="44" width="220" alt="View Job Offers " fp-style="fp-btn: Border Bottom 3; fp-font: Sylfaen; fp-font-style: Bold; fp-font-size: 20; fp-font-color-hover: #000080; fp-orig: 0" fp-title="View Job Offers " onmouseover="FP_swapImg(1,0,/*id*/'img3',/*url*/'images/button4A.jpg')" onmouseout="FP_swapImg(0,0,/*id*/'img3',/*url*/'images/button49.jpg')" onmousedown="FP_swapImg(1,0,/*id*/'img3',/*url*/'images/button4B.jpg')" onmouseup="FP_swapImg(0,0,/*id*/'img3',/*url*/'images/button4A.jpg')"></a><p align="center">
-											<font size="2" color="#000080">View 
-											all listed Job offers upload by 
-											Employer </font></td>
-											<td height="140" bgcolor="#FFE9BB">
-											<p align="center">
-											<a href="jobSeeker.php">
-											<img border="0" id="img2" src="images/button3D.jpg" height="42" width="210" alt="Post Your CV" fp-style="fp-btn: Border Bottom 4; fp-font: Sylfaen; fp-font-style: Bold; fp-font-size: 20; fp-font-color-hover: #000080; fp-orig: 0" fp-title="Post Your CV" onmouseover="FP_swapImg(1,0,/*id*/'img2',/*url*/'images/button3E.jpg')" onmouseout="FP_swapImg(0,0,/*id*/'img2',/*url*/'images/button3D.jpg')" onmousedown="FP_swapImg(1,0,/*id*/'img2',/*url*/'images/button3F.jpg')" onmouseup="FP_swapImg(0,0,/*id*/'img2',/*url*/'images/button3E.jpg')"></a><p align="center">
-											<font size="2" color="#000080">
-											Post/Upload your Resume/CV Information 
-											</font></td>
-										</tr>
-										<tr>
-											<td width="298" bgcolor="#FFE6FF" height="192">
-											<p align="center">
-											<a href="jobsSeekerView.php">
-											<img border="0" id="img1" src="images/button31.jpg" height="42" width="210" alt="View Job Seekers CV" fp-style="fp-btn: Border Bottom 1; fp-font: Sylfaen; fp-font-size: 16; fp-font-color-hover: #800000; fp-orig: 0" fp-title="View Job Seekers CV" onmouseover="FP_swapImg(1,0,/*id*/'img1',/*url*/'images/button32.jpg')" onmouseout="FP_swapImg(0,0,/*id*/'img1',/*url*/'images/button31.jpg')" onmousedown="FP_swapImg(1,0,/*id*/'img1',/*url*/'images/button33.jpg')" onmouseup="FP_swapImg(0,0,/*id*/'img1',/*url*/'images/button32.jpg')"></a><br>
-											<br>
-											<font size="2" color="#000080">For 
-											Company View 
-											all CV as per your requirements</font></td>
-											<td bgcolor="#FFFFCC" height="192">
-											<p align="center">
-											<a href="jobPost.php">
-											<img border="0" id="img4" src="images/button4C.jpg" height="44" width="220" alt="&nbsp;Post Jobs Ads" fp-style="fp-btn: Border Bottom 2; fp-font: Sylfaen; fp-font-style: Bold; fp-font-size: 20; fp-font-color-hover: #000080; fp-orig: 0" fp-title="&nbsp;Post Jobs Ads" onmouseover="FP_swapImg(1,0,/*id*/'img4',/*url*/'images/button4D.jpg')" onmouseout="FP_swapImg(0,0,/*id*/'img4',/*url*/'images/button4C.jpg')" onmousedown="FP_swapImg(1,0,/*id*/'img4',/*url*/'images/button4E.jpg')" onmouseup="FP_swapImg(0,0,/*id*/'img4',/*url*/'images/button4D.jpg')"></a><p align="center">
-											<font size="2" color="#000080">Post/upload 
-											Your Requirement/Jobs Ads </font></td>
-										</tr>
-									</table>
-											<p>&nbsp;<p>
-									<img border="0" src="images/job%20Ads.JPG" width="800" height="400"><br>
-&nbsp;</td>
-											<td width="44" valign="top">
-						<table border="0" width="96%" id="table36" height="341" bgcolor="#FFFFFF" style="border-collapse: collapse" bordercolor="#E3E3E3">
-							<tr>
-								<td align="center">&nbsp;</td>
-							</tr>
-						</table>
-											<p>&nbsp;</td>
-										</tr>
-									</table>
-									
-							
-											
-									</div>
-									</td>
-								</tr>
-							</table>
-							</td>
-						</tr>
-						</table>
-					</td>
-				</tr>
-			</table>
-			</div>
-			</td>
-		</tr>
-	</table>
+        <div class="job-card-body card-bg-cream">
+            <a href="jobPost.php">
+                <img
+                    src="images/button4C.jpg"
+loading="lazy"
+decoding="async"
+                    alt="Post Job Advertisement">
+            </a>
+            <p>
+                Post your company job openings and recruit
+                qualified candidates.
+            </p>
+        </div>
+    </article>
+</section>
+        <section class="job-advertisement section-gap">
+            <img
+                src="images/job%20Ads.JPG"
+                alt="Jobs Advertisement"
+loading="lazy"
+decoding="async"
+                class="job-banner">
+        </section>
+    </div>
+    </section>
+</main>
 </div>
-
-<div align="center">
-	<?php require_once "footer.php"; ?>
-</div>
-
+<?php require_once __DIR__ . '/footer.php'; ?>
 </body>
-
 </html>

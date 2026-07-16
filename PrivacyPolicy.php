@@ -1,595 +1,1121 @@
 <?php
-require_once __DIR__ . "/config.php";
+declare(strict_types=1);
 
-if (session_status() === PHP_SESSION_NONE) {
+require_once __DIR__ . '/config.php';
+
+/*
+|--------------------------------------------------------------------------
+| Secure Session Initialization
+|--------------------------------------------------------------------------
+*/
+if (session_status() !== PHP_SESSION_ACTIVE) {
+
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path'     => '/',
+        'domain'   => '',
+        'secure'   => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
+
     session_start();
 }
-?>
 
-<html>
+/*
+|--------------------------------------------------------------------------
+| Security Headers
+|--------------------------------------------------------------------------
+*/
+header('X-Frame-Options: SAMEORIGIN');
+header('X-Content-Type-Options: nosniff');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header('X-XSS-Protection: 1; mode=block');
+
+/*
+|--------------------------------------------------------------------------
+| Page Variables
+|--------------------------------------------------------------------------
+*/
+$pageTitle = 'Look8US | Privacy Policy';
+$pageDescription = 'Read the official Privacy Policy of Look8US. Learn how we collect, use, protect and manage your personal information.';
+$pageKeywords = 'Look8US Privacy Policy, Business Directory, Privacy, Data Protection, Kota Rajasthan';
+?>
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
-<meta http-equiv="Content-Language" content="en-us">
+
 <meta charset="UTF-8">
-<title>Look8US :Business Directory Kota, Rajasthan , India, Online Business Directory Kota,  Yellow Pages  kota Rajasthan , Trusted & Verified Businesses, Exporters, Manufacturers, Suppliers Directory, B2B Business Directory </title>
-<meta name="description" content="Look8us.com from Kota Rajasthan is Your local Business Directory , yellow pages  Business Directory. Business Details, Contacts, Products, Services & Verified Businesses, Exporters, Manufacturers, Suppliers Directory">
-<meta name="keywords" content=" Look8us.com , yellow pages Kota Rajasthan , business directory Kota Rajasthan india,business search engine, indian business directory, online business directory, Indian manufacturers, suppliers, Indian exporters directory, b2b portal, b2b business directory,manufacturer, importers, traders, dealers, buyers, ">
- <link rel="stylesheet" type="text/css" href="akc.css" />
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title><?= htmlspecialchars($pageTitle) ?></title>
+
+<meta name="description"
+      content="<?= htmlspecialchars($pageDescription) ?>">
+
+<meta name="keywords"
+      content="<?= htmlspecialchars($pageKeywords) ?>">
+
+<meta name="robots"
+      content="index,follow">
+
+<meta name="author"
+      content="Look8US">
+
+<link rel="canonical"
+      href="https://look8us.com/PrivacyPolicy.php">
+
+<link rel="stylesheet"
+      href="akc.css">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+
+    font-family:Arial,Helvetica,sans-serif;
+    background:#f4f6f9;
+    color:#333;
+    line-height:1.8;
+}
+
+a{
+
+    color:#0d6efd;
+    text-decoration:none;
+}
+
+a:hover{
+
+    text-decoration:underline;
+}
+
+.wrapper{
+
+    width:min(1200px,95%);
+    margin:auto;
+}
+
+.page-banner{
+
+    background:#d9d9d9;
+    padding:30px 15px;
+    margin-bottom:30px;
+}
+
+.page-banner h1{
+
+    font-size:clamp(28px,4vw,42px);
+    color:#333;
+    font-weight:700;
+}
+
+.content-card{
+
+    background:#fff;
+    border-radius:10px;
+    box-shadow:0 3px 12px rgba(0,0,0,.08);
+
+    padding:40px;
+
+    margin-bottom:40px;
+}
+
+.content-card h2{
+
+    color:#222;
+
+    margin-top:35px;
+
+    margin-bottom:15px;
+
+    font-size:clamp(22px,3vw,30px);
+}
+
+.content-card h3{
+
+    margin-top:30px;
+
+    margin-bottom:15px;
+
+    color:#444;
+
+    font-size:22px;
+}
+
+.content-card p{
+
+    margin-bottom:18px;
+
+    text-align:justify;
+
+    font-size:16px;
+}
+
+.content-card ul{
+
+    margin-left:25px;
+
+    margin-bottom:20px;
+}
+
+.content-card li{
+
+    margin-bottom:10px;
+}
+
+.contact-box{
+
+    background:#f8f9fa;
+
+    border-left:5px solid #0d6efd;
+
+    padding:20px;
+
+    margin-top:25px;
+
+    border-radius:8px;
+}
+</style>
 
 </head>
 
-<body topmargin="0" leftmargin="0" rightmargin="0" bottommargin="2" background="images/bg.png">
+<body>
+
+<!-- Facebook SDK (kept for existing functionality) -->
 <div id="fb-root"></div>
-<script>(function(d, s, id) {
-  var js, fjs = d.getElementsByTagName(s)[0];
-  if (d.getElementById(id)) return;
-  js = d.createElement(s); js.id = id;
-  js.src = "//connect.facebook.net/en_GB/all.js#xfbml=1&appId=1403091889904611";
-  fjs.parentNode.insertBefore(js, fjs);
-}(document, 'script', 'facebook-jssdk'));</script>
 
+<script>
+(function(d,s,id){
 
+    let js,
+        fjs=d.getElementsByTagName(s)[0];
 
-<div align="center">
-<?php require_once "header.php"; ?>
-<table border="0" width="100%" height="100" cellpadding="0" style="border-collapse: collapse">
-	<tr>
-		<td bgcolor="#D2D2D2">
-		<div align="center">
-			<table border="0" width="1010" id="table33" style="border-collapse: collapse" height="40" cellpadding="0">
-				<tr>
-					<td><font size="6">&nbsp;</font><font color="#333333" size="5">Look8us - PRIVACY POLICY </font></td>
-				</tr>
-			</table>
-		</div>
-		</td>
-	</tr>
-</table>
-	<table border="0" width="1020" id="table1" style="border-collapse: collapse" bordercolor="#F2F2F2" bgcolor="#FFFFFF" cellpadding="0">
-		<tr>
-			<td valign="top">
-			<div align="center">
-			<table border="0" width="100%" id="table2" cellpadding="0" style="border-collapse: collapse" bordercolor="#FFFFCC">
-				
-				<tr>
-					<td valign="top">
-					<table border="0" width="100%" id="table8" cellpadding="0" style="border-collapse: collapse">
-						<tr>
-							<td  valign="top" bgcolor="#FFFFFF">
-							<table border="0" width="100%" id="table10" cellpadding="0" style="border-collapse: collapse" height="171" >
-								<tr>
-									
-									<td align="right" valign="top">
-									<p class="p2">
-Introduction</p><br>
-									<p align="left" class="p1" style="text-align: justify">
-									We, at Look8us are committed to respecting 
-									your online privacy and recognize your need 
-									for appropriate protection and management of 
-									any personally identifiable information 
-									(&quot;Personal Information&quot;) you share with us.<br>
-									&quot;Personal Information&quot; means any information 
-									that may be used to identify an individual, 
-									including, but not limited to, a first and 
-									last name, a home or other physical address 
-									and an email address or other contact 
-									information, whether at work or at home. In 
-									general, you can visit Look8us .com Web 
-									pages without telling us who you are or 
-									revealing any Personal Information about 
-									yourself.<br>
-									By using our Web site, you agree to comply 
-									with our policies. Our Privacy Policy is 
-									designed to assist you in understanding how 
-									we collect and use the personal information 
-									you provide to us and to assist you in 
-									making informed decisions when using our 
-									site and our products and services.<br>
-									<p align="left" class="p1" style="text-align: justify">
-									<b>What Information Do we Collect?<br>
-									</b><p align="left" class="p1" style="text-align: justify">
-									When you visit our Web site you may provide 
-									us with two types of information: personal 
-									information you knowingly choose to disclose 
-									that is collected on an individual basis and 
-									Web site usage information collected on an 
-									aggregate basis as you and others browse our 
-									Web site.<br>
-									Personal Information You Choose to Provide<p align="left" class="p1" style="text-align: justify">
-									<br>
-									<b>Registration Information.</b><p align="left" class="p1" style="text-align: justify">
-									You will provide us information about 
-									yourself that will enable us to verify 
-									whether you are entitled to access and use 
-									certain information, materials and services 
-									available from the Web site Look8us This 
-									information may also be used to enable us to 
-									enhance your Site visit, to assist you with 
-									customer service or technical support 
-									issues, or to follow up with you after your 
-									visit, or to otherwise support your 
-									relationship with Look8us It is completely 
-									optional for you to participate. However, 
-									failure to participate may mean that you 
-									cannot access and use certain information, 
-									materials and services. For example, we 
-									request information from you when you:<br>
-									� Log-on to certain areas of the Website, 
-									where you may be prompted to provide us with 
-									your Log in Name and Password as a condition 
-									to gaining access to certain information, 
-									materials or services.<br>
-									� Register or sign-up to use a service.<br>
-									� Subscribe to a newsletter or desire to be 
-									added to our mailing lists for other 
-									products and services.<br>
-									� Place an order.<br>
-									� Provide feedback in an online survey.<br>
-									In each of the instances above, we typically 
-									ask for your name, e-mail address, phone 
-									number, address, Log in Name and Password, 
-									as well as, other similar personal 
-									information that is needed to register or 
-									subscribe you to services or offers. On 
-									occasion, we may ask for additional 
-									information to enable us to provide you with 
-									access to and use of certain information, 
-									materials and services. In the case of 
-									newsletters or mailing lists, you will be 
-									able to &quot;unsubscribe&quot; to these mailers at 
-									any time. <br>
-									Wherever Look8us collects personal 
-									information we make an effort to include a 
-									link to this Privacy Policy on that page.
-									<br>
-									How we use information<br>
-									Look8us uses your personal information for 
-									specific purposes only. The personal 
-									information you provide to us when using the 
-									Web site, such as your name, postal, e-mail 
-									address or telephone number will be kept 
-									confidential and used to support your 
-									relationship with Look8us to notify you of 
-									special offers, updated information and new 
-									products and services from Look8us , or 
-									offers from third parties that we think may 
-									be of interest to you. Agents or contractors 
-									of Look8us who are given access to your 
-									personal information will be required to 
-									keep the information confidential and not 
-									use it for any other purpose other than to 
-									carry out the services they are performing 
-									for Look8us .
-									<p align="left" class="p1" style="text-align: justify">
-									<br>
-									<b>Sharing information with Third Parties</b><p align="left" class="p1" style="text-align: justify">
-									Look8us may enhance or merge your 
-									information collected at its Web site with 
-									data from third parties for purposes of 
-									marketing products or services to you. With 
-									respect to network advertising companies 
-									(companies that manage and provide 
-									advertising for numerous unrelated 
-									companies), to the extent that Look8us 
-									utilizes such advertising companies to 
-									provide advertisements on the Web site, may 
-									provide them with your Sign in Name and any 
-									demographic information about you that we 
-									collect. Those advertising companies may 
-									combine that data with non-personally 
-									identifiable data collected by the 
-									advertising company from your computer, 
-									solely for the purpose of delivering on our 
-									Web site, advertisements that are targeted 
-									to you.<br>
-									Circumstances may arise where we are 
-									required to disclose your personal 
-									information to third parties for purposes 
-									other than to support your customer 
-									relationship with Look8us , such as in 
-									connection with a corporate divestiture or 
-									dissolution where we sell all or a portion 
-									of our business or assets (including our 
-									associated customer lists containing your 
-									personal information), or if disclosure is 
-									required by law or is pertinent to judicial 
-									or governmental investigations or 
-									proceedings.<br>
-									We will send you information about our 
-									various products and services, or other 
-									products and services we feel may be of 
-									interest to you. Only Look8us (or agents 
-									or contractors working on behalf of 
-									Look8us and under confidentiality 
-									agreements) will send you these direct 
-									mailings.<br>
-									How Do We Secure Information Transmissions?<br>
-									Email is not recognized as a secure medium 
-									of communication. For this reason, we 
-									request that you do not send private 
-									information to us by email. This Site does 
-									not, however, provide facilities for the 
-									secure transmission of information across 
-									the Internet. You should be aware that there 
-									are inherent risks associated with the 
-									transmissions of Personal Information via 
-									the Internet.<br>
-									If you do not wish to use the Internet to 
-									transmit personal information you can mail 
-									or phone us, Details are provided under 'How 
-									to Contact us'.<br>
-									How Can You Access and Correct Your 
-									Information?<br>
-									Email is not recognized as a secure medium 
-									of communication. You may request access to 
-									all your personally identifiable information 
-									that we collect online and maintain in our 
-									database by calling Look8us .<p align="left" class="p1" style="text-align: justify">
-									<br>
-									<b>Certain Disclosures</b><p align="left" class="p1" style="text-align: justify">
-									We may disclose your personal information if 
-									required to do so by law or subpoena or if 
-									we believe that such action is necessary to 
-									(a) conform to the law or comply with legal 
-									process served on us or affiliated parties; 
-									(b) protect and defend our rights and 
-									property, our site, the users of our site, 
-									and/or our affiliated parties; (c) act under 
-									circumstances to protect the safety of users 
-									of our site, us, or third parties.<br>
-									What About Other Web sites Linked to Our Web 
-									site?<br>
-									We are not responsible for the practices 
-									employed by Web sites linked to or from our 
-									Web site nor the information or content 
-									contained therein. Often links to other Web 
-									sites are provided solely as pointers to 
-									information on topics that may be useful to 
-									the users of our Web site.<br>
-									Please remember that when you use a link to 
-									go from our Web site to another Web site, 
-									our Privacy Policy is no longer in effect. 
-									Your browsing and interaction on any other 
-									Website, including Websites which have a 
-									link on our Web site, is subject to that 
-									Website's own rules and policies. Please 
-									read over those rules and policies before 
-									proceeding.<p align="left" class="p1" style="text-align: justify">
-									<br>
-									<b>Cookies and Other Tracking Technologies</b><p align="left" class="p1" style="text-align: justify">
-									Some of our Web pages utilize &quot;cookies&quot; and 
-									other tracking technologies. A &quot;cookie&quot; is a 
-									small text file that may be used, for 
-									example, to collect information about Web 
-									site activity. Some cookies and other 
-									technologies may serve to recall Personal 
-									Information previously indicated by a Web 
-									user. Most browsers allow you to control 
-									cookies, including whether or not to accept 
-									them and how to remove them.<br>
-									You may set most browsers to notify you if 
-									you receive a cookie, or you may choose to 
-									block cookies with your browser, but please 
-									note that if you choose to erase or block 
-									your cookies, you will need to re-enter your 
-									original user ID and password to gain access 
-									to certain parts of the Web site.<br>
-									Tracking technologies may record information 
-									such as Internet domain and host names; 
-									Internet protocol (IP) addresses; browser 
-									software and operating system types; 
-									clickstream patterns; and dates and times 
-									that our site is accessed. Our use of 
-									cookies and other tracking technologies 
-									allows us to improve our Web site and your 
-									Web experience. We may also analyze 
-									information that does not contain Personal 
-									Information for trends and statistics.<br>
-									Use of cookies makes web surfing easier by 
-									performing certain functions such as saving 
-									your Passwords, your personal preferences 
-									regarding your use of the particular Web 
-									site and to make sure you don't see the same 
-									ad repeatedly. Many consider the use of 
-									cookies to be an industry standard. If you 
-									choose to have your browser refuse cookies, 
-									it is possible that some areas of our Site 
-									will not function properly. You may note 
-									additionally that if you visit Look8us Web 
-									site where you are prompted to log in or 
-									that are customizable, you may be required 
-									to accept cookies. Advertisers and partners 
-									may also use cookies. We do not control use 
-									of these cookies and disclaim responsibility 
-									for information collected through them<p align="left" class="p1" style="text-align: justify">
-									<b>Third Party Services</b><p align="left" class="p1" style="text-align: justify">
-									Third parties provide certain services 
-									available on www.meritnation.com on 
-									Look8us �s behalf. Look8us may provide 
-									information, including Personal Information, 
-									which Look8us collects on the Web to 
-									third-party service providers to help us 
-									deliver programs, products, information, and 
-									services. Service providers are also an 
-									important means by which Look8us maintains 
-									its Web site and mailing lists. Look8us 
-									will take reasonable steps to ensure that 
-									these third-party service providers are 
-									obligated to protect Personal Information on 
-									Look8us �s behalf.<br>
-									Look8us does not intend to transfer 
-									Personal Information without your consent to 
-									third parties who are not bound to act on 
-									Look8us �s behalf unless such transfer is 
-									legally required. Similarly, it is against 
-									Look8us 's policy to sell Personal 
-									Information collected online without 
-									consent.<br>
-									<p align="left" class="p1" style="text-align: justify">
-									<b>Children's Privacy</b><p align="left" class="p1" style="text-align: justify">
-									We do not knowingly collect personal 
-									information from children below the age of 
-									15. If we learn that we have personal 
-									information on a child below the age of 15, 
-									we will delete that information from our 
-									systems. Even for personal information of 
-									children of the age of 15 years and above, 
-									the personal information is collected only 
-									for the purpose of their educational 
-									requirement and service needs as provided by 
-									this Web site.<br>
-									<p align="left" class="p1" style="text-align: justify">
-									<b>Spamming</b><p align="left" class="p1" style="text-align: justify">
-									Sending unsolicited mail messages, 
-									including, without limitation, commercial 
-									advertising and informational announcements, 
-									is expressly prohibited. A user shall not 
-									use another site's mail server to relay mail 
-									without the express permission of the site.<br>
-									It is contrary to Look8us policy for 
-									customers to use our servers to effect or 
-									participate in any of the following 
-									activities:<br>
-									� To post to any Usenet or other newsgroup, 
-									forum, e-mail mailing list or other similar 
-									group or list articles which are off-topic 
-									according to the agreement or other 
-									owner-published FAQ or description of the 
-									group or list;<br>
-									� To send unsolicited mass e-mailings, if 
-									such unsolicited e-mailings provoke 
-									complaints from the recipients;<br>
-									� To engage in any of the foregoing 
-									activities using the service of another 
-									provider, but channeling such activities 
-									through Look8us provided server, or using 
-									Look8us provided server as a mail drop for 
-									responses;<br>
-									� To falsify user information provided to 
-									Look8us or to other users of the service 
-									in connection with use of Look8us service.<br>
-									Consequences of Violation:<br>
-									When Look8us becomes aware of an alleged 
-									violation of its Acceptable Use Policy, 
-									Look8us will initiate an investigation. 
-									During the investigation Look8us may 
-									restrict Customer 's access in order to 
-									prevent further possible unauthorized 
-									activity. Depending on the severity of the 
-									violation, Look8us may, at its sole 
-									discretion, restrict, suspend, or terminate 
-									Customer's account and pursue other civil 
-									remedies. If such violation is a criminal 
-									offence, Look8us will notify the 
-									appropriate law enforcement department of 
-									such violation.<br>
-									<p align="left" class="p1" style="text-align: justify">
-									<b>Your Consent</b><p align="left" class="p1" style="text-align: justify">
-									By using our Website you consent to our 
-									collection and use of your personal 
-									information as described in this Privacy 
-									Policy.<br>
-									Information security<br>
-									� We take appropriate security measures to 
-									protect against unauthorized access to or 
-									unauthorized alteration, disclosure or 
-									destruction of data.<br>
-									� We restrict access to your personally 
-									identifying information to employees who 
-									need to know that information in order to 
-									operate, develop or improve our services.<br>
-									<p align="left" class="p1" style="text-align: justify">
-									<b>Updating your information</b><p align="left" class="p1" style="text-align: justify">
-									� We provide mechanisms for updating and 
-									correcting your personally identifying 
-									information for many of our services.<br>
-									Information Sharing and Disclosure<br>
-									Look8us does not rent, sell, or share 
-									personal information about you with other 
-									people (save with your consent) or 
-									non-affiliated companies except to provide 
-									products or services you've requested, when 
-									we have your permission, or under the 
-									following circumstances<br>
-									� We provide the information to trusted 
-									partners who work on behalf of or with 
-									Look8us under confidentiality agreements. 
-									These companies may use your personal 
-									information to help Look8us communicate 
-									with you about offers from Look8us and our 
-									marketing partners. However, these companies 
-									do not have any independent right to share 
-									this information.<br>
-									� We respond to subpoenas, court orders, or 
-									legal process, or to establish or exercise 
-									our legal rights or defend against legal 
-									claims;<br>
-									� We believe it is necessary to share 
-									information in order to investigate, 
-									prevent, or take action regarding illegal 
-									activities, suspected fraud, situations 
-									involving potential threats to the physical 
-									safety of any person, violations of 
-									Look8us 's terms of use, or as otherwise 
-									required by law.<br>
-									� We transfer information about you if 'Info 
-									Edge India Limited' is acquired by or merged 
-									with another company. In this event, 
-									Look8us will notify you before information 
-									about you is transferred and becomes subject 
-									to a different privacy policy.<br>
-									� Look8us displays targeted advertisements 
-									based on personal information. Advertisers 
-									(including ad serving companies) may assume 
-									that people who interact with, view, or 
-									click on targeted ads meet the targeting 
-									criteria - for example, women ages 18-24 
-									from a particular geographic area.<br>
-									� Look8us does not provide any personal 
-									information to the advertiser when you 
-									interact with or view a targeted ad. 
-									However, by interacting with or viewing an 
-									ad you are consenting to the possibility 
-									that the advertiser will make the assumption 
-									that you meet the targeting criteria used to 
-									display the ad.<br>
-									� Look8us advertisers include financial 
-									service providers (such as banks, insurance 
-									agents, stock brokers and mortgage lenders) 
-									and non-financial companies (such as stores, 
-									airlines, and software companies).<br>
-									� Look8us works with vendors, partners, 
-									advertisers, and other service providers in 
-									different industries and categories of 
-									business.<br>
-									Confidentiality and Security<br>
-									� We limit access to personal information 
-									about you to employees who we believe 
-									reasonably need to come into contact with 
-									that information to provide products or 
-									services to you or in order to do their 
-									jobs.<br>
-									� &quot; We have physical, electronic, and 
-									procedural safeguards that comply with the 
-									laws prevalent in India to protect personal 
-									information about you. Changes to this 
-									Privacy
-									<p align="left" class="p1" style="text-align: justify">
-									<b>Policy</b><p align="left" class="p1" style="text-align: justify">
-									� Look8us reserves the right to update, 
-									change or modify this policy at any time. 
-									The policy shall come to effect from the 
-									date of such update, change or modification.<br>
-									Look8us shall not be liable for any loss 
-									or damage sustained by reason of any 
-									disclosure (inadvertent or otherwise) of any 
-									information concerning the user's account 
-									and / or information relating to or 
-									regarding online transactions using credit 
-									cards / debit cards and / or their 
-									verification process and particulars nor for 
-									any error, omission or inaccuracy with 
-									respect to any information so disclosed and 
-									used whether or not in pursuance of a legal 
-									process or otherwise.<br>
-									Notice:<br>
-									In the event you have any grievance relating 
-									to the processing of information provided by 
-									you, you may contact our Grievance Office or 
-									write at the following address:<br>
-									<br>
-									<b><font color="#000000" size="4">Look8us</font></b><font color="#000000" size="4">
-									</font><font color="#000000" size="2"> <b><br>
-									</b>
-									</font>
-									<font color="#000000"><b>Address :
-									</b></font><font color="#000000" size="2">
-									<b>309 Mahaveer Nagar-2,<br>
-									Kota (324005) ,
-									Rajasthan</b><br>
-									</font>
-									<font size="2" face="Verdana" color="#000000">
-									<b>Phone :</b> </font><font size="2" face="Verdana" color="#697779">8955989444</font>
-									<font size="2" face="Verdana" color="#000000">
-									&nbsp;<br>
-									<b>Email :</b> </font>
-									<font face="Verdana" color="#000000">
-									<a href="mailto:look8us@yahoo.com">
-									look8us@yahoo.com</a> ,
-									<a href="mailto:support@look8us.com">
-									support@look8us.com</a> </font>
-									<p align="left" class="p1" style="text-align: justify">
-									<br>
-									<b>We request you to please provide the 
-									following information in your complaint:-<br>
-									</b>� Identification of the information 
-									provided by you<br>
-									� Clear statement as to whether the 
-									information is personal information or 
-									sensitive personal information<br>
-									� Your address, telephone number or e-mail 
-									address<br>
-									� A statement that you have a good-faith 
-									belief that the information has been 
-									processed incorrectly or disclosed without 
-									authorization, as the case may be.<br>
-									A statement, under penalty of perjury, that 
-									the information in the notice is accurate, 
-									and that the information being complained 
-									about belongs to you. <br>
-									Look8us is free to offer its services to 
-									any client/prospective client without 
-									restriction<br>
-									<p align="left" class="p1" style="text-align: justify">
-									<b>How to contact us<br>
-									</b>If you would like to contact us for any 
-									reason regarding our privacy practices, 
-									please contact us at :<br>
-									<p align="left" class="p1" style="text-align: justify">
-									<font color="#000000"><b>Address :
-									</b></font><b><br>
-									</b><font color="#000000">Look8us .com<br>
-									309
-									</font><font color="#000000" size="2">Mahaveer Nagar-2,
-									<br>
-									Kota (324005) ,
-									Rajasthan</font><font color="#000000"><br>
-									</font>
-									<font size="2" face="Verdana" color="#000000">
-									Phone : </font><font size="2" face="Verdana" color="#697779">8955989444</font>
-									<font size="2" face="Verdana" color="#000000">
-									<br>
-									Email : </font>
-									<font face="Verdana" color="#000000">
-									<a href="mailto:look8us@yahoo.com">
-									look8us@yahoo.com</a> ,
-									<a href="mailto:support@look8us.com">
-									support@look8us.com</a> </font><p align="left" class="p1" style="text-align: justify">
-									<b>Revisions to this policy:<br>
-									</b>Look8us reserves the right to revise, 
-									amend or modify this policy at any time and 
-									in any manner it pleases. Any change or 
-									revision will be posted on our Website.<br>
-									<br>
-									</td>
-								</tr>
-							</table>
-							</td>
-						</tr>
-						</table>
-					</td>
-				</tr>
-			</table>
-			</div>
-			</td>
-		</tr>
-	</table>
+    if(d.getElementById(id))
+        return;
+
+    js=d.createElement(s);
+
+    js.id=id;
+
+    js.src="https://connect.facebook.net/en_GB/sdk.js#xfbml=1&version=v18.0";
+
+    fjs.parentNode.insertBefore(js,fjs);
+
+}(document,'script','facebook-jssdk'));
+</script>
+
+<?php require_once __DIR__ . '/header.php'; ?>
+
+<section class="page-banner">
+
+    <div class="wrapper">
+
+        <h1>
+            Look8US – Privacy Policy
+        </h1>
+
+    </div>
+
+</section>
+
+<div class="wrapper">
+
+<div class="content-card">
+<section id="introduction">
+
+    <h2>Introduction</h2>
+
+    <p>
+        We, at <strong>Look8US</strong>, are committed to respecting your
+        online privacy and recognize your need for appropriate protection
+        and management of any personally identifiable information
+        (<strong>"Personal Information"</strong>) that you share with us.
+    </p>
+
+    <p>
+        <strong>Personal Information</strong> means any information that
+        may be used to identify an individual, including but not limited
+        to:
+    </p>
+
+    <ul>
+        <li>First Name</li>
+        <li>Last Name</li>
+        <li>Residential or Business Address</li>
+        <li>Email Address</li>
+        <li>Telephone Number</li>
+        <li>Any other personally identifiable information</li>
+    </ul>
+
+    <p>
+        In general, you can browse the Look8US website without revealing
+        your identity or providing any personal information.
+    </p>
+
+    <p>
+        By using this website, you agree to comply with our policies.
+        This Privacy Policy explains how we collect, use, protect and
+        manage your personal information so that you can make informed
+        decisions while using our website and services.
+    </p>
+
+</section>
+<section id="information-collection">
+
+    <h2>What Information Do We Collect?</h2>
+
+    <p>
+        When you visit our website, you may provide us with two different
+        categories of information:
+    </p>
+
+    <ul>
+
+        <li>
+            <strong>Personal Information</strong> that you voluntarily
+            submit.
+        </li>
+
+        <li>
+            <strong>Website Usage Information</strong> that is collected
+            automatically while you browse our website.
+        </li>
+
+    </ul>
+
+    <p>
+        Personal information is collected individually, while website
+        usage information is collected in an aggregated form for analysis
+        and improvement of our services.
+    </p>
+
+</section>
+<section id="personal-information">
+
+    <h2>Personal Information You Choose to Provide</h2>
+
+    <p>
+        Certain services available on Look8US require you to provide
+        personal information voluntarily. This enables us to verify your
+        identity and provide secure access to products, services and
+        customer support.
+    </p>
+
+    <p>
+        Providing this information is completely optional. However,
+        choosing not to provide it may prevent you from accessing certain
+        services available on our website.
+    </p>
+
+</section>
+<section id="registration-information">
+
+    <h2>Registration Information</h2>
+
+    <p>
+        During registration or while accessing specific sections of our
+        website, you may be asked to provide information that helps us
+        verify your identity and improve your experience.
+    </p>
+
+    <p>
+        This information may also be used for:
+    </p>
+
+    <ul>
+
+        <li>Customer Support</li>
+
+        <li>Technical Assistance</li>
+
+        <li>Service Improvements</li>
+
+        <li>Follow-up Communication</li>
+
+        <li>Managing your account</li>
+
+        <li>Providing requested products and services</li>
+
+    </ul>
+
+    <p>
+        You may be requested to provide information while:
+    </p>
+
+    <ul>
+
+        <li>Logging into secured areas of the website.</li>
+
+        <li>Creating a new account.</li>
+
+        <li>Registering for services.</li>
+
+        <li>Subscribing to newsletters.</li>
+
+        <li>Joining promotional mailing lists.</li>
+
+        <li>Submitting online surveys.</li>
+
+        <li>Placing product or service orders.</li>
+
+    </ul>
+
+    <p>
+        Depending upon the service requested, we may collect:
+    </p>
+
+    <ul>
+
+        <li>Full Name</li>
+
+        <li>Email Address</li>
+
+        <li>Phone Number</li>
+
+        <li>Postal Address</li>
+
+        <li>Username</li>
+
+        <li>Password</li>
+
+        <li>Other information required for account verification</li>
+
+    </ul>
+
+    <p>
+        Occasionally, additional information may be requested to provide
+        enhanced services or verify your eligibility.
+    </p>
+
+    <p>
+        If you subscribe to newsletters or promotional communications,
+        you may unsubscribe at any time using the unsubscribe option
+        provided in the communication.
+    </p>
+
+    <p>
+        Wherever Look8US collects personal information, we strive to
+        provide access to this Privacy Policy so that users understand
+        how their information is handled.
+    </p>
+
+</section>
+<section id="how-we-use-information">
+
+    <h2>How We Use Your Information</h2>
+
+    <p>
+        Look8US uses your personal information only for legitimate
+        business purposes related to providing and improving our services.
+    </p>
+
+    <p>
+        Information such as your name, email address, telephone number
+        and mailing address is treated as confidential and is used for:
+    </p>
+
+    <ul>
+
+        <li>Providing requested services.</li>
+
+        <li>Customer support.</li>
+
+        <li>Technical assistance.</li>
+
+        <li>Processing registrations.</li>
+
+        <li>Managing your account.</li>
+
+        <li>Sending important service notifications.</li>
+
+        <li>Informing you about new services.</li>
+
+        <li>Providing special offers.</li>
+
+        <li>Sending promotional communications.</li>
+
+        <li>Improving website functionality.</li>
+
+    </ul>
+
+    <p>
+        We may also send you carefully selected offers from trusted third
+        parties that we believe may be relevant to your interests.
+    </p>
+
+    <p>
+        Employees, contractors and authorized service providers who have
+        access to your personal information are required to maintain its
+        confidentiality and may use it only for performing services on
+        behalf of Look8US.
+    </p>
+
+</section>
+<section id="sharing-information">
+
+    <h2>Sharing Information with Third Parties</h2>
+
+    <p>
+        Look8US may enhance or combine information collected through this
+        website with information obtained from trusted third parties for
+        the purpose of improving our services and providing relevant
+        marketing communications.
+    </p>
+
+    <p>
+        We may work with advertising networks or advertising service
+        providers that display advertisements on behalf of multiple
+        companies. Where applicable, these providers may receive limited
+        information such as your username and demographic information to
+        help display advertisements that are more relevant to your
+        interests.
+    </p>
+
+    <p>
+        These advertising providers may combine such information with
+        non-personally identifiable information collected through cookies
+        or similar technologies for the sole purpose of displaying
+        personalized advertisements on our website.
+    </p>
+
+    <p>
+        Circumstances may arise where we are required to disclose your
+        personal information in connection with:
+    </p>
+
+    <ul>
+
+        <li>Sale of business assets.</li>
+
+        <li>Corporate merger or acquisition.</li>
+
+        <li>Business restructuring.</li>
+
+        <li>Legal investigations.</li>
+
+        <li>Court orders.</li>
+
+        <li>Government requests.</li>
+
+        <li>Compliance with applicable laws.</li>
+
+    </ul>
+
+    <p>
+        We may periodically send information regarding our products,
+        services, updates and promotional offers that we believe may be
+        useful to you.
+    </p>
+
+    <p>
+        Only Look8US or authorized contractors working under strict
+        confidentiality agreements are permitted to send these
+        communications on our behalf.
+    </p>
+
+    <h3>Secure Information Transmission</h3>
+
+    <p>
+        Email is not considered a completely secure method of transmitting
+        confidential information. Therefore, we recommend that sensitive
+        personal information should not be sent through email.
+    </p>
+
+    <p>
+        Internet communication always carries inherent security risks.
+        Users should exercise appropriate caution while sharing
+        information online.
+    </p>
+
+    <h3>Accessing or Correcting Your Information</h3>
+
+    <p>
+        You may request access to the personal information maintained by
+        Look8US or request corrections whenever appropriate by contacting
+        our support team.
+    </p>
+
+    <h3>Certain Disclosures</h3>
+
+    <p>
+        We may disclose personal information when required by law or when
+        disclosure is necessary to:
+    </p>
+
+    <ul>
+
+        <li>Comply with legal obligations.</li>
+
+        <li>Respond to court orders.</li>
+
+        <li>Protect our legal rights.</li>
+
+        <li>Protect website users.</li>
+
+        <li>Prevent fraud or illegal activities.</li>
+
+        <li>Protect public safety.</li>
+
+    </ul>
+
+    <h3>External Websites</h3>
+
+    <p>
+        Our website may contain links to third-party websites for your
+        convenience. Once you leave Look8US, this Privacy Policy no longer
+        applies. Each external website maintains its own privacy policy,
+        and we encourage you to review those policies before providing any
+        personal information.
+    </p>
+
+</section>
+<section id="cookies">
+
+    <h2>Cookies and Other Tracking Technologies</h2>
+
+    <p>
+        Some pages on the Look8US website use cookies and similar tracking
+        technologies to improve your browsing experience.
+    </p>
+
+    <p>
+        A cookie is a small text file stored on your device that helps us
+        recognize returning visitors, remember preferences and improve
+        website functionality.
+    </p>
+
+    <p>
+        Cookies may be used for:
+    </p>
+
+    <ul>
+
+        <li>Remembering login sessions.</li>
+
+        <li>Saving user preferences.</li>
+
+        <li>Improving website performance.</li>
+
+        <li>Website analytics.</li>
+
+        <li>Displaying relevant advertisements.</li>
+
+        <li>Preventing repeated display of the same advertisements.</li>
+
+    </ul>
+
+    <p>
+        Most web browsers allow you to control cookies through browser
+        settings. You may accept, reject or delete cookies according to
+        your preference.
+    </p>
+
+    <p>
+        Please note that disabling cookies may affect the functionality of
+        certain sections of the website.
+    </p>
+
+    <p>
+        Tracking technologies may automatically collect information such
+        as:
+    </p>
+
+    <ul>
+
+        <li>IP Address</li>
+
+        <li>Browser Type</li>
+
+        <li>Operating System</li>
+
+        <li>Device Information</li>
+
+        <li>Date and Time of Access</li>
+
+        <li>Visited Pages</li>
+
+        <li>Clickstream Data</li>
+
+    </ul>
+
+    <p>
+        This information is generally analyzed in aggregate form to help
+        improve website performance and user experience.
+    </p>
+
+</section>
+<section id="third-party-services">
+
+    <h2>Third Party Services</h2>
+
+    <p>
+        Look8US works with trusted third-party service providers to help
+        deliver products, services, communications and website
+        functionality.
+    </p>
+
+    <p>
+        These providers may receive limited personal information solely
+        for the purpose of performing services on behalf of Look8US.
+    </p>
+
+    <p>
+        We require all authorized service providers to:
+    </p>
+
+    <ul>
+
+        <li>Protect personal information.</li>
+
+        <li>Maintain confidentiality.</li>
+
+        <li>Use the information only for authorized purposes.</li>
+
+        <li>Comply with applicable privacy regulations.</li>
+
+    </ul>
+
+    <p>
+        Look8US does not intentionally sell personal information to third
+        parties without your consent unless required by applicable law.
+    </p>
+
+</section>
+<section id="children">
+
+    <h2>Children's Privacy</h2>
+
+    <p>
+        Look8US does not knowingly collect personal information from
+        children below the age of 15 years.
+    </p>
+
+    <p>
+        If we become aware that personal information belonging to a child
+        under the applicable age has been collected, we will take
+        reasonable steps to remove such information from our systems.
+    </p>
+
+    <p>
+        Personal information relating to users above the applicable age is
+        collected only for providing requested services and fulfilling
+        legitimate business purposes.
+    </p>
+
+</section>
+<section id="spamming">
+
+    <h2>Spamming Policy</h2>
+
+    <p>
+        Sending unsolicited commercial emails, advertisements or bulk
+        communications through Look8US systems is strictly prohibited.
+    </p>
+
+    <p>
+        Users must not use Look8US infrastructure for:
+    </p>
+
+    <ul>
+
+        <li>Mass unsolicited email campaigns.</li>
+
+        <li>Spam distribution.</li>
+
+        <li>False identity or forged sender information.</li>
+
+        <li>Unauthorized mailing lists.</li>
+
+        <li>Posting unrelated content to forums or groups.</li>
+
+        <li>Using third-party servers while routing spam through Look8US.</li>
+
+        <li>Providing false registration information.</li>
+
+    </ul>
+
+    <h3>Consequences of Policy Violations</h3>
+
+    <p>
+        Whenever an alleged violation is detected, Look8US may initiate an
+        investigation. During this period, access to services may be
+        temporarily restricted to prevent further misuse.
+    </p>
+
+    <p>
+        Depending upon the severity of the violation, Look8US may:
+    </p>
+
+    <ul>
+
+        <li>Issue warnings.</li>
+
+        <li>Suspend user accounts.</li>
+
+        <li>Permanently terminate services.</li>
+
+        <li>Seek civil remedies.</li>
+
+        <li>Notify appropriate law enforcement authorities where required.</li>
+
+    </ul>
+
+</section>
+<section id="your-consent">
+
+    <h2>Your Consent</h2>
+
+    <p>
+        By accessing or using the Look8US website, you acknowledge and
+        consent to the collection, storage, processing and use of your
+        personal information in accordance with this Privacy Policy.
+    </p>
+
+    <p>
+        Your continued use of this website after any updates to this
+        Privacy Policy constitutes your acceptance of those changes.
+    </p>
+
+</section>
+<section id="information-security">
+
+    <h2>Information Security</h2>
+
+    <p>
+        Protecting your personal information is one of our highest
+        priorities. We implement appropriate administrative, technical
+        and physical safeguards to protect information against
+        unauthorized access, disclosure, alteration or destruction.
+    </p>
+
+    <p>
+        Our security measures include, but are not limited to:
+    </p>
+
+    <ul>
+
+        <li>Controlled access to customer information.</li>
+
+        <li>Secure server infrastructure.</li>
+
+        <li>Restricted employee access.</li>
+
+        <li>Regular software updates.</li>
+
+        <li>Continuous monitoring of website security.</li>
+
+        <li>Protection against unauthorized modification of data.</li>
+
+    </ul>
+
+    <p>
+        Access to personal information is granted only to employees,
+        contractors and authorized personnel who require the information
+        for legitimate business purposes.
+    </p>
+
+</section>
+<section id="update-information">
+
+    <h2>Updating Your Information</h2>
+
+    <p>
+        We provide mechanisms that allow users to review, update and
+        correct personal information maintained in our records whenever
+        reasonably possible.
+    </p>
+
+    <p>
+        If you believe that any personal information maintained by
+        Look8US is inaccurate or incomplete, you may contact us and
+        request that appropriate corrections be made.
+    </p>
+
+</section>
+<section id="information-sharing">
+
+    <h2>Information Sharing and Disclosure</h2>
+
+    <p>
+        Look8US does not rent, sell or share your personal information
+        with unaffiliated third parties except in the circumstances
+        described below or where your consent has been obtained.
+    </p>
+
+    <p>
+        Information may be shared under the following circumstances:
+    </p>
+
+    <ul>
+
+        <li>
+            With trusted business partners working under strict
+            confidentiality agreements.
+        </li>
+
+        <li>
+            To provide products or services requested by you.
+        </li>
+
+        <li>
+            To respond to legal notices, subpoenas, court orders or
+            lawful government requests.
+        </li>
+
+        <li>
+            To establish or defend our legal rights.
+        </li>
+
+        <li>
+            To investigate fraud, security incidents or suspected illegal
+            activities.
+        </li>
+
+        <li>
+            To prevent threats to public safety.
+        </li>
+
+        <li>
+            When required by applicable law.
+        </li>
+
+        <li>
+            If Look8US is merged, acquired or its assets are transferred
+            to another organization.
+        </li>
+
+    </ul>
+
+    <p>
+        Should ownership of Look8US change, users will be notified before
+        their information becomes subject to a different privacy policy.
+    </p>
+
+    <h3>Advertising</h3>
+
+    <p>
+        Look8US may display advertisements based upon user interests and
+        general demographic information.
+    </p>
+
+    <p>
+        Advertisers may assume that users who interact with particular
+        advertisements satisfy the targeting criteria used for those
+        advertisements. However, Look8US does not disclose personally
+        identifiable information to advertisers without user consent.
+    </p>
+
+    <p>
+        Our advertising partners may include financial institutions,
+        insurance companies, travel businesses, retailers, software
+        providers and other commercial organizations.
+    </p>
+
+</section>
+<section id="confidentiality-security">
+
+    <h2>Confidentiality and Security</h2>
+
+    <p>
+        We are committed to maintaining the confidentiality of your
+        personal information through appropriate organizational and
+        technical safeguards.
+    </p>
+
+    <ul>
+
+        <li>
+            Access to personal information is limited to authorized
+            employees who require such access to perform their duties.
+        </li>
+
+        <li>
+            We maintain physical, electronic and procedural safeguards
+            designed to protect personal information.
+        </li>
+
+        <li>
+            Reasonable efforts are made to comply with applicable Indian
+            data protection and privacy laws.
+        </li>
+
+        <li>
+            Internal procedures are regularly reviewed to improve
+            information security.
+        </li>
+
+    </ul>
+
+    <p>
+        Although we take commercially reasonable precautions to protect
+        your information, no method of electronic transmission or storage
+        can be guaranteed to be completely secure. Users should therefore
+        exercise reasonable care while sharing information online.
+    </p>
+
+</section>
+<section id="policy-changes">
+
+    <h2>Changes to this Privacy Policy</h2>
+
+    <p>
+        Look8US reserves the right to update, revise, modify or replace
+        this Privacy Policy at any time without prior notice whenever
+        required by business, legal or operational requirements.
+    </p>
+
+    <p>
+        Any revised version will become effective immediately upon being
+        published on this website unless otherwise stated.
+    </p>
+
+    <p>
+        We encourage users to review this Privacy Policy periodically so
+        they remain informed about how their personal information is
+        protected.
+    </p>
+
+</section>
+<section id="contact-information">
+
+    <h2>Contact Information</h2>
+
+    <p>
+        If you have any questions, concerns or complaints regarding this
+        Privacy Policy or the processing of your personal information,
+        please contact us using the details below.
+    </p>
+
+    <div class="contact-box">
+
+        <h3>Look8US</h3>
+
+        <p>
+            <strong>Address</strong><br>
+
+            309, Mahaveer Nagar-II<br>
+            Kota – 324005<br>
+            Rajasthan, India
+        </p>
+
+        <p>
+            <strong>Phone</strong><br>
+            <a href="tel:+918955989444">+91 89559 89444</a>
+        </p>
+
+        <p>
+            <strong>Email</strong><br>
+
+            <a href="mailto:look8us@yahoo.com">
+                look8us@yahoo.com
+            </a>
+
+            <br>
+
+            <a href="mailto:support@look8us.com">
+                support@look8us.com
+            </a>
+
+        </p>
+
+    </div>
+
+</section>
+
+<section id="complaint-procedure">
+
+    <h2>Complaint Procedure</h2>
+
+    <p>
+        When submitting a complaint relating to your personal
+        information, please include the following details:
+    </p>
+
+    <ul>
+
+        <li>Identification of the information concerned.</li>
+
+        <li>Whether the information is personal or sensitive personal information.</li>
+
+        <li>Your full name and contact details.</li>
+
+        <li>Your postal address.</li>
+
+        <li>Your email address.</li>
+
+        <li>Your telephone number.</li>
+
+        <li>
+            A clear explanation describing how you believe the information
+            has been processed incorrectly or disclosed without
+            authorization.
+        </li>
+
+        <li>
+            A declaration that the information provided in your complaint
+            is accurate and belongs to you.
+        </li>
+
+    </ul>
+
+    <p>
+        Look8US reserves the right to request additional information to
+        verify the authenticity of any complaint before taking further
+        action.
+    </p>
+
+</section>
+<section id="how-to-contact">
+
+    <h2>How to Contact Us</h2>
+
+    <p>
+        If you would like to contact us regarding this Privacy Policy,
+        please use the contact information provided above.
+    </p>
+
+    <p>
+        We will make reasonable efforts to respond to all genuine privacy
+        related enquiries as quickly as possible.
+    </p>
+
+</section>
+<section id="policy-revisions">
+
+    <h2>Policy Revisions</h2>
+
+    <p>
+        Look8US reserves the right to revise, amend or modify this
+        Privacy Policy at any time. Updated versions will be published on
+        this page and become effective immediately unless otherwise
+        specified.
+    </p>
+
+    <p>
+        We encourage visitors to review this page periodically to remain
+        informed about how we protect personal information.
+    </p>
+
+</section>
+
 </div>
-
-<div align="center">
-	<?php require_once "footer.php"; ?>
 </div>
+<?php require_once __DIR__ . '/footer.php'; ?>
 
 </body>
-
 </html>

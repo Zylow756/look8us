@@ -1,200 +1,577 @@
 <?php
-require_once __DIR__ . "/config.php";
+declare(strict_types=1);
 
-if (session_status() === PHP_SESSION_NONE) {
+require_once __DIR__ . '/config.php';
+
+/*
+|--------------------------------------------------------------------------
+| Secure Session
+|--------------------------------------------------------------------------
+*/
+if (session_status() !== PHP_SESSION_ACTIVE) {
+
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path'     => '/',
+        'domain'   => '',
+        'secure'   => !empty($_SERVER['HTTPS']),
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
+
     session_start();
 }
+
+/*
+|--------------------------------------------------------------------------
+| Common Escape Function
+|--------------------------------------------------------------------------
+*/
+function e(?string $value): string
+{
+    return htmlspecialchars(
+        $value ?? '',
+        ENT_QUOTES | ENT_SUBSTITUTE,
+        'UTF-8'
+    );
+}
+
+/*
+|--------------------------------------------------------------------------
+| Database Connection Check
+|--------------------------------------------------------------------------
+*/
+if (!isset($con) || !$con instanceof mysqli) {
+    die('Database connection failed.');
+}
+
+/*
+|--------------------------------------------------------------------------
+| Fetch Job Seekers
+|--------------------------------------------------------------------------
+*/
+
+$sql = "
+    SELECT
+        cid,
+        pdate,
+        city,
+        cate,
+        atitle,
+        discr,
+        jtype,
+        exper
+    FROM postcv
+    ORDER BY cid DESC
+";
+
+$stmt = $con->prepare($sql);
+
+if (!$stmt) {
+    die('Prepare failed : ' . e($con->error));
+}
+
+$stmt->execute();
+
+$result = $stmt->get_result();
+
+$jobSeekers = [];
+
+while ($row = $result->fetch_assoc()) {
+    $jobSeekers[] = $row;
+}
+
+$stmt->close();
+
+$totalRecords = count($jobSeekers);
 ?>
 
-<html>
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
-<meta http-equiv="Content-Language" content="en-us">
+
 <meta charset="UTF-8">
-<title>Look8US :Business Directory Kota, Rajasthan , India, Online Business Directory Kota,  Yellow Pages  kota Rajasthan , Trusted & Verified Businesses, Exporters, Manufacturers, Suppliers Directory, B2B Business Directory </title>
-<meta name="description" content="Look8us.com from Kota Rajasthan is Your local Business Directory , yellow pages  Business Directory. Business Details, Contacts, Products, Services & Verified Businesses, Exporters, Manufacturers, Suppliers Directory">
-<meta name="keywords" content=" Look8us.com ,Search job kota, best job offer , apply job, goverment jobs, job portal , online job portal, online business directory, IT job in kota, marketing job in kota ">
 
- <link rel="stylesheet" type="text/css" href="akc.css" />
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
 
+<meta
+    http-equiv="X-UA-Compatible"
+    content="IE=edge"
+>
+
+<title>
+Look8US :
+Business Directory Kota Rajasthan,
+Online Business Directory,
+Yellow Pages,
+Verified Businesses,
+Job Portal
+</title>
+
+<meta
+    name="description"
+    content="Look8US Business Directory Kota Rajasthan. Search jobs, apply online, business directory, verified companies, suppliers, manufacturers and service providers."
+>
+
+<meta
+    name="keywords"
+    content="look8us, jobs kota, job portal, online jobs, business directory, kota jobs, employers, job seekers"
+>
+
+<meta
+    name="robots"
+    content="index,follow"
+>
+
+<meta
+    name="author"
+    content="Look8US"
+>
+
+<link
+    rel="stylesheet"
+    href="akc.css"
+>
+
+<style>
+
+/*************************************************
+    RESET
+*************************************************/
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html{
+
+    scroll-behavior:smooth;
+
+}
+
+body{
+
+    font-family:Arial, Helvetica, sans-serif;
+
+    background:#f4f4f4 url("images/bg.png") repeat;
+
+    color:#333;
+
+    line-height:1.6;
+
+    min-height:100vh;
+
+}
+
+/*************************************************
+    LINKS
+*************************************************/
+
+a{
+
+    text-decoration:none;
+
+}
+
+a:hover{
+
+    text-decoration:none;
+
+}
+
+/*************************************************
+    PAGE WRAPPER
+*************************************************/
+
+.page-wrapper{
+
+    width:min(1200px,96%);
+
+    margin:auto;
+
+}
+
+/*************************************************
+    PAGE TITLE
+*************************************************/
+
+.page-title{
+
+    width:100%;
+
+    background:#d2d2d2;
+
+    margin-top:0;
+
+}
+
+.page-title .inner{
+
+    width:min(1200px,96%);
+
+    margin:auto;
+
+    padding:18px 10px;
+
+}
+
+.page-title h1{
+
+    font-size:clamp(26px,3vw,40px);
+
+    color:#333;
+
+    font-weight:600;
+
+}
+
+/*************************************************
+    MAIN CONTENT
+*************************************************/
+
+.content{
+
+    background:#fff;
+
+    padding:20px;
+
+    margin:20px auto;
+
+    border-radius:8px;
+
+    box-shadow:0 3px 12px rgba(0,0,0,.08);
+
+}
+
+/*************************************************
+    SECTION HEADER
+*************************************************/
+
+.section-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    flex-wrap:wrap;
+
+    gap:15px;
+
+    background:#dddddd;
+
+    padding:15px;
+
+    border-radius:6px;
+
+    margin-bottom:20px;
+
+}
+
+.section-header h2{
+
+    font-size:20px;
+
+    color:#003366;
+
+}
+
+.back-btn{
+
+    color:#003366;
+
+    font-weight:bold;
+
+}
+
+.back-btn:hover{
+
+    color:#cc0000;
+
+}
+
+/*************************************************
+    RECORD COUNT
+*************************************************/
+
+.record-count{
+
+    margin-bottom:20px;
+
+    color:#666;
+
+    font-size:15px;
+
+}
+
+/*************************************************
+    JOB CARD
+*************************************************/
+
+.job-card{
+
+    display:grid;
+
+    grid-template-columns:220px 1fr 120px;
+
+    gap:20px;
+
+    padding:20px;
+
+    border-bottom:1px solid #e5e5e5;
+
+}
+
+.job-card:last-child{
+
+    border-bottom:none;
+
+}
+
+.job-left{
+
+    font-size:15px;
+
+}
+
+.job-middle h3{
+
+    font-size:20px;
+
+    color:#003366;
+
+    margin-bottom:10px;
+
+}
+
+.job-middle p{
+
+    margin-bottom:8px;
+
+}
+
+.job-right{
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+}
+
+/*************************************************
+    BUTTON
+*************************************************/
+
+.view-btn{
+
+    display:inline-block;
+
+    padding:10px 22px;
+
+    background:#0056b3;
+
+    color:#fff;
+
+    border-radius:6px;
+
+    transition:.3s;
+
+    font-weight:bold;
+
+}
+
+.view-btn:hover{
+
+    background:#003b78;
+
+}
+
+/*************************************************
+    EMPTY MESSAGE
+*************************************************/
+
+.empty-box{
+
+    text-align:center;
+
+    padding:60px 20px;
+
+    font-size:20px;
+
+    color:#888;
+
+}
+</style>
 
 </head>
 
-<body topmargin="0" leftmargin="0" rightmargin="0" bottommargin="2" background="images/bg.png">
+<body>
 
+<div class="page-wrapper">
 
+<?php require_once 'header.php'; ?>
+<section class="page-title">
+    <div class="inner">
+        <h1>View Job Seekers</h1>
+    </div>
+</section>
+<main class="content">
 
+    <!-- ===========================
+         Section Header
+    ============================ -->
 
+    <div class="section-header">
 
-<div align="center">
-<?php require_once "header.php"; ?>
-<table border="0" width="100%" height="100" cellpadding="0" style="border-collapse: collapse">
-	<tr>
-		<td bgcolor="#D2D2D2">
-		<div align="center">
-			<table border="0" width="1010" id="table33" style="border-collapse: collapse" height="40" cellpadding="0">
-				<tr>
-					<td><font size="6">&nbsp;</font><font size="5" color="#333333">View Job 
-					Seekers</font></td>
-				</tr>
-			</table>
-		</div>
-		</td>
-	</tr>
-</table>
-	<table border="0" width="1020" id="table1" style="border-collapse: collapse" bordercolor="#F2F2F2" bgcolor="#FFFFFF" cellpadding="0">
-		<tr>
-			<td valign="top">
-			<div align="center">
-			<table border="0" width="100%" id="table2" cellpadding="0" style="border-collapse: collapse" bordercolor="#FFFFCC">
-				
-				<tr>
-					<td valign="top">
-					<table border="0" width="100%" id="table8" cellpadding="0" style="border-collapse: collapse">
-						<tr>
-							<td  valign="top" bgcolor="#FFFFFF">
-							<table border="0" width="100%" id="table10" cellpadding="0" style="border-collapse: collapse" height="326" >
-								<tr>
-									
-									<td align="center" valign="top"> <br>
-									<p style="margin-left: 10px; margin-top: 5px; margin-bottom: 5px">
-											<b>
-											
-														</b>
-											</p><div align="center">
-										
-									
-									
-									
-									
-									
-								
-										
-										<table border="0" width="98%" id="table34" style="border-collapse: collapse" cellpadding="0">
-										<tr>
-											<td height="29" width="1%" bgcolor="#DDDDDD">
-											&nbsp; </td>
-											<td height="29" width="50%" bgcolor="#DDDDDD">
-											&nbsp;<font size="2" color="#003366"><b>Job 
-											Seeker</b> (for contact detail Click 
-											on &quot;View&quot;)</font></td>
-											<td height="29" align="right" width="49%" bgcolor="#DDDDDD">
-											<a href="javascript: window.history.go(-1)" class="a5">
-							&lt;&lt;back </a>&nbsp;&nbsp;&nbsp;&nbsp; </td>
-										</tr>
-										<tr>
-											<td height="98" colspan="3">
-											&nbsp;
-					<?php						
+        <h2>
+            Job Seekers
+            <small style="font-weight:normal;font-size:14px;">
+                (Click <strong>View</strong> to see contact details)
+            </small>
+        </h2>
 
-$st="Select * from postcv order by cid DESC";
+        <a
+            href="javascript:window.history.back();"
+            class="back-btn"
+            aria-label="Go Back"
+        >
+            &laquo; Back
+        </a>
 
-//echo $st;
-$i=1;
-$result=mysqli_query($con,$st);
-if (!$result) {
-    die(mysqli_error($con));
-}
+    </div>
 
-	while ($row=mysqli_fetch_assoc($result))
-	{	
-	
-	?>						
-						<table   width="94%" id="table5" border="0" style="border-collapse: collapse"    >
-								<tr>
-									<td width="21%" valign="top">
-									<p style="line-height: 150%; margin-left:5px; margin-right:5px; margin-top:5px">Post Date: <b> <?php echo htmlspecialchars($row["pdate"]); ?></b><br>Location : <?php echo htmlspecialchars($row["city"]); ?>
+    <!-- ===========================
+         Record Counter
+    ============================ -->
 
-									</td>
-									<td width="69%">
-									<table border="0" width="100%" id="table35" style="border-collapse: collapse">
-										<tr>
-											<td width="24" height="26">&nbsp;</td>
-											<td height="26"><b><?php echo htmlspecialchars($row["cate"]); ?></b></td>
-										</tr>
-										<tr>
-											<td width="24" height="26">&nbsp;</td>
-											<td height="26"><b><font size="2"><?php echo htmlspecialchars($row["atitle"]); ?></font></b></td>
-										</tr>
-										<tr>
-											<td width="24" height="26">&nbsp;</td>
-											<td height="26"><font size="2"><?php echo htmlspecialchars($row["discr"]); ?></font></td>
-										</tr>
-										<tr>
-											<td width="24" height="26">&nbsp;</td>
-											<td height="26"><font size="2"><?php echo htmlspecialchars($row["jtype"]); ?></font></td>
-										</tr>
-										<tr>
-											<td width="24" height="26">&nbsp;</td>
-											<td height="26">
-											<font size="2">City: <?php echo htmlspecialchars($row["city"]); ?></font>
-											&nbsp;&nbsp;&nbsp;</td>
-										</tr>
-										<tr>
-											<td width="24" height="26">&nbsp;</td>
-											<td height="26">
-											<font size="2">Experience : &nbsp;<?php echo htmlspecialchars($row["exper"]); ?> </font>
-											</td>
-										</tr>
-										</table>
-									</td>
-									<td width="9%">
-									&nbsp;<a class="a5" href="viewSeeKerDetail.php?id=<?php echo htmlspecialchars($row['cid']); ?>" >View</a></td>
-								</tr>
-			
-				
-								<tr>
-									<td width="99%" colspan="3" height="3"></td>
-								</tr>
-			
-				
-								<tr>
-									<td width="99%" colspan="3" bgcolor="#E2E2E2" height="3"></td>
-								</tr>
-			
-				
-								<tr>
-									<td width="99%" colspan="3" height="3"></td>
-								</tr>
-			
-				
-								<?php
-								$i=$i+1;
+    <div class="record-count">
 
-								}
-								
-								
-								?>
-							</table></td>
-										</tr>
-										<tr>
-											<td colspan="3">
-											&nbsp;<p>&nbsp;</td>
-										</tr>
-									</table>
-									
-							
-											
-									</div>
-									</td>
-								</tr>
-							</table>
-							</td>
-						</tr>
-						</table>
-					</td>
-				</tr>
-			</table>
-			</div>
-			</td>
-		</tr>
-	</table>
+        Total Job Seekers :
+        <strong><?php echo $totalRecords; ?></strong>
+
+    </div>
+
+    <!-- ===========================
+         Job Listing Container
+    ============================ -->
+
+    <section
+        class="job-list"
+        aria-label="Job Seekers List"
+    >
+<?php if ($totalRecords > 0): ?>
+
+    <?php foreach ($jobSeekers as $job): ?>
+
+        <article class="job-card">
+
+            <!-- ===========================
+                 Left Column
+            ============================ -->
+
+            <div class="job-left">
+
+                <p>
+                    <strong>Post Date</strong><br>
+                    <?php echo e($job['pdate']); ?>
+                </p>
+
+                <br>
+
+                <p>
+                    <strong>Location</strong><br>
+                    <?php echo e($job['city']); ?>
+                </p>
+
+            </div>
+
+            <!-- ===========================
+                 Middle Column
+            ============================ -->
+
+            <div class="job-middle">
+
+                <h3>
+                    <?php echo e($job['cate']); ?>
+                </h3>
+
+                <p>
+                    <strong>Job Title :</strong>
+                    <?php echo e($job['atitle']); ?>
+                </p>
+
+                <p>
+                    <strong>Description :</strong><br>
+                    <?php echo nl2br(e($job['discr'])); ?>
+                </p>
+
+                <p>
+                    <strong>Job Type :</strong>
+                    <?php echo e($job['jtype']); ?>
+                </p>
+
+                <p>
+                    <strong>City :</strong>
+                    <?php echo e($job['city']); ?>
+                </p>
+
+                <p>
+                    <strong>Experience :</strong>
+                    <?php echo e($job['exper']); ?>
+                </p>
+
+            </div>
+
+            <!-- ===========================
+                 Right Column
+            ============================ -->
+
+            <div class="job-right">
+
+                <a
+                    href="viewSeeKerDetail.php?id=<?php echo urlencode((string)$job['cid']); ?>"
+                    class="view-btn"
+                    aria-label="View Job Seeker Details"
+                >
+                    View
+                </a>
+
+            </div>
+
+        </article>
+
+    <?php endforeach; ?>
+
+<?php else: ?>
+
+    <div class="empty-box">
+
+        <h2>No Job Seekers Found</h2>
+
+        <p>
+            There are currently no job seeker records available.
+        </p>
+
+    </div>
+
+<?php endif; ?>
+
+    </section>
+
+</main>
+
 </div>
-
-<div align="center">
-	<?php require_once "footer.php"; ?>
-</div>
+<?php require_once 'footer.php'; ?>
 
 </body>
-
 </html>
+

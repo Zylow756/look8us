@@ -1,236 +1,301 @@
 <?php
+
+declare(strict_types=1);/*
+|--------------------------------------------------------------------------
+| Database Configuration
+|--------------------------------------------------------------------------
+*/
 require_once __DIR__ . "/config.php";
-
+/*
+|--------------------------------------------------------------------------
+| Secure Session Handling
+|--------------------------------------------------------------------------
+*/
 if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+	session_set_cookie_params([
+		'lifetime' => 0,
+		'path'     => '/',
+		'secure'   => isset($_SERVER['HTTPS']),
+		'httponly' => true,
+		'samesite' => 'Lax'
+	]);
+	session_start();
 }
-?>
-
-<html>
+/*
+|--------------------------------------------------------------------------
+| Helper Function
+|--------------------------------------------------------------------------
+*/
+function e(?string $value): string
+{
+	return htmlspecialchars(
+		$value ?? '',
+		ENT_QUOTES | ENT_SUBSTITUTE,
+		'UTF-8'
+	);
+}
+/*
+|--------------------------------------------------------------------------
+| Get Job ID Safely
+|--------------------------------------------------------------------------
+*/
+$job = null;
+if (isset($_GET['id']) && ctype_digit($_GET['id'])) {
+	$jid = (int) $_GET['id'];
+	/*
+    |--------------------------------------------------------------------------
+    | Prepared Statement
+    |--------------------------------------------------------------------------
+    */
+	$stmt = mysqli_prepare(
+		$con,
+		"SELECT 
+            jid,
+            cate,
+            atitle,
+            discr,
+            y,
+            jobloc,
+            jtype,
+            srange,
+            stype,
+            ename,
+            phone,
+            email,
+            city,
+            web
+        FROM postjob
+        WHERE jid = ?
+        LIMIT 1"
+	);
+	if ($stmt) {
+		mysqli_stmt_bind_param(
+			$stmt,
+			"i",
+			$jid
+		);
+		mysqli_stmt_execute($stmt);
+		$result = mysqli_stmt_get_result($stmt);
+		if ($result) {
+			$job = mysqli_fetch_assoc($result);
+		}
+		mysqli_stmt_close($stmt);
+	}
+} ?>
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
-<meta http-equiv="Content-Language" content="en-us">
-<meta charset="UTF-8">
-<title>Look8US :Business Directory Kota, Rajasthan , India, Online Business Directory Kota,  Yellow Pages  kota Rajasthan , Trusted & Verified Businesses, Exporters, Manufacturers, Suppliers Directory, B2B Business Directory </title>
-<meta name="description" content="Look8us.com from Kota Rajasthan is Your local Business Directory , yellow pages  Business Directory. Business Details, Contacts, Products, Services & Verified Businesses, Exporters, Manufacturers, Suppliers Directory">
-<meta name="keywords" content=" Look8us.com , yellow pages Kota Rajasthan , business directory Kota Rajasthan india,business search engine, indian business directory, online business directory, Indian manufacturers, suppliers, Indian exporters directory, b2b portal, b2b business directory,manufacturer, importers, traders, dealers, buyers, ">
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>
+		Look8US : Business Directory Kota Rajasthan | View Job Offers
+	</title>
+	<meta name="description"
+		content="Look8us.com Kota Rajasthan Business Directory. View verified business job offers, companies, suppliers and manufacturers.">
+	<meta name="keywords"
+		content="Look8US, Kota business directory, jobs Kota Rajasthan, job offers, yellow pages India">
+	<link rel="stylesheet" href="akc.css">
+	<style>
+		body {
+			margin: 0;
+			padding: 0;
+			background: #f5f5f5;
+			font-family:
+				Arial,
+				Helvetica,
+				sans-serif;
+		}
 
- <link rel="stylesheet" type="text/css" href="akc.css" />
+		.container {
+			width: 100%;
+			max-width: 1020px;
+			margin: auto;
+			background: #ffffff;
+		}
 
+		.page-title {
+			background: #d2d2d2;
+			padding: 15px;
+			font-size: 28px;
+			color: #333;
+			font-weight: bold;
+		}
 
+		.job-box {
+			width: 94%;
+			margin: 20px auto;
+			border-collapse: collapse;
+		}
+
+		.job-header {
+			background: #dddddd;
+			padding: 10px;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		.job-header a {
+			color: #003366;
+			text-decoration: none;
+		}
+
+		.job-details {
+			padding: 20px;
+		}
+
+		.job-row {
+			display: flex;
+			flex-wrap: wrap;
+			padding: 8px 0;
+			border-bottom: 1px solid #eeeeee;
+		}
+
+		.job-label {
+			width: 220px;
+			font-weight: bold;
+			color: #333;
+		}
+
+		.job-value {
+			flex: 1;
+		}
+
+		.company {
+			background: #e3e3e3;
+			padding: 10px;
+			color: #000080;
+			font-weight: bold;
+		}
+	</style>
 </head>
 
-<body topmargin="0" leftmargin="0" rightmargin="0" bottommargin="2" background="images/bg.png">
-
-
-
-
-
-<div align="center">
-<?php require_once "header.php"; ?>
-<table border="0" width="100%" height="100" cellpadding="0" style="border-collapse: collapse">
-	<tr>
-		<td bgcolor="#D2D2D2">
-		<div align="center">
-			<table border="0" width="1010" id="table33" style="border-collapse: collapse" height="40" cellpadding="0">
-				<tr>
-					<td><font size="6">&nbsp;</font><font size="5" color="#333333">View Job 
-					Offers </font></td>
-				</tr>
-			</table>
-		</div>
-		</td>
-	</tr>
-</table>
-	<table border="0" width="1020" id="table1" style="border-collapse: collapse" bordercolor="#F2F2F2" bgcolor="#FFFFFF" cellpadding="0">
-		<tr>
-			<td valign="top">
-			<div align="center">
-			<table border="0" width="100%" id="table2" cellpadding="0" style="border-collapse: collapse" bordercolor="#FFFFCC">
-				
-				<tr>
-					<td valign="top">
-					<table border="0" width="100%" id="table8" cellpadding="0" style="border-collapse: collapse">
-						<tr>
-							<td  valign="top" bgcolor="#FFFFFF">
-							<table border="0" width="100%" id="table10" cellpadding="0" style="border-collapse: collapse" height="326" >
-								<tr>
-									
-									<td align="center" valign="top"> <br>
-									<p style="margin-left: 10px; margin-top: 5px; margin-bottom: 5px">
-											<b>
-											
-														</b>
-											</p><div align="center">
-										
-									
-									
-									
-									
-									
-								
-										
-										<table border="0" width="98%" id="table34" style="border-collapse: collapse" cellpadding="0">
-										<tr>
-											<td height="29" width="1%" bgcolor="#DDDDDD">
-											&nbsp; </td>
-											<td height="29" width="50%" bgcolor="#DDDDDD">
-											&nbsp;<font size="2" color="#003366"><b>Job 
-											offer detail</b> </font></td>
-											<td height="29" align="right" width="49%" bgcolor="#DDDDDD">
-											<a href="javascript: window.history.go(-1)" class="a5">
-							&lt;&lt;back </a>&nbsp;&nbsp;&nbsp;&nbsp; </td>
-										</tr>
-										<tr>
-											<td height="98" colspan="3">
-											&nbsp;
-					<?php						
-
-if ( isset($_GET["id"]))
-{
-$st="Select * from postjob where jid=".$_GET["id"];
-
-//echo $st;
-$i=1;
-$result=mysqli_query($con,$st);
-if (!$result) {
-    die(mysqli_error($con));
-}
-
-	if ($row=mysqli_fetch_assoc($result))
-	{	
-	
-	?>						
-						<table   width="94%" id="table5" border="0" style="border-collapse: collapse"    >
-								<tr>
-									<td width="1%" valign="top">
-									<p style="line-height: 150%; margin-left:5px; margin-right:5px; margin-top:5px"><br>&nbsp;</td>
-									<td width="89%">
-									<table border="0" width="100%" id="table35" style="border-collapse: collapse" height="133">
-										<tr>
-											<td width="1%" height="25">&nbsp;</td>
-											<td height="25" width="99%">
-											<b>
-											<font size="2">Category : <?php echo htmlspecialchars($row["cate"]); ?></font></b></td>
-										</tr>
-										<tr>
-											<td height="25"></td>
-											<td height="25"><b><font size="2"><?php echo htmlspecialchars($row["atitle"]); ?></font></b><font size="2">&nbsp;</font></td>
-										</tr>
-										<tr>
-											<td width="1%" height="25">&nbsp;</td>
-											<td height="25" width="99%">
-											<font size="2">Description : <?php echo htmlspecialchars($row["discr"]); ?></font></td>
-										</tr>
-										<tr>
-											<td width="1%" height="25">&nbsp;</td>
-											<td height="25" width="99%">
-											<font size="2">Post Date : <?php echo htmlspecialchars($row["y"]); ?></font></td>
-										</tr>
-										<tr>
-											<td width="1%" height="25">&nbsp;</td>
-											<td height="25" width="99%">
-											<font size="2">Location : <?php echo htmlspecialchars($row["jobloc"]); ?>
-
-											</font>
-
-									</td>
-										</tr>
-										
-										<tr>
-											<td width="1%" height="25"></td>
-											<td height="25" width="99%">
-											<font size="2"><?php echo htmlspecialchars($row["jtype"]); ?></font></td>
-										</tr>
-										<tr>
-											<td width="1%" height="25"></td>
-											<td height="25" width="99%">
-											<font size="2">Rs.<?php echo htmlspecialchars($row["srange"])." ".htmlspecialchars($row["stype"]); ?></font></td>
-										</tr>
-										<tr>
-											<td width="1%" height="25"></td>
-											<td height="25" width="99%" bgcolor="#E3E3E3">
-											<font color="#000080"><b>Comapny/Industry/Shop Name : <?php echo htmlspecialchars($row["ename"]); ?></b></font></td>
-										</tr>
-										<tr>
-											<td width="1%" height="25"></td>
-											<td height="25" width="99%">
-											<font size="2">Coontact No. :<?php echo htmlspecialchars($row["phone"]); ?></font></td>
-										</tr>
-										<tr>
-											<td width="1%" height="25"></td>
-											<td height="25" width="99%">
-											<font size="2">Email ID : <?php echo htmlspecialchars($row["email"]); ?></font></td>
-										</tr>
-										<tr>
-											<td width="1%" height="25"></td>
-											<td height="25" width="99%">
-											<font size="2">City : <?php echo htmlspecialchars($row["city"]); ?></font></td>
-										</tr>
-										<tr>
-											<td width="1%" height="25"></td>
-											<td height="25" width="99%">
-											<font size="2">Website : <?php echo htmlspecialchars($row["web"]); ?></font></td>
-										</tr>
-										
-																				
-									</table>
-									</td>
-								</tr>
-			
-				
-								<tr>
-									<td width="99%" colspan="2" height="3"></td>
-								</tr>
-			
-				
-								<tr>
-									<td width="99%" colspan="2" bgcolor="#E2E2E2" height="3"></td>
-								</tr>
-			
-				
-								<tr>
-									<td width="99%" colspan="2" height="3"></td>
-								</tr>
-			
-				
-								<?php
-								
-
-								}
-								
-							}	
-								?>
-							</table></td>
-										</tr>
-										<tr>
-											<td colspan="3">
-											&nbsp;<p>&nbsp;</td>
-										</tr>
-									</table>
-									
-							
-											
-									</div>
-									</td>
-								</tr>
-							</table>
-							</td>
-						</tr>
-						</table>
-					</td>
-				</tr>
-			</table>
+<body>
+	<?php require_once __DIR__ . "/header.php"; ?>
+	<div class="container">
+		<h1 class="page-title">
+			View Job Offers
+		</h1>
+		<section class="job-box">
+			<div class="job-header">
+				<strong>
+					Job Offer Detail
+				</strong>
+				<a href="javascript:history.back()">
+					&lt;&lt; Back
+				</a>
 			</div>
-			</td>
-		</tr>
-	</table>
-</div>
-
-<div align="center">
-	<?php require_once "footer.php"; ?>
-</div>
-
+			<?php if ($job): ?>
+				<div class="job-details">
+					<div class="job-row">
+						<div class="job-label">
+							Category :
+						</div>
+						<div class="job-value">
+							<?= e($job['cate']) ?>
+						</div>
+					</div>
+					<div class="job-row">
+						<div class="job-label">
+							Job Title :
+						</div>
+						<div class="job-value">
+							<strong>
+								<?= e($job['atitle']) ?>
+							</strong>
+						</div>
+					</div>
+					<div class="job-row">
+						<div class="job-label">
+							Description :
+						</div>
+						<div class="job-value">
+							<?= nl2br(e($job['discr'])) ?>
+						</div>
+					</div>
+					<div class="job-row">
+						<div class="job-label">
+							Post Date :
+						</div>
+						<div class="job-value">
+							<?= e($job['y']) ?>
+						</div>
+					</div>
+					<div class="job-row">
+						<div class="job-label">
+							Location :
+						</div>
+						<div class="job-value">
+							<?= e($job['jobloc']) ?>
+						</div>
+					</div>
+					<div class="job-row">
+						<div class="job-label">
+							Job Type :
+						</div>
+						<div class="job-value">
+							<?= e($job['jtype']) ?>
+						</div>
+					</div>
+					<div class="job-row">
+						<div class="job-label">
+							Salary :
+						</div>
+						<div class="job-value">
+							Rs.
+							<?= e($job['srange']) ?>
+							<?= e($job['stype']) ?>
+						</div>
+					</div>
+					<div class="job-row company">
+						<div class="job-label">
+							Company / Industry / Shop Name :
+						</div>
+						<div class="job-value"><?= e($job['ename']) ?></div>
+					</div>
+					<div class="job-row">
+						<div class="job-label">Contact No :</div>
+						<div class="job-value"><?= e($job['phone']) ?></div>
+					</div>
+					<div class="job-row">
+						<div class="job-label">Email ID :</div>
+						<div class="job-value">
+							<a href="mailto:<?= e($job['email']) ?>"><?= e($job['email']) ?></a>
+						</div>
+					</div>
+					<div class="job-row">
+						<div class="job-label">City :</div>
+						<div class="job-value"><?= e($job['city']) ?></div>
+					</div>
+					<div class="job-row">
+						<div class="job-label">Website :</div>
+						<div class="job-value">
+							<?php if (!empty($job['web'])): ?>
+								<a
+									href="<?= e($job['web']) ?>"
+									target="_blank"
+									rel="noopener noreferrer"><?= e($job['web']) ?></a>
+							<?php else: ?>
+								N/A
+							<?php endif; ?>
+						</div>
+					</div>
+				</div>
+			<?php else: ?>
+				<div class="job-details">
+					<div class="job-row">
+						<div class="job-value">
+							<strong>
+								Job offer not found.
+							</strong>
+						</div>
+					</div>
+				</div>
+			<?php endif; ?>
+		</section>
+	</div>
+	<?php require_once __DIR__ . "/footer.php"; ?>
 </body>
 
 </html>

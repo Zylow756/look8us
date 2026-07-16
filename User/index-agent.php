@@ -1,366 +1,535 @@
 <?php
+declare(strict_types=1);
 require_once __DIR__ . "/../config.php";
-
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+/*
+|--------------------------------------------------------------------------
+| Secure Session Handling
+|--------------------------------------------------------------------------
+*/if (session_status() === PHP_SESSION_NONE) {    session_set_cookie_params([
+        'lifetime' => 0,
+        'path'     => '/',
+        'secure'   => isset($_SERVER['HTTPS']),
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);    session_start();
 }
-if (empty($_SESSION['user'])) {
-    header("Location: index.php?r=0");
-    exit;
-}
-
-include("../thecaptcha/captcha.function.php");
-$captcha_text = 'Please tell me you\'re not a spambot';
-$error = 0;
-$flag=0;
-
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-if (empty($_SESSION['user'])) {
-    header("Location: index.php?r=0");
-    exit;
-}
-
-
-if ( isset($_POST['submit']))
-{
- 	if (!captcha_verify_word())
- 	 {
-		$error .= 1;
-		$captcha_text = '<span><b><h5>Wrong image code</h5><b></span>';
-	} else {
-		$error .= 0;
-	}
-	
-	if ($error <= 0)
-		 {
-				$st2="Select * from member where email='".$_POST['txtmail']."'";
-				$result2=mysqli_query($con,$st2);
-if (!$result2) {
-    die(mysqli_error($con));
-}
-				if($row2=mysqli_fetch_assoc($result2)) $flag=1;
-				 
-			
-		if ($flag==0)
-			{
-				
-				$st="select * from agent where acode='".$_POST['agcode']."'";
-				$ra=mysqli_query($con,$st);
-if (!$ra) {
-    die(mysqli_error($con));
-}
-				if ($rowa=mysqli_fetch_assoc($ra))
-				{
-								
-						$t=substr($_POST['mname'],0,3);
-						
-						$st="select mid from member order by mid desc";
-						$r=mysqli_query($con,$st);
-if (!$r) {
-    die(mysqli_error($con));
-}
-						if ($row=mysqli_fetch_assoc($r))
-						 $us=$t.$row["mid"];
-						else
-						 $us=$t."1";
-							
-						$pass=base64_encode($_POST['pass']);
-						
-						$s="insert into member  values (NULL ,'" .$us."','".$pass. "','". ucwords($_POST['mname']). "','". ucwords($_POST['compname']). "','-','-','-','-','". ucwords($_POST['city']). "','-','-','-','-','".$_POST["mobile"]."','-','".$_POST['txtmail']."','-','-','-','0','-','-',0,'-','-','".date("d-m-Y")."','-',0,'Demo','-','-','-','-','-','2000-01-01','-','-','".$_POST["agcode"]."','-','-','-')" ;
-					//	$s="insert into member  values (NULL ,'" .$us."','".$pass. "','". $_POST['mname']. "','". $_POST['compname']. "','". $_POST['tagline']. "','". $_POST['shopno']. "','". $_POST['address']. "','". $_POST['area']. "','". $_POST['city']. "','". $_POST['state1']. "','". $_POST['pincode']. "','". $_POST['phone']. "','". $_POST['phone0']. "','".$_POST["mobile"]."','". $_POST['mobile0']. "','".$_POST['txtmail']."','".$_POST['website']."','". $_POST['remark']. "','". $_POST['remark0']. "','0','-','-',0,'".$_POST['establish']."','-','-','-',0,'Demo','-','-','-','-','-','-','-')" ;
-		
-						mysqli_query($con,$s);
-						
-					 		$_SESSION['user']=$_POST['txtmail'];
-							$_SESSION['mtyp']="0";
-							$_SESSION['mid']=$row['mid']+1;
-							$_SESSION['mplan']="Demo";
-		
-						//header("location: next.php?flag=2&us=".$us);
-						//header("location: home.php");
-			header("location: home.php?user=".$_SESSION['user']."&mid=".$_SESSION['mid']."&mtyp=0&mplan='Demo'");
-
-						//echo $s;
-						$flag=2;
-						
-				}
-				else
-				{
-					$flag=3;  // Invalide Agent Code
-				}
-				
-				
-			}
-			
-		}
-
-}
-
-?>
-
-
-
-<html>
-
-<head>
-<meta charset="UTF-8">
-<title>Online Directory</title>
- <link rel="stylesheet" type="text/css" href="../akc.css" />
-
-
-<script type="text/javascript">
-function vfhfn()
-{
 
 /*
-var x=document.frmhlp.file1.value;
-if(x==null||x=="")
-{
-alert("Please Select Your Photo(JPG/Gif)");
- return false;
+|--------------------------------------------------------------------------
+| User Authentication Check
+|--------------------------------------------------------------------------
+*/if (empty($_SESSION['user'])) {    header("Location: index.php?r=0");
+    exit;
 }
+
+/*
+|--------------------------------------------------------------------------
+| Captcha Include
+|--------------------------------------------------------------------------
+*/require_once __DIR__ . "/../thecaptcha/captcha.function.php";
+/*
+|--------------------------------------------------------------------------
+| Variables
+|--------------------------------------------------------------------------
+*/$captcha_text = "Please tell me you're not a spambot";$error = 0;
+$flag  = 0;
+$us    = "";/*
+|--------------------------------------------------------------------------
+| Helper Function
+|--------------------------------------------------------------------------
+*/function clean_input(string $value): string
+{
+    return trim(
+        htmlspecialchars(
+            $value,
+            ENT_QUOTES | ENT_SUBSTITUTE,
+            'UTF-8'
+        )
+    );
+}
+
+/*
+|--------------------------------------------------------------------------
+| Registration Processing
+|--------------------------------------------------------------------------
+*/if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
+    /*
+    |--------------------------------------------------------------------------
+    | Captcha Verification
+    |--------------------------------------------------------------------------
+    */    if (!captcha_verify_word()) {        $error = 1;        $captcha_text =
+            '<span class="error-message">
+                <b>Wrong image code</b>
+             </span>';    }
+    if ($error === 0) {
+        /*
+        |--------------------------------------------------------------------------
+        | Collect & Sanitize User Input
+        |--------------------------------------------------------------------------
+        */        $email = filter_var(
+            $_POST['txtmail'] ?? '',
+            FILTER_SANITIZE_EMAIL
+        );
+        $email = strtolower(trim($email));
+        $agent_code = clean_input(
+            $_POST['agcode'] ?? ''
+        );
+        $member_name = clean_input(
+            $_POST['mname'] ?? ''
+        );
+        $company_name = clean_input(
+            $_POST['compname'] ?? ''
+        );
+        $city = clean_input(
+            $_POST['city'] ?? ''
+        );
+        $mobile = clean_input(
+            $_POST['mobile'] ?? ''
+        );
+        $password = $_POST['pass'] ?? '';        /*
+        |--------------------------------------------------------------------------
+        | Email Already Registered Check
+        |--------------------------------------------------------------------------
+        */        $stmt = $con->prepare(
+            "SELECT mid 
+             FROM member 
+             WHERE email = ?
+             LIMIT 1"
+        );
+        $stmt->bind_param(
+            "s",
+            $email
+        );
+        $stmt->execute();
+        $result = $stmt->get_result();        if ($result->num_rows > 0) {
+            $flag = 1;
+        }
+ else {
+            /*
+            |--------------------------------------------------------------------------
+            | Validate Agent Code
+            |--------------------------------------------------------------------------
+            */
+            $stmt = $con->prepare(
+                "SELECT acode 
+                 FROM agent 
+                 WHERE acode = ?
+                 LIMIT 1"
+            );
+            $stmt->bind_param(
+                "s",
+                $agent_code
+            );
+            $stmt->execute();
+            $agent_result = $stmt->get_result();            if ($agent_result->num_rows === 0) {
+                /*
+                | Invalid Agent Code
+                */                $flag = 3;
+            }
+ else {
+                /*
+                |--------------------------------------------------------------------------
+                | Generate User ID
+                |--------------------------------------------------------------------------
+                */
+                $prefix = strtoupper(
+                    substr(
+                        $member_name,
+                        0,
+                        3
+                    )
+                );
+                $stmt = $con->prepare(
+                    "SELECT mid 
+                     FROM member 
+                     ORDER BY mid DESC 
+                     LIMIT 1"
+                );
+                $stmt->execute();
+                $last_member =
+                    $stmt->get_result()
+                    ->fetch_assoc();                if ($last_member) {
+                    $us =
+                        $prefix .
+                        ((int)$last_member['mid'] + 1);
+                }
+ else {
+                    $us =
+                        $prefix . "1";                }
+                /*
+                |--------------------------------------------------------------------------
+                | Secure Password Hash
+                |--------------------------------------------------------------------------
+                */                $hashed_password =
+                    password_hash(
+                        $password,
+                        PASSWORD_DEFAULT
+                    );
+					/*
+|--------------------------------------------------------------------------
+| Insert Member Record PHP 8.3
+|--------------------------------------------------------------------------
 */
-
-var x=document.frmhlp.txttmail.value;
-var atpos=x.indexOf("@");
-var dotpos=x.lastIndexOf(".");
-if (atpos<1 || dotpos<atpos+2 || dotpos+2>=x.length)
-  {
-  alert("Not a valid e-mail address");
-  document.frmhlp.txttmail.focus();
-
-  return false;
-  }
-
-var agcode=document.frmhlp.agcode.value;
-
-var fllnme1=document.frmhlp.compname.value;
-var fllnme2=document.frmhlp.mname.value;
-
-var mle=document.frmhlp.mobile.value;
-
-var cty=document.frmhlp.city.value;
-
-var pa=document.frmhlp.pass.value;
-var pa1=document.frmhlp.pass1.value;
-
-
-
-
-if(agcode==null||agcode=="")
-{alert("Required Agent Code");
-document.frmhlp.agcode.focus();
-return false;
+$tagline  = "-";
+$shopno   = "-";
+$address  = "-";
+$area     = "-";
+$state    = "-";
+$pin      = "-";
+$phone    = "-";
+$phone1   = "-";
+$mobile1  = "-";
+$web      = "-";
+$remark   = "-";
+$remark1  = "-";$logo     = "-";
+$catelog  = "-";$estyear  = "-";$x        = "-";
+$y        = "-";
+$z        = "-";$ytube    = "-";
+$facebook = "-";
+$twiter   = "-";
+$linken   = "-";$gmap     = "-";$verify   = "-";$a        = "-";
+$b        = "-";
+$c        = "-";
+$mtyp = 0;$rating = 0;$mstatus = 0;$mplan = "Demo";$mdate = date("d-m-Y");$expdate = "2000-01-01";$stmt = $con->prepare("
+INSERT INTO member
+(
+mid,
+uname,
+pass,
+mname,
+compname,
+tagline,
+shopno,
+address,
+area,
+city,
+state1,
+pin,
+phone,
+phone1,
+mobile,
+mobile1,
+email,
+web,
+remark,
+remark1,
+mtyp,
+logo,
+catelog,
+rating,
+estyear,
+x,
+y,
+z,
+mstatus,
+mplan,
+mdate,
+ytube,
+facebook,
+twiter,
+linken,
+expdate,
+gmap,
+verify,
+acode,
+a,
+b,
+c)VALUES(
+NULL,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?,
+?
+)");$stmt->bind_param("sssssssssssssssssssssssssssssssssssssssssss",$us,
+$hashed_password,
+$member_name,
+$company_name,
+$tagline,
+$shopno,
+$address,
+$area,
+$city,
+$state,
+$pin,
+$phone,
+$phone1,
+$mobile,
+$mobile1,
+$email,
+$web,
+$remark,
+$remark1,
+$mtyp,
+$logo,
+$catelog,
+$rating,
+$estyear,
+$x,
+$y,
+$z,
+$mstatus,
+$mplan,
+$mdate,
+$ytube,
+$facebook,
+$twiter,
+$linken,
+$expdate,
+$gmap,
+$verify,
+$agent_code,
+$a,
+$b,
+$c);if(!$stmt->execute()){
+    die(
+        "Member registration failed: "
+        .$stmt->error
+    );
 }
+$new_mid = $con->insert_id;
+					/*
+                    |--------------------------------------------------------------------------
+                    | Create Session
+                    |--------------------------------------------------------------------------
+                    */                    $_SESSION['user']  = $email;
+                    $_SESSION['mtyp']  = "0";
+                    $_SESSION['mid']   = $new_mid;
+                    $_SESSION['mplan'] = "Demo";                    $flag = 2;                    header(
+                        "Location: home.php?user="
+                        . urlencode($email)
+                        . "&mid="
+                        . $new_mid
+                        . "&mtyp=0&mplan=Demo"
+                    );
+                    exit;                }
 
-if(agcode=="Agent Code")
-{alert("Required Agent Code");
-document.frmhlp.agcode.focus();
-return false;
-}
+            }
 
+        }
 
+    }
+?>
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Online Directory - Agent Registration</title>
+<link rel="stylesheet" href="../akc.css">
+<style>
+body {    margin:0;
+    padding:0;
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;    background:#f5f5f5;}
+.page-container {    width:100%;
+    min-height:100vh;}
+.registration-box {
+    width:min(95%,1010px);    margin:30px auto;    background:#ffffff;    padding:20px;    border-radius:10px;    box-shadow:
+        0 4px 15px rgba(0,0,0,.15);}
+.form-title {
+    background:#e2e2e2;    padding:12px;    text-align:center;    font-size:20px;    font-weight:bold;}
+.form-row {
+    display:grid;    grid-template-columns:
+    1fr 1fr 1fr;    gap:15px;    align-items:center;    margin-bottom:15px;}
+.form-row label {
+    text-align:right;    font-weight:bold;}
+.txtbox {
+    width:100%;    padding:10px;    border:1px solid #ccc;    border-radius:5px;    box-sizing:border-box;}
+.subbox {
+    padding:10px 30px;    background:#333;    color:white;    border:none;    border-radius:5px;    cursor:pointer;}
+.subbox:hover {
+    background:#000;}
+.error-message {    color:red;}
 
+</style><!--
+|--------------------------------------------------------------------------
+| HTML BODY START
+|--------------------------------------------------------------------------
+--></head>
+<body>
+<div class="page-container">
+<?php require_once __DIR__ . "/../header.php"; ?><div class="registration-box"><?php
+if ($flag === 1) {    echo '
+    <div class="error-message">
+        This E-Mail ID Already Registered
+    </div>';}
 
-if(fllnme1==null||fllnme1=="")
-{alert("Required Company Name");
-document.frmhlp.compname.focus();
-return false;
-}
+elseif ($flag === 2) {
+    echo '
+    <div class="success-message">
+        Member Registered Successfully.
+        <br>
+        Your User ID :
+        <strong>'
+        . htmlspecialchars($us)
+        .
+        '</strong>
+    </div>';}
+elseif ($flag === 3) {
+    echo '
+    <div class="error-message">
+        Invalid Agent Code ID
+    </div>';}
 
-if(fllnme1=="Company Name")
-{alert("Required Company Name");
-document.frmhlp.compname.focus();
-return false;
-}
+?>
+<form
+    name="frmhlp"
+    id="frmhlp"
+    method="post"
+    action="index-agent.php"
+    onsubmit="return validateForm();"
+    autocomplete="off"
+><div class="form-title">Register Your Firm / Shop / Company</div>
+<!-- Agent Code --><div class="form-row">
+<label for="agcode">Agent Code</label>
+<input
+type="text"
+name="agcode"
+id="agcode"
+class="txtbox"
+tabindex="1"
+placeholder="Agent Code"
+value="<?= htmlspecialchars($_POST['agcode'] ?? '') ?>"
+required
+>
+</div>
+<!-- Company Name --><div class="form-row">
+<label for="compname">Company / Firm / Shop Name</label>
+<input type="text"name="compname"id="compname"class="txtbox"tabindex="2"placeholder="Company Name"value="<?= htmlspecialchars($_POST['compname'] ?? '') ?>"required>
+</div>
+<!-- Member Name --><div class="form-row">
+<label for="mname">Owner / Contact Person</label>
+<input type="text"name="mname"id="mname"class="txtbox"tabindex="3"placeholder="Member Name"value="<?= htmlspecialchars($_POST['mname'] ?? '') ?>"required>
+</div>
+<!-- City -->
+<div class="form-row">
+<label for="city">City</label>
+<input type="text"name="city"id="city"class="txtbox"tabindex="4"placeholder="City"value="<?= htmlspecialchars($_POST['city'] ?? '') ?>"required>
+</div>
+<!-- Mobile -->
+<div class="form-row">
+<label for="mobile">Mobile Number</label>
+<input type="tel"name="mobile"id="mobile"class="txtbox"maxlength="15"tabindex="5"placeholder="Mobile Number"value="<?= htmlspecialchars($_POST['mobile'] ?? '') ?>"required>
+</div>
+<!-- Email -->
+<div class="form-row">
+<label for="txtmail">Email ID</label><div>
+<input type="email"name="txtmail"id="txtmail"class="txtbox"tabindex="6"placeholder="Email ID"value="<?= htmlspecialchars($_POST['txtmail'] ?? '') ?>"required>
+<?php
+if ($flag === 1) {
+echo '<p class="error-message">
+This E-Mail ID already registered.
+</p>';}
 
+?>
+</div>
+</div>
+<!-- Password -->
+<div class="form-row">
+<label for="pass">Password</label><div>
+<input type="password"name="pass"id="pass"class="txtbox"tabindex="7"minlength="6"required>
+<p class="help-text">Minimum 6 characters.</p>
+</div>
+</div>
+<!-- Confirm Password -->
+<div class="form-row">
+<label for="pass1">Confirm Password</label><input type="password"name="pass1"id="pass1"class="txtbox"tabindex="8"required>
+</div>
+<!-- Captcha Image -->
+<div class="form-row">
+<label>Captcha</label><div>
+<img src="../thecaptcha/captcha.image.php?nocache=<?= md5((string)time()) ?>"alt="Captcha Image"style="max-width:220px;height:auto;">
+</div>
+</div>
+<!-- Captcha Input -->
+<div class="form-row">
+<label for="magicword">Enter Captcha Code</label>
+<input type="text"name="magicword"id="magicword"class="txtbox"tabindex="9"required>
+<div>
+<?= $captcha_text ?></div>
+</div><!-- Submit Button -->
+<div class="form-row">
+<div></div>
+<button type="submit"name="submit"class="subbox">Submit</button>
+<div></div>
+</div>
+</form>
+</div>
+<script>
+function validateForm()
+{const email =
+document.getElementById("txtmail").value.trim();const agent =
+document.getElementById("agcode").value.trim();const company =
+document.getElementById("compname").value.trim();const name =
+document.getElementById("mname").value.trim();const mobile =
+document.getElementById("mobile").value.trim();const city =
+document.getElementById("city").value.trim();const pass =
+document.getElementById("pass").value;const pass1 =
+document.getElementById("pass1").value;if(agent === "")
+{alert("Required Agent Code");document.getElementById("agcode").focus();return false;}
 
+if(company === "")
+{alert("Required Company Name");document.getElementById("compname").focus();return false;}
 
-if(fllnme2==null||fllnme2=="")
-{alert("Required Contact Person Name");
-document.frmhlp.mname.focus();
-return false;
-}
+if(name === "")
+{alert("Required Contact Person Name");document.getElementById("mname").focus();return false;}
 
-if(fllnme2=="Member Name")
-{alert("Required Contact Person Name");
-document.frmhlp.mname.focus();
-return false;
-}
+if(city === "")
+{alert("Required City");document.getElementById("city").focus();return false;}
 
+if(mobile === "")
+{alert("Required Mobile Number");document.getElementById("mobile").focus();return false;}
 
-if(mle==null||mle=="")
-{alert("Required Mobile No.");
-document.frmhlp.mobile.focus();
-return false;
-}
+if(!email.includes("@"))
+{alert("Enter Valid Email Address");document.getElementById("txtmail").focus();return false;}
 
-if(mle=="Mobile")
-{alert("Required Mobile No");
-document.frmhlp.mobile.focus();
-return false;
-}
+if(pass.length < 6)
+{alert("Password must be at least 6 characters");document.getElementById("pass").focus();return false;}
 
+if(pass !== pass1)
+{alert("Password and Confirm Password are not same");document.getElementById("pass1").focus();return false;}
 
-
-if(cty==null||cty=="")
-{alert("Required City");
-document.frmhlp.city.focus();
-return false;
-}
-
-if(cty=="City")
-{alert("Required City");
-document.frmhlp.city.focus();
-return false;
-}
-
-if(pa.length <6)
-{alert("Password atleast 6 Char Long");
-document.frmhlp.pass.focus();
-return false;
-}
-
-if(pa!=pa1)
-{alert("Password & Confirm Password are NOT Same");
-document.frmhlp.pass1.focus();
-return false;
-}
-else
-{
 return true;
 }
 
-}
-
 </script>
-
-
-
-
-</head>
-
-
-<body topmargin="0" leftmargin="0" rightmargin="0" bottommargin="0">
-
-<table border="0" width="100%" id="table1" style="border-collapse: collapse" bordercolor="#C0C0C0" cellpadding="0">
-	<tr>
-		<td height="20" bgcolor="#E2E2E2"><?php  require_once "../header.php"; ?></td>
-	</tr>
-	<tr>
-		<td align="center" >
-		<?php 
-		if ($flag==1) echo "<h3>This E-Mail ID Already Registered</h3>"; 
-		elseif ($flag==2) echo "<h3>Member Registered, Your User ID :".$us."</h3>"; 
-		elseif ($flag==3) echo "<h3>Invalid Agent Code ID </h3>"; 
- ?>
-		<br><form name="frmhlp" id="frmhlp" method="post" action="index-agent.php" onSubmit="return vfhfn();">
-			<table border="0" width="1010" id="table2" cellpadding="0" style="border-collapse: collapse" bgcolor="#F4F4F4">
-			
-				
-<tr><td width="1010" height="25" bgcolor="#E2E2E2" colspan="3" align="center">
-	<b><font color="#000000">&nbsp;&nbsp; Register Your firm/shop/company </font>
-	</b></td>
-				</tr>
-<tr><td width="396" height="40" align="right"><font color="#0000FF"><b>Agent Code&nbsp;&nbsp; 
-	</b></font> </td>
-	<td width="233" height="40" align="center">
-	<input class="txtbox" type="text" name="agcode" id="agcode" tabindex="1" value="<?php if (isset($_POST['agcode'])) $agcode = $_POST['agcode'] ?? ''; echo $agcode; else echo 'Agent Code';  ?>"  onfocus="if(this.value=='Agent Code'){this.value='';}" onblur="if(this.value==''){this.value='Agent Code';}" size="1"/></td>
-	<td height="40" width="381">
-	&nbsp;</td>
-	
-	</tr>
-<tr>
-	<td width="396" height="40" align="right"><font color="#333333">Company/Firm/Shop Name</font></td>
-	<td width="233" height="40" align="center">
-	<input class="txtbox" type="text" name="compname" id="compname" tabindex="2" value="<?php if (isset($_POST['compname'])) $compname = $_POST['compname'] ?? ''; echo $compname; else echo 'Company Name';  ?>"  onfocus="if(this.value=='Company Name'){this.value='';}" onblur="if(this.value==''){this.value='Company Name';}" size="1"/></td>
-	<td height="40" width="381">
-	&nbsp;</td>
-				</tr>
-<tr><td width="396" height="40" align="right"><font color="#333333">Owner/Contact Person </font></td>
-	<td width="233" height="40" align="center">
-	<input class="txtbox" type="text" name="mname" id="mname" tabindex="3" value="<?php if (isset($_POST['mname'])) $mname = $_POST['mname'] ?? ''; echo $mname; else echo 'Member Name';  ?>" onfocus="if(this.value=='Member Name'){this.value='';}" onblur="if(this.value==''){this.value='Member Name';}" size="1"/></td>
-	<td height="40" width="381">
-	&nbsp;</td>
-				</tr>
-<tr>
-	<td width="396" height="40" align="right"><font color="#333333">City</font></td>
-	<td width="233" height="40" align="center">
-	<input  class="txtbox" type="text" name="city" id="city" tabindex="4" value="<?php if (isset($_POST['city'])) $city = $_POST['city'] ?? ''; echo $city; else echo 'City';  ?>" onfocus="if(this.value=='City'){this.value='';}" onblur="if(this.value==''){this.value='City';}" size="1"/></td>
-	<td height="40" valign="top" width="381">
-	&nbsp;</td>
-</tr>
-<tr>
-	<td width="396" height="40" align="right"><font color="#333333">Mobile Number</font></td>
-	<td width="233" height="40" align="center">
-	<input  class="txtbox" type="text" name="mobile" id="mobile" value="<?php if (isset($_POST['mobile'])) $mobile = $_POST['mobile'] ?? ''; echo $mobile;  else echo 'Mobile';  ?>" onfocus="if(this.value=='Mobile'){this.value='';}" onblur="if(this.value==''){this.value='Mobile';}" tabindex="5" size="1"/></td>
-	<td height="40" valign="top" width="381">
-	&nbsp;</td>
-</tr>
-<tr>
-	<td width="396" height="40" align="right"><font color="#333333">Email ID</font></td>
-	<td width="233" height="40" align="center">
-	<input class="txtbox" type="text" name="txtmail" id="txttmail" value="<?php if (isset($_POST['txtmail'])) $txtmail = $_POST['txtmail'] ?? ''; echo $txtmail;   else echo 'Email ID';  ?>" onfocus="if(this.value=='Email ID'){this.value='';}" onblur="if(this.value==''){this.value='Email ID';}" tabindex="6" /></td>
-	<td height="40" valign="top" width="381">
-	<p class="p1">Valid Email Id .</p> <?php if ($flag==1) echo "<h5>This E-Mail ID already Register !</h5>"; ?></td>
-</tr>
-<tr>
-	<td width="396" height="40" align="right"><font color="#333333">Password 
-	</font> </td>
-	<td width="233" height="40" align="center">
-	<input class="txtbox" type="password" name="pass" id="pass" tabindex="7" /></td>
-	<td height="40" valign="top" width="381">
-	<p class="p1">At least 6 character.</p></td>
-</tr>
-<tr>
-	<td width="396" height="40" align="right"><font color="#333333">Confirm Password 
-	</font> </td>
-	<td width="233" height="40" align="center">
-	<input class="txtbox" type="password" name="pass1" id="pass1" tabindex="8" /></td>
-	<td height="40" width="381">
-		
-	&nbsp;</td>
-</tr>
-<tr>
-	<td width="396" height="42" align="right"><font color="#333333">Enter Captcha Code
-	</font> </td>
-	<td width="233" height="42" align="center">
-	<img src="../thecaptcha/captcha.image.php?nocache=<?php echo md5(time()); ?>" border="0"></td>
-	<td height="42" width="381">
-	&nbsp;</td>
-</tr>
-<tr>
-	<td width="396" height="35" align="right">&nbsp;</td>
-	<td width="233" height="25" align="center">
-	<input name="magicword" class="txtbox" type="text" tabindex="9"></td>
-	<td height="25" width="381">
-	&nbsp;&nbsp;&nbsp;<?php echo $GLOBALS['captcha_text']; ?></td>
-</tr>
-<tr><td width="396" height="25" align="right">&nbsp;</td>
-	<td width="233" height="25" align="center">
-	
-	<input  class="subbox" type="submit" value="Submit" name="submit"/></td></tr>
-<tr><td width="396" height="25" align="right">&nbsp;</td>
-	<td width="233" height="25" align="center">
-	
-	&nbsp;</td></tr>
-<tr><td width="396">&nbsp;</td>
-	<td width="233" align="center">
-	&nbsp;</td>
-	<td width="381">
-	&nbsp;
-	</td></tr>
-
-		</table></form>
-		</td>
-	</tr>
-	<tr>
-		<td bgcolor="#F5F5F5" height="20"><?php  require_once "../footer.php"; ?></td>
-	</tr>
-</table>
-
-</body>
-
-</html>
+<?php require_once __DIR__ . "/../footer.php"; ?>
+</div>
+</body></html>
