@@ -152,6 +152,7 @@ main{
     font-size:clamp(28px,4vw,42px);
 
     margin-bottom:20px;
+    line-height:40px
 }
 
 .logout-card p{

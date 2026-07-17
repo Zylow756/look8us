@@ -53,7 +53,11 @@ function captcha_show_image() {
 	// Random background and color scheme. Can be red, green or blue
 	$captcha_backgrounds = array('FF0000', '00FF00', '0000FF');
 	$captcha_color_scheme = $captcha_backgrounds[mt_rand(0, 2)];
-	$captcha_colors = array(hexdec('0x'.$captcha_color_scheme{0}.$captcha_color_scheme{1}), hexdec('0x'. $captcha_color_scheme{2}.$captcha_color_scheme{3}), hexdec('0x'.$captcha_color_scheme{4}.$captcha_color_scheme{5}));
+	$captcha_colors = array(
+    hexdec('0x' . $captcha_color_scheme[0] . $captcha_color_scheme[1]),
+    hexdec('0x' . $captcha_color_scheme[2] . $captcha_color_scheme[3]),
+    hexdec('0x' . $captcha_color_scheme[4] . $captcha_color_scheme[5])
+);
 	$captcha_image_bgcolor = imagecolorallocate($captcha_image, $captcha_colors[0], $captcha_colors[1], $captcha_colors[2]);
 	
 	// Let's make some lighter and darker colors
@@ -104,11 +108,11 @@ function captcha_show_image() {
 	// Let's place the word. Each letter will have random position, size, angle and font
 	if (function_exists('imagettftext')) {
 		for($i = 0; $i <= 4; $i++) {
-			imagettftext($captcha_image, mt_rand(24, 28), mt_rand(-20, 20), $i*mt_rand(30, 36)+mt_rand(2,4), mt_rand(32, 36), $captcha_image_lcolor[mt_rand(0, 1)], mt_rand(1, 4).'.ttf', $captcha_word{$i});
+			imagettftext($captcha_image, mt_rand(24, 28), mt_rand(-20, 20), $i*mt_rand(30, 36)+mt_rand(2,4), mt_rand(32, 36), $captcha_image_lcolor[mt_rand(0, 1)],__DIR__ . '/' . mt_rand(1,4) . '.ttf', $captcha_word[$i]);
 		}
 	} else {
 		for($i = 0; $i <= strlen($captcha_word); $i++) {
-			imagestring($captcha_image, imageloadfont(mt_rand(1, 3).'.gdf'), $i*mt_rand(20, 26), 0+mt_rand(2, 4), $captcha_word{$i}, $captcha_image_lcolor[mt_rand(0, 1)]);
+			imagestring($captcha_image, imageloadfont(mt_rand(1, 3).'.gdf'), $i*mt_rand(20, 26), 0+mt_rand(2, 4), $captcha_word[$i], $captcha_image_lcolor[mt_rand(0, 1)]);
 		}
 	}
 	
@@ -138,7 +142,9 @@ function captcha_show_image() {
 	if ($GLOBALS['captcha_method'] == 'cookie') {
 		setcookie('magicword', md5($captcha_word), 0, '/');
 	} else {
-		session_start();
+		if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 		$_SESSION['magicword'] = md5($captcha_word);
 	}
 	

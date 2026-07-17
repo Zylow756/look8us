@@ -116,13 +116,26 @@ document.oncontextmenu=new Function("alert(message);return false")
 					<td align="center" valign="top" bgcolor="#FFFFFF">
 					<h1>Search Enquiry by Agent<br>
 &nbsp;</h1>
-
+<?php
+$hid = 1; // default value
+?>
 <form name="frmhlp" id="frmhlp" method="post" action="ViewAllAgentEnquiry.php" >
 Enter Company Name or Mobile No
-<input type="text" name="pname" size="16" value="<?php if (isset($_POST['pname'])) $pname = $_POST['pname'] ?? ''; echo $pname; ?>"  >
+<input type="text" name="pname" size="16" <?php
+$pname = $_POST['pname'] ?? '';
+?>
+
+<input type="text"
+       name="pname"
+       value="<?= htmlspecialchars($pname) ?>">  
 <input type="submit" value="Show" name="submit">&nbsp;&nbsp; 
-<input type="radio" value="1" name="hid" <?php if (isset($_POST['hid'])){ if ($_POST['hid']==1)echo 'checked'; } else echo 'checked'; ?> > Show Data
-<input type="radio" value="0" name="hid"  <?php if (isset($_POST['hid'])) $hid = $_POST['hid'] ?? ''; if ($hid==0)echo 'checked';  ?> > Hide Data&nbsp;&nbsp; <br>&nbsp;
+<input type="radio" name="hid" value="1"
+<?= ($hid == 1) ? 'checked' : '' ?>>
+Show Data
+
+<input type="radio" name="hid" value="0"
+<?= ($hid == 0) ? 'checked' : '' ?>>
+Hide Data
 
 <br>&nbsp;
 					<table class="table2"  width="99%" id="table3" border="1"    >

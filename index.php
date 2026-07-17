@@ -1,947 +1,1004 @@
 <?php
-
 declare(strict_types=1);
-
 require_once __DIR__ . '/config.php';
 
 if (session_status() === PHP_SESSION_NONE) {
-	session_start();
+    session_start();
 }
 
-/* CSRF Token*/
+/* CSRF Token */
 if (empty($_SESSION['csrf_token'])) {
-	$_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
-/* Variables*/
 $msg = 0;
 $error = '';
 
-/* Feedback Form*/
+$city   = trim($_POST['city'] ?? '');
+$mname  = trim($_POST['mname'] ?? '');
+$mobile = trim($_POST['mobile'] ?? '');
+$email  = trim($_POST['txtmail'] ?? '');
+$remark = trim($_POST['remark'] ?? '');
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
-	if (
-		!isset($_POST['csrf_token']) ||
-		!hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])
-	) {
-		die('Invalid CSRF Token.');
-	}
 
-	$city = trim($_POST['city'] ?? '');
-	$name = trim($_POST['mname'] ?? '');
-	$mobile = trim($_POST['mobile'] ?? '');
-	$email = trim($_POST['txtmail'] ?? '');
-	$remark = trim($_POST['remark'] ?? '');
+    if (
+        !isset($_POST['csrf_token']) ||
+        !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])
+    ) {
+        $error = 'Invalid request.';
+    }
 
-	/* Remove placeholder values */
-	$placeholders = [
-		'City',
-		'Member Name',
-		'Mobile',
-		'Email ID',
-		'Message'
-	];
+    if ($error === '') {
 
-	foreach ($placeholders as $placeholder) {
-		if ($city === $placeholder) {
-			$city = '';
-		}
-		if ($name === $placeholder) {
-			$name = '';
-		}
-		if ($mobile === $placeholder) {
-			$mobile = '';
-		}
-		if ($email === $placeholder) {
-			$email = '';
-		}
-		if ($remark === $placeholder) {
-			$remark = '';
-		}
-	}
+        if ($city === '') {
+            $error = 'Please enter city.';
+        } elseif ($mname === '') {
+            $error = 'Please enter your name.';
+        } elseif ($mobile === '') {
+            $error = 'Please enter mobile number.';
+        } elseif (!preg_match('/^[0-9]{10}$/', $mobile)) {
+            $error = 'Please enter valid mobile number.';
+        } elseif ($email === '') {
+            $error = 'Please enter email.';
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $error = 'Please enter valid email.';
+        } elseif ($remark === '') {
+            $error = 'Please enter message.';
+        }
+    }
+    if ($error === '') {
+        try {
+            $stmt = mysqli_prepare(
+                $con,
+                "INSERT INTO feedback
+                (
+                    city,
+                    mname,
+                    mobile,
+                    txtmail,
+                    remark,
+                    cdate
+                )
+                VALUES
+                (
+                    ?, ?, ?, ?, ?, ?
+                )"
+            );
 
-	/* Validation */
-	if ($city === '') {
-		$error = 'Please enter city.';
-	} elseif ($name === '') {
-		$error = 'Please enter your name.';
-	} elseif ($mobile === '') {
-		$error = 'Please enter mobile number.';
-	} elseif (!preg_match('/^[0-9+\-\s]{8,20}$/', $mobile)) {
-		$error = 'Invalid mobile number.';
-	} elseif ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-		$error = 'Invalid email address.';
-	} elseif ($remark === '') {
-		$error = 'Please enter your message.';
-	}
+            if (!$stmt) {
+                throw new Exception(mysqli_error($con));
+            }
 
-	if ($error === '') {
-		$sql = "
-            INSERT INTO feedback
-            (
-                city,
-                mname,
-                mobile,
-                txtmail,
-                remark,
-                fdate
-            )
-            VALUES
-            (
-                ?, ?, ?, ?, ?, ?
-            )
-        ";
+            $cdate = date('d-m-Y');
 
-		$stmt = mysqli_prepare($con, $sql);
-		if ($stmt) {
-			$today = date('d-m-Y');
-			mysqli_stmt_bind_param(
-				$stmt,
-				"ssssss",
-				$city,
-				$name,
-				$mobile,
-				$email,
-				$remark,
-				$today
-			);
+            mysqli_stmt_bind_param(
+                $stmt,
+                "ssssss",
+                $city,
+                $mname,
+                $mobile,
+                $email,
+                $remark,
+                $cdate
+            );
 
-			mysqli_stmt_execute($stmt);
-			mysqli_stmt_close($stmt);
+            mysqli_stmt_execute($stmt);
+            mysqli_stmt_close($stmt);
 
-			$msg = 1;
-		} else {
-			$error = 'Unable to save your enquiry.';
-		}
-	}
+            $msg = 1;
+
+            // Clear form values
+
+            $city = '';
+            $mname = '';
+            $mobile = '';
+            $email = '';
+            $remark = '';
+
+            // New CSRF Token
+
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+
+        } catch (Throwable $e) {
+            error_log($e->getMessage());
+            $error = 'Unable to save your enquiry. Please try again later.';
+        }
+    }
 }
 ?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-	<meta charset="utf-8">
-	<meta
-		name="viewport"
-		content="width=device-width, initial-scale=1.0">
-
-	<title>
-		Look8US : Business Directory Kota Rajasthan India
-	</title>
-
-	<meta
-		name="description"
-		content="Look8US is an online business directory for Kota Rajasthan India featuring verified manufacturers, exporters, suppliers, traders and service providers.">
-
-	<meta
-		name="keywords"
-		content="Look8US, Business Directory, Kota, Rajasthan, India, Manufacturers, Suppliers, Exporters">
-
-	<meta name="robots" content="index,follow">
-	<meta name="author" content="Look8US">
-
-	<link rel="stylesheet" href="akc.css">
-	<link rel="stylesheet" href="css/style.css">
-	<link rel="stylesheet" href="css/form.css">
-
-	<style>
-		* {
-			margin: 0;
-			padding: 0;
-			box-sizing: border-box;
-		}
-
-		body {
-			font-family: Arial, Helvetica, sans-serif;
-			background: #f4f4f4;
-			color: #333;
-			line-height: 1.5;
-		}
-
-		img {
-			max-width: 100%;
-			height: auto;
-			display: block;
-		}
-
-		.container {
-			width: min(1200px, 95%);
-			margin: auto;
-		}
-
-		.success {
-			background: #d4edda;
-			color: #155724;
-			padding: 12px;
-			border-radius: 6px;
-			margin: 15px 0;
-		}
-
-		.error {
-			background: #f8d7da;
-			color: #721c24;
-			padding: 12px;
-			border-radius: 6px;
-			margin: 15px 0;
-		}
-
-		.category-details {
-			width: 100%;
-		}
-
-		.category-columns {
-			display: grid;
-			grid-template-columns: repeat(3, 1fr);
-			gap: 25px;
-			padding: 15px;
-		}
-
-		.category-column {
-			display: flex;
-			flex-direction: column;
-		}
-
-		.category-item {
-			display: block;
-			padding: 8px 0;
-			color: #222;
-			text-decoration: none;
-			border-bottom: 1px solid #eeeeee;
-			transition: .25s;
-			font-size: 15px;
-		}
-
-		.category-item:hover {
-			color: #0d6efd;
-			padding-left: 10px;
-		}
-
-		.btn-more-category {
-			display: inline-block;
-			margin-top: 25px;
-			padding: 12px 20px;
-			background: #0d6efd;
-			color: #fff;
-			text-decoration: none;
-			border-radius: 6px;
-			font-weight: bold;
-			transition: .3s;
-		}
-
-		.btn-more-category:hover {
-			background: #084ec1;
-			transform: translateY(-2px);
-		}
-
-		.more-category {
-			text-align: center;
-			margin-top: 20px;
-		}
-
-		.text-muted {
-			color: #777;
-			padding: 10px;
-			font-size: 14px;
-			text-align: center;
-		}
-
-		.feedback-panel {
-			width: 100%;
-		}
-
-		.feedback-form {
-			display: flex;
-			flex-direction: column;
-			gap: 15px;
-		}
-
-		.form-group {
-			display: flex;
-			flex-direction: column;
-		}
-
-		.form-group label {
-			font-weight: 600;
-			margin-bottom: 6px;
-			color: #333;
-		}
-
-		.form-control {
-			width: 100%;
-			padding: 12px;
-			border: 1px solid #ccc;
-			border-radius: 6px;
-			font-size: 15px;
-			transition: .3s;
-		}
-
-		.form-control:focus {
-			outline: none;
-			border-color: #0d6efd;
-			box-shadow: 0 0 5px rgba(13, 110, 253, .2);
-		}
-
-		textarea.form-control {
-			resize: vertical;
-			min-height: 120px;
-		}
-
-		.btn-submit {
-			border: none;
-			background: #0d6efd;
-			color: #fff;
-			padding: 12px;
-			border-radius: 6px;
-			cursor: pointer;
-			font-size: 16px;
-			font-weight: bold;
-			transition: .3s;
-		}
-
-		.btn-submit:hover {
-			background: #084ec1;
-		}
-
-		.verified-business-slider {
-			overflow: hidden;
-			width: 100%;
-			background: #fff;
-			padding: 15px 0;
-		}
-
-		.verified-track {
-			display: flex;
-			width: max-content;
-			animation: scrollBusiness 45s linear infinite;
-		}
-
-		.verified-business-slider:hover .verified-track {
-			animation-play-state: paused;
-		}
-
-		.verified-card {
-			width: 210px;
-			margin-right: 25px;
-			background: #fff;
-			border: 1px solid #ddd;
-			border-radius: 8px;
-			padding: 10px;
-			text-align: center;
-			flex-shrink: 0;
-			transition: .3s;
-		}
-
-		.verified-card:hover {
-			transform: translateY(-4px);
-			box-shadow: 0 6px 18px rgba(0, 0, 0, .15);
-		}
-
-		.verified-card img {
-			width: 180px;
-			height: 145px;
-			object-fit: contain;
-			margin: auto;
-		}
-
-		.verified-card h4 {
-			margin-top: 12px;
-			font-size: 15px;
-			color: #333;
-			font-weight: 600;
-		}
-
-		.verified-card a {
-			text-decoration: none;
-		}
-
-		@keyframes scrollBusiness {
-			0% {
-				transform: translateX(0);
-			}
-
-			100% {
-				transform: translateX(-50%);
-			}
-		}
-
-		.popular-category {
-			width: 100%;
-		}
-
-		.card {
-			background: #fff;
-			border-radius: 8px;
-			overflow: hidden;
-			border: 1px solid #ddd;
-			margin-bottom: 20px;
-		}
-
-		.card-header {
-			padding: 14px;
-			text-align: center;
-			font-weight: bold;
-			background: #0d6efd;
-			color: #fff;
-		}
-
-		.card-header h3 {
-			margin: 0;
-			font-size: 20px;
-		}
-
-		.card-body {
-			padding: 10px;
-		}
-
-		.category-scroll {
-			max-height: 500px;
-			overflow-y: auto;
-		}
-
-		.category-list {
-			list-style: none;
-			margin: 0;
-			padding: 0;
-		}
-
-		.category-list li {
-			border-bottom: 1px solid #ececec;
-		}
-
-		.category-link {
-			display: block;
-			padding: 10px 12px;
-			text-decoration: none;
-			color: #222;
-			transition: .25s;
-			font-size: 15px;
-		}
-
-		.category-link:hover {
-			background: #f5f9ff;
-			color: #0d6efd;
-			padding-left: 18px;
-		}
-
-		.empty-message {
-			text-align: center;
-			padding: 20px;
-			color: #777;
-		}
-
-		.estore-section {
-			margin: 40px 0;
-		}
-
-		.estore-header {
-			background: #003366;
-			color: #fff;
-			padding: 15px;
-			text-align: center;
-			border-radius: 8px 8px 0 0;
-		}
-
-		.estore-header h2 {
-			margin: 0;
-			font-size: 26px;
-		}
-
-		.estore-grid {
-			display: grid;
-			grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-			gap: 25px;
-			padding: 20px;
-			background: #fff;
-			border: 1px solid #ddd;
-			border-top: none;
-		}
-
-		.estore-card {
-			background: #fff;
-			border-radius: 8px;
-			overflow: hidden;
-			border: 1px solid #e3e3e3;
-			transition: .3s;
-		}
-
-		.estore-card:hover {
-			transform: translateY(-5px);
-			box-shadow: 0 10px 20px rgba(0, 0, 0, .15);
-		}
-
-		.estore-card a {
-			text-decoration: none;
-			color: #333;
-			display: block;
-		}
-
-		.estore-image {
-			height: 220px;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			padding: 15px;
-		}
-
-		.estore-image img {
-			max-width: 100%;
-			max-height: 100%;
-			object-fit: contain;
-		}
-
-		.estore-title {
-			padding: 15px;
-			text-align: center;
-			font-size: 17px;
-			font-weight: 600;
-			background: #f7f7f7;
-		}
-
-		.popup-gallery {
-			padding: 20px;
-			background: #fff;
-			max-width: 900px;
-			margin: auto;
-		}
-
-		.popup-grid {
-			display: grid;
-			grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-			gap: 20px;
-		}
-
-		.popup-card {
-			border: 1px solid #ddd;
-			border-radius: 8px;
-			overflow: hidden;
-			background: #fff;
-			transition: .3s;
-		}
-
-		.popup-card:hover {
-			transform: translateY(-4px);
-			box-shadow: 0 8px 18px rgba(0, 0, 0, .15);
-		}
-
-		.popup-card img {
-			width: 100%;
-			height: 250px;
-			object-fit: contain;
-			display: block;
-		}
-
-		.site-footer {
-			margin-top: 40px;
-			background: #f5f5f5;
-			border-top: 1px solid #ddd;
-		}
-	</style>
+<meta charset="UTF-8">
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1">
+<title>
+Look8US : Business Directory Kota, Rajasthan, India
+</title>
+<meta
+    name="description"
+    content="Look8US Business Directory Kota Rajasthan">
+<meta
+    name="keywords"
+    content="Business Directory, Kota, Rajasthan, India">
+
+<link rel="stylesheet" href="akc.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/form.css">
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:Arial, Helvetica, sans-serif;
+    background:#fff;
+    color:#333;
+    line-height:1.5;
+}
+
+img{
+    max-width:100%;
+    height:auto;
+}
+
+table{
+    border-collapse:collapse;
+}
+
+.container{
+    width:1000px;
+    margin:0 auto;
+}
+
+.success-message{
+    background:#d4edda;
+    color:#155724;
+    border:1px solid #c3e6cb;
+    padding:12px;
+    margin:15px 0;
+    border-radius:4px;
+}
+
+.error-message{
+    background:#f8d7da;
+    color:#721c24;
+    border:1px solid #f5c6cb;
+    padding:12px;
+    margin:15px 0;
+    border-radius:4px;
+}
+
+.search-section{
+margin:30px 0;
+}
+
+.search-form{
+display:flex;
+flex-direction:column;
+gap:15px;
+}
+
+.search-row{
+display:flex;
+gap:15px;
+}
+
+.search-row input{
+    height:34px;
+    padding:4px 8px;
+    font-size:14px;
+}
+
+.subsea{
+    height:34px;
+    padding:0 18px;
+border:none;
+background:#0066cc;
+color:#fff;
+cursor:pointer;
+border-radius:5px;
+}
+
+.subsea:hover{
+background:#004b99;
+}
+
+.search-options{
+display:flex;
+gap:30px;
+font-size:15px;
+}
+
+.home-layout{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    width:100%;
+    gap:15px;
+}
+
+.left-panel{
+    width:230px;
+    flex:0 0 230px;
+}
+
+.middle-panel{
+    flex:1;
+    min-width:0;
+}
+
+.right-panel{
+    width:250px;
+    flex:0 0 250px;
+}
+
+.card{
+background:#fff;
+border:1px solid #ddd;
+border-radius:8px;
+overflow:hidden;
+}
+
+.card h2{
+    background:#0b79d0;
+    color:#fff;
+    padding:8px 12px;
+    font-size:15px;
+    font-weight:bold;
+}
+
+.scroll-box{
+    height:520px;
+    overflow-y:auto;
+}
+
+.category-list{
+list-style:none;
+padding:0;
+margin:0;
+}
+
+.category-list li{
+border-bottom:1px solid #eee;
+}
+
+.category-list li a{
+display:block;
+padding:10px 15px;
+text-decoration:none;
+color:#333;
+}
+
+.category-list li a:hover{
+background:#f3f3f3;
+}
+
+.category-details{
+    display:flex;
+    justify-content:space-between;
+    gap:20px;
+    padding:15px;
+    height:520px;          /* Same height as Popular Categories */
+    overflow-y:auto;       /* Vertical slider */
+    overflow-x:hidden;
+}
+
+.category-column{
+    flex:1;
+    min-width:0;
+}
+
+.category-column ul{
+    list-style:none;
+    margin:0;
+    padding:0;
+}
+
+.category-column li{
+    margin:6px 0;
+}
+
+.category-column a{
+    color:#0033cc;
+    text-decoration:none;
+    font-size:14px;
+    display:block;
+    padding:3px 0;
+}
+
+.category-column a:hover{
+    text-decoration:underline;
+}
+
+/* Nice scrollbar */
+.category-details::-webkit-scrollbar{
+    width:8px;
+}
+
+.category-details::-webkit-scrollbar-thumb{
+    background:#0b79d0;
+    border-radius:10px;
+}
+
+.category-details::-webkit-scrollbar-track{
+    background:#f1f1f1;
+}
+
+.more-category{
+text-align:center;
+padding:20px;
+}
+
+.btn-more{
+display:inline-block;
+padding:10px 22px;
+background:#0066cc;
+color:#fff;
+text-decoration:none;
+border-radius:5px;
+}
+
+.btn-more:hover{
+background:#004c99;
+}
+
+.right-panel{
+display:flex;
+flex-direction:column;
+gap:20px;
+}
+
+.feedback-form{
+padding:20px;
+}
+
+.form-group{
+margin-bottom:18px;
+}
+
+.form-group label{
+display:block;
+margin-bottom:6px;
+font-weight:bold;
+color:#333;
+}
+
+.form-group input,
+.form-group textarea{
+width:100%;
+padding:12px;
+border:1px solid #cccccc;
+border-radius:5px;
+font-size:15px;
+transition:.3s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus{
+border-color:#0066cc;
+outline:none;
+box-shadow:0 0 5px rgba(0,102,204,.25);
+}
+
+textarea{
+resize:vertical;
+min-height:120px;
+}
+
+.submit-group{
+text-align:center;
+}
+
+.subbox{
+background:#0066cc;
+color:#fff;
+border:none;
+padding:12px 35px;
+font-size:16px;
+border-radius:5px;
+cursor:pointer;
+transition:.3s;
+}
+
+.subbox:hover{
+background:#004b99;
+}
+
+.verified-business{
+margin-top:30px;
+}
+
+.verified-slider{
+display:flex;
+gap:20px;
+overflow-x:auto;
+padding:20px;
+scroll-behavior:smooth;
+}
+
+.verified-item{
+min-width:220px;
+text-align:center;
+flex-shrink:0;
+}
+
+.verified-item img{
+width:180px;
+height:145px;
+object-fit:contain;
+border:1px solid #ddd;
+border-radius:6px;
+padding:8px;
+background:#fff;
+transition:.3s;
+}
+
+.verified-item img:hover{
+transform:scale(1.04);
+}
+
+.verified-item p{
+margin-top:10px;
+font-size:14px;
+}
+
+.verified-item a{
+text-decoration:none;
+color:#333;
+}
+
+.verified-item a:hover{
+color:#0066cc;
+}
+
+.no-data{
+padding:20px;
+text-align:center;
+}
+
+.estore-section{
+margin-top:40px;
+}
+
+.estore-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+gap:20px;
+padding:20px;
+}
+
+.estore-card{
+background:#ffffff;
+border:1px solid #dddddd;
+border-radius:8px;
+overflow:hidden;
+text-align:center;
+transition:.3s;
+}
+
+.estore-card:hover{
+transform:translateY(-4px);
+box-shadow:0 5px 15px rgba(0,0,0,.15);
+}
+
+.estore-card a{
+text-decoration:none;
+color:#333333;
+display:block;
+padding:15px;
+}
+
+.estore-card img{
+width:100%;
+height:170px;
+object-fit:contain;
+margin-bottom:12px;
+}
+
+.estore-card h3{
+font-size:18px;
+font-weight:bold;
+color:#003366;
+}
+
+.popup-content{
+padding:20px;
+background:#ffffff;
+border-radius:8px;
+max-width:900px;
+margin:auto;
+}
+
+.popup-grid{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:20px;
+}
+
+.popup-card{
+text-align:center;
+}
+
+.popup-card img{
+width:100%;
+max-width:250px;
+height:250px;
+object-fit:contain;
+border:1px solid #dddddd;
+border-radius:8px;
+padding:10px;
+background:#ffffff;
+transition:.3s;
+}
+
+.popup-card img:hover{
+transform:scale(1.03);
+}
+</style>
 </head>
 
 <body>
-	<?php require_once 'header.php'; ?>
-	<div class="container">
-		<?php if ($msg === 1): ?>
+<?php require_once 'header.php'; ?>
+<a class="inline" href="#inline_content"></a>
+<main class="container">
+<?php if ($msg === 1): ?>
+    <div class="success-message">
+        Your message has been sent successfully.
+    </div>
 
-			<div class="success">
-				Your message has been sent successfully.
-			</div>
+<?php endif; ?>
 
-		<?php endif; ?>
+<?php if ($error !== ''): ?>
 
-		<?php if ($error !== ''): ?>
+    <div class="error-message">
+        <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?>
+    </div>
 
-			<div class="error">
-				<?= htmlspecialchars($error) ?>
-			</div>
+<?php endif; ?>
 
-		<?php endif; ?>
-		<aside class="popular-category">
-			<div class="card shadow">
-				<div class="card-header bg-primary text-white">
-					<h3>Popular Categories</h3>
-				</div>
+<section class="search-section">
+<form
+    method="post"
+    action="searchResult.php"
+    class="search-form"
+    autocomplete="on">
 
-				<div class="card-body category-scroll">
+<div class="search-row">
+<input
+    type="search"
+    name="item"
+    class="txtsea"
+    placeholder="Enter Product or Company"
+    value="<?= htmlspecialchars($_POST['item'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+>
 
-					<?php
-					$sql = "SELECT cateid, cname
-        FROM category
-        WHERE cstatus = ?
-        ORDER BY cname";
+<input
+    type="text"
+    name="loc"
+    class="txtloc"
+    placeholder="Location"
+    value="<?= htmlspecialchars($_POST['loc'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+>
 
-					$stmt = mysqli_prepare($con, $sql);
-					$status = 1;
-					mysqli_stmt_bind_param(
-						$stmt,
-						"i",
-						$status
-					);
+<button
+    type="submit"
+    name="submit0"
+    class="subsea">
+    Search
+</button>
 
-					mysqli_stmt_execute($stmt);
-					$result = mysqli_stmt_get_result($stmt);
+</div>
 
-					?>
+<div class="search-options">
+<label>
+<input
+    type="radio"
+    name="sea"
+    value="0"
+    <?= (($_POST['sea'] ?? '0') === '0') ? 'checked' : ''; ?>
+>
+Categories
+</label>
 
-					<?php if ($result && mysqli_num_rows($result) > 0): ?>
+<label>
+<input
+    type="radio"
+    name="sea"
+    value="1"
+    <?= (($_POST['sea'] ?? '') === '1') ? 'checked' : ''; ?>
+>
+Company
+</label>
+</div>
+</form>
+</section>
 
-						<ul class="category-list">
+<div class="home-layout">
+<aside class="left-panel">
+<div class="card">
 
-							<?php
-							$count = 0;
-							while (
-								($row = mysqli_fetch_assoc($result))
-								&& ($count < 50)
-							):
-							?>
+<h2 class="section-title">
+Popular Categories
+</h2>
 
-								<li>
-									<a
-										class="category-link"
-										href="searchresult.php?id=<?= (int)$row['cateid']; ?>">
-										<?= htmlspecialchars($row['cname'], ENT_QUOTES, 'UTF-8'); ?>
-									</a>
-								</li>
+<div class="scroll-box">
 
-							<?php
-								$count++;
-							endwhile;
-							?>
-						</ul>
+<?php
 
-					<?php else: ?>
-
-						<div class="empty-message">
-							No categories available.
-						</div>
-					<?php endif; ?>
-
-					<?php
-					mysqli_stmt_close($stmt);
-					?>
-				</div>
-			</div>
-		</aside>
-
-		<?php
-		$sql = "
-    SELECT
-        catdid,
-        cdname
-    FROM
-        catedetail
-    WHERE
-        cdstatus = ?
-    GROUP BY
-        cdname,
-        catdid
-    ORDER BY
-        cdname
-    LIMIT 185
+$sql = "
+SELECT
+    cateid,
+    cname
+FROM category
+WHERE cstatus=1
+ORDER BY cname
+LIMIT 50
 ";
 
-		$stmt = mysqli_prepare($con, $sql);
+$result = mysqli_query($con, $sql);
 
-		$status = 1;
-		mysqli_stmt_bind_param(
-			$stmt,
-			"i",
-			$status
-		);
-		mysqli_stmt_execute($stmt);
-		$result = mysqli_stmt_get_result($stmt);
+?>
 
-		$categories = [];
+<ul class="category-list">
 
-		while ($row = mysqli_fetch_assoc($result)) {
-			$categories[] = [
-				'id'   => (int)$row['catdid'],
-				'name' => $row['cdname']
-			];
-		}
+<?php while ($row = mysqli_fetch_assoc($result)): ?>
 
-		mysqli_stmt_close($stmt);
-		$totalCategories = count($categories);
-		$perColumn = (int) ceil($totalCategories / 3);
+<li>
 
-		$columnOne = array_slice(
-			$categories,
-			0,
-			$perColumn
-		);
+<a
+    href="searchresult.php?id=<?= (int)$row['cateid']; ?>"
+>
 
-		$columnTwo = array_slice(
-			$categories,
-			$perColumn,
-			$perColumn
-		);
+<?= htmlspecialchars($row['cname'], ENT_QUOTES, 'UTF-8'); ?>
 
-		$columnThree = array_slice(
-			$categories,
-			$perColumn * 2
-		);
-		?>
+</a>
 
-		<section class="category-details">
-			<div class="card shadow">
-				<div class="card-header">
-					<h2>
-						Category Details
-					</h2>
-				</div>
+</li>
 
-				<div class="card-body">
-					<div class="category-columns">
-						<div class="category-column">
+<?php endwhile; ?>
 
-							<?php if (!empty($columnOne)): ?>
+</ul>
 
-								<?php foreach ($columnOne as $category): ?>
+</div>
 
-									<a
-										class="category-item"
-										href="searchresult1.php?id=<?= $category['id']; ?>">
-										<?= htmlspecialchars($category['name'], ENT_QUOTES, 'UTF-8'); ?>
-									</a>
+</div>
 
-								<?php endforeach; ?>
+</aside>
 
-							<?php else: ?>
+<section class="middle-panel">
+<div class="card">
 
-								<p class="text-muted">
-									No categories available.
-								</p>
+    <h2>
+        Category in Details
+    </h2>
 
-							<?php endif; ?>
+<?php
 
-						</div>
-						<div class="category-column">
-							<?php if (!empty($columnTwo)): ?>
-								<?php foreach ($columnTwo as $category): ?>
-									<a
-										class="category-item"
-										href="searchresult1.php?id=<?= $category['id']; ?>">
-										<?= htmlspecialchars($category['name'], ENT_QUOTES, 'UTF-8'); ?>
-									</a>
-
-								<?php endforeach; ?>
-
-							<?php else: ?>
-
-								<p class="text-muted">
-									No categories available.
-								</p>
-
-							<?php endif; ?>
-
-						</div>
-
-						<div class="category-column">
-
-							<?php if (!empty($columnThree)): ?>
-
-								<?php foreach ($columnThree as $category): ?>
-
-									<a
-										class="category-item"
-										href="searchresult1.php?id=<?= $category['id']; ?>">
-										<?= htmlspecialchars($category['name'], ENT_QUOTES, 'UTF-8'); ?>
-									</a>
-
-								<?php endforeach; ?>
-
-							<?php else: ?>
-
-								<p class="text-muted">
-									No categories available.
-								</p>
-
-							<?php endif; ?>
-							<div class="more-category">
-								<a
-									href="index-subcate.php"
-									class="btn-more-category">
-									More Categories →
-								</a>
-							</div>
-						</div>
-					</div>
-				</div>
-		</section>
-
-		<aside class="feedback-panel">
-			<div class="card shadow">
-				<div class="card-header bg-info">
-					<h3>Feedback &amp; Enquiry</h3>
-				</div>
-				<div class="card-body">
-					<form
-						action="<?= htmlspecialchars($_SERVER['PHP_SELF']); ?>"
-						method="post"
-						class="feedback-form"
-						autocomplete="off">
-						<input
-							type="hidden"
-							name="csrf_token"
-							value="<?= htmlspecialchars($_SESSION['csrf_token']); ?>">
-
-						<div class="form-group">
-							<label for="city">City</label>
-							<input
-								type="text"
-								id="city"
-								name="city"
-								class="form-control"
-								maxlength="100"
-								value="<?= htmlspecialchars($city ?? ''); ?>"
-								placeholder="Enter City"
-								required>
-						</div>
-
-						<div class="form-group">
-							<label for="mname">Name</label>
-							<input
-								type="text"
-								id="mname"
-								name="mname"
-								class="form-control"
-								maxlength="100"
-								value="<?= htmlspecialchars($name ?? ''); ?>"
-								placeholder="Enter Name"
-								required>
-						</div>
-
-						<div class="form-group">
-							<label for="mobile">Mobile</label>
-							<input
-								type="text"
-								id="mobile"
-								name="mobile"
-								class="form-control"
-								maxlength="20"
-								value="<?= htmlspecialchars($mobile ?? ''); ?>"
-								placeholder="Mobile Number"
-								required>
-						</div>
-
-						<div class="form-group">
-							<label for="txtmail">Email</label>
-							<input
-								type="email"
-								id="txtmail"
-								name="txtmail"
-								class="form-control"
-								maxlength="150"
-								value="<?= htmlspecialchars($email ?? ''); ?>"
-								placeholder="Email Address">
-						</div>
-
-						<div class="form-group">
-							<label for="remark">
-								Message
-							</label>
-							<textarea
-								id="remark"
-								name="remark"
-								class="form-control"
-								rows="5"
-								maxlength="1000"
-								placeholder="Write your message..."
-								required><?= htmlspecialchars($remark ?? ''); ?></textarea>
-
-						</div>
-						<button
-							type="submit"
-							name="submit"
-							class="btn-submit">
-							Submit
-						</button>
-					</form>
-				</div>
-			</div>
-		</aside>
-		<?php
-		$sql = "
+$sql = "
 SELECT
-    aid,
+    catdid,
+    cdname
+FROM catedetail
+WHERE cdstatus=1
+ORDER BY cdname
+LIMIT 300
+";
+
+$result = mysqli_query($con, $sql);
+
+if (!$result) {
+    throw new RuntimeException(mysqli_error($con));
+}
+
+$categories = mysqli_fetch_all($result, MYSQLI_ASSOC);
+
+$total = count($categories);
+
+$perColumn = (int) ceil($total / 3);
+
+$columns = array_chunk($categories, $perColumn);
+
+?>
+
+<div class="category-details">
+
+<?php foreach ($columns as $column): ?>
+
+<div class="category-column">
+
+<ul>
+
+<?php foreach ($column as $row): ?>
+
+<li>
+
+<a
+    class="a5"
+    href="searchresult1.php?id=<?= (int)$row['catdid']; ?>"
+>
+
+<?= htmlspecialchars($row['cdname'], ENT_QUOTES, 'UTF-8'); ?>
+
+</a>
+
+</li>
+
+<?php endforeach; ?>
+
+</ul>
+
+</div>
+
+<?php endforeach; ?>
+
+</div>
+
+<div class="more-category">
+
+<a
+    href="index-subcate.php"
+    class="btn-more"
+>
+More Categories →
+</a>
+
+</div>
+</section>
+
+<aside class="right-panel">
+
+<div class="card">
+
+<h2>
+Feedback &amp; Enquiry
+</h2>
+
+<form
+    method="post"
+    action="<?= htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, 'UTF-8'); ?>"
+    class="feedback-form"
+    autocomplete="on"
+>
+
+<input
+    type="hidden"
+    name="csrf_token"
+    value="<?= htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>"
+>
+
+<div class="form-group">
+
+<label for="city">
+City
+</label>
+
+<input
+    type="text"
+    id="city"
+    name="city"
+    maxlength="50"
+    required
+    autocomplete="address-level2"
+    value="<?= htmlspecialchars($city, ENT_QUOTES, 'UTF-8'); ?>"
+>
+
+</div>
+
+<div class="form-group">
+
+<label for="mname">
+Name
+</label>
+
+<input
+    type="text"
+    id="mname"
+    name="mname"
+    maxlength="60"
+    required
+    autocomplete="name"
+    value="<?= htmlspecialchars($mname, ENT_QUOTES, 'UTF-8'); ?>"
+>
+
+</div>
+
+<div class="form-group">
+
+<label for="mobile">
+Mobile
+</label>
+
+<input
+    type="tel"
+    id="mobile"
+    name="mobile"
+    maxlength="10"
+    pattern="[0-9]{10}"
+    inputmode="numeric"
+    required
+    autocomplete="tel"
+    value="<?= htmlspecialchars($mobile, ENT_QUOTES, 'UTF-8'); ?>"
+>
+
+</div>
+
+<div class="form-group">
+
+<label for="txtmail">
+Email
+</label>
+
+<input
+    type="email"
+    id="txtmail"
+    name="txtmail"
+    maxlength="254"
+    required
+    autocomplete="email"
+    value="<?= htmlspecialchars($email, ENT_QUOTES, 'UTF-8'); ?>"
+>
+
+</div>
+
+<div class="form-group">
+
+<label for="remark">
+Message
+</label>
+
+<textarea
+    id="remark"
+    name="remark"
+    rows="5"
+    maxlength="1000"
+    required><?= htmlspecialchars($remark, ENT_QUOTES, 'UTF-8'); ?></textarea>
+
+</div>
+
+<div class="form-group submit-group">
+
+<button
+    type="submit"
+    name="submit"
+    class="subbox"
+>
+Submit
+</button>
+
+</div>
+
+</form>
+
+</div>
+</aside>
+</div>
+						<!--<div align="center">
+						<table border="1" width="99%" id="table30" height="218" bgcolor="#FFFFFF" style="border-collapse: collapse" bordercolor="#E3E3E3">
+							<tr>
+								<td align="center"><b><font color="#0066CC">
+								Place your Ads here</font><font color="#0066CC" size="4"><br>
+								</font><font color="#FF3300" size="4">Ads&nbsp; 
+								No. #01 </font><font color="#FF3300" size="2">
+								(6cm*6cm)</font><font color="#FF3300" size="4"><br>
+								</font><font color="#0066CC">Contact us for this 
+								space.</font></b></td>
+							</tr>
+						</table>-->
+<section class="verified-business">
+<div class="card">
+
+<h2>
+Verified Business &amp; Services
+</h2>
+
+<?php
+
+$sql = "
+SELECT
     aname,
-    img,
-    website
+    website,
+    img
 FROM advert
-WHERE astatus = ?
+WHERE astatus='H'
 ORDER BY RAND()
 ";
 
-		$stmt = mysqli_prepare($con, $sql);
+$result = mysqli_query($con, $sql);
 
-		$status = 'H';
-		mysqli_stmt_bind_param(
-			$stmt,
-			"s",
-			$status
-		);
-		mysqli_stmt_execute($stmt);
-		$result = mysqli_stmt_get_result($stmt);
+if (!$result) {
+    throw new RuntimeException(mysqli_error($con));
+}
 
-		$advertisements = [];
+$adverts = [];
 
-		while ($row = mysqli_fetch_assoc($result)) {
-			if (
-				!empty($row['img']) &&
-				$row['img'] !== '-'
-			) {
-				$advertisements[] = [
-					'name' => $row['aname'],
-					'image' => $row['img'],
-					'website' => $row['website']
-				];
-			}
-		}
-		mysqli_stmt_close($stmt);
-		?>
-		<?php if (!empty($advertisements)): ?>
+while ($row = mysqli_fetch_assoc($result)) {
 
-			<div class="verified-business-slider">
-				<div class="verified-track">
-					<?php foreach ($advertisements as $advert): ?>
-						<div class="verified-card">
-							<a
-								href="https://<?= htmlspecialchars($advert['website']); ?>"
-								target="_blank"
-								rel="noopener noreferrer">
-								<img
-									src="user/logo/<?= htmlspecialchars($advert['image']); ?>"
-									alt="<?= htmlspecialchars($advert['name']); ?>"
-									loading="lazy">
-								<h4>
-									<?= htmlspecialchars($advert['name']); ?>
-								</h4>
-							</a>
-						</div>
+    if ($row['img'] !== '-') {
+        $adverts[] = $row;
+    }
 
-					<?php endforeach; ?>
-					<?php foreach ($advertisements as $advert): ?>
+}
 
-						<div class="verified-card">
-							<a
-								href="https://<?= htmlspecialchars($advert['website']); ?>"
-								target="_blank"
-								rel="noopener noreferrer">
-								<img
-									src="user/logo/<?= htmlspecialchars($advert['image']); ?>"
-									alt="<?= htmlspecialchars($advert['name']); ?>"
-									loading="lazy">
-								<h4>
-									<?= htmlspecialchars($advert['name']); ?>
-								</h4>
-							</a>
-						</div>
-					<?php endforeach; ?>
-				</div>
-			</div>
+?>
 
-		<?php endif; ?>
-		<?php
-		$sql = "
+<?php if (!empty($adverts)): ?>
+
+<div class="verified-slider">
+
+<?php foreach ($adverts as $row): ?>
+
+<div class="verified-item">
+<?php 
+$url=$row['website'];
+
+if(!preg_match('#^https?://#',$url)){
+    $url='https://'.$url;
+}
+?>
+<a
+    href="<?= htmlspecialchars($url) ?>"
+    target="_blank"
+    rel="noopener noreferrer"
+>
+
+<img
+    src="user/logo/<?= htmlspecialchars($row['img'], ENT_QUOTES, 'UTF-8'); ?>"
+    alt="<?= htmlspecialchars($row['aname'], ENT_QUOTES, 'UTF-8'); ?>"
+	loading="lazy"
+>
+
+</a>
+
+<p>
+
+<a
+    href=<?= htmlspecialchars($url) ?>"
+    target="_blank"
+    rel="noopener noreferrer"
+>
+
+<?= htmlspecialchars($row['aname'], ENT_QUOTES, 'UTF-8'); ?>
+
+</a>
+
+</p>
+
+</div>
+
+<?php endforeach; ?>
+
+</div>
+
+<?php else: ?>
+
+<p class="no-data">
+
+No verified businesses available.
+
+</p>
+
+<?php endif; ?>
+
+</div>
+
+</section>
+<section class="estore-section">
+
+<div class="card">
+
+<h2>
+e-Store Products Gallery
+</h2>
+
+<?php
+
+$sql = "
 SELECT
     catename,
     cateimg
@@ -949,124 +1006,166 @@ FROM ecate
 ORDER BY catename
 ";
 
-		$stmt = mysqli_prepare($con, $sql);
-		mysqli_stmt_execute($stmt);
-		$result = mysqli_stmt_get_result($stmt);
+$result = mysqli_query($con, $sql);
 
-		$estoreCategories = [];
+if (!$result) {
+    throw new RuntimeException(mysqli_error($con));
+}
 
-		while ($row = mysqli_fetch_assoc($result)) {
-			$estoreCategories[] = [
-				'name'  => $row['catename'],
-				'image' => $row['cateimg']
-			];
-		}
-		mysqli_stmt_close($stmt);
-		?>
-		<section class="estore-section">
-			<div class="estore-header">
-				<h2>
-					e-Store Product Gallery
-				</h2>
-			</div>
+$ecategories = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
-			<div class="estore-grid">
-				<?php foreach ($estoreCategories as $category): ?>
+?>
 
-					<div class="estore-card">
-						<a
-							href="https://www.ebydeal.com/"
-							target="_blank"
-							rel="noopener noreferrer">
+<?php if (!empty($ecategories)): ?>
 
-							<div class="estore-image">
-								<img
-									src="user/logo/<?= htmlspecialchars($category['image']); ?>"
-									alt="<?= htmlspecialchars($category['name']); ?>"
-									loading="lazy">
-							</div>
+<div class="estore-grid">
 
-							<div class="estore-title">
-								<?= htmlspecialchars($category['name']); ?>
+<?php foreach ($ecategories as $row): ?>
 
-							</div>
-						</a>
-					</div>
+<div class="estore-card">
 
-				<?php endforeach; ?>
+<a
+    href="http://www.ebydeal.com/"
+    target="_blank"
+    rel="noopener noreferrer"
+>
 
-			</div>
-		</section>
-		<?php
-		$sql = "
+<img
+    src="user/logo/<?= htmlspecialchars($row['cateimg'], ENT_QUOTES, 'UTF-8'); ?>"
+    alt="<?= htmlspecialchars($row['catename'], ENT_QUOTES, 'UTF-8'); ?>"
+	loading="lazy"
+>
+
+<h3>
+
+<?= htmlspecialchars($row['catename'], ENT_QUOTES, 'UTF-8'); ?>
+
+</h3>
+
+</a>
+
+</div>
+
+<?php endforeach; ?>
+
+</div>
+
+<?php else: ?>
+
+<p class="no-data">
+No product categories available.
+</p>
+
+<?php endif; ?>
+
+</div>
+
+</section>
+<footer class="site-footer">
+
+    <?php require_once __DIR__ . "/footer.php"; ?>
+
+</footer>
+
+<a href="<?php echo $path; ?>payment/subscribe.php" class="demoTest"></a>
+<?php
+
+$sql = "
 SELECT
-    aid,
-    img,
-    website
+    website,
+    img
 FROM homeimg
 ORDER BY aid DESC
 LIMIT 4
 ";
 
-		$stmt = mysqli_prepare($con, $sql);
-		mysqli_stmt_execute($stmt);
-		$result = mysqli_stmt_get_result($stmt);
+$result = mysqli_query($con, $sql);
 
-		$popupAds = [];
+if (!$result) {
+    throw new RuntimeException(mysqli_error($con));
+}
 
-		while ($row = mysqli_fetch_assoc($result)) {
-			if (
-				!empty($row['img']) &&
-				$row['img'] !== '-'
-			) {
-				$popupAds[] = [
-					'image' => $row['img'],
-					'website' => $row['website']
-				];
-			}
-		}
+$popupImages = mysqli_fetch_all($result, MYSQLI_ASSOC);
+?>
 
-		mysqli_stmt_close($stmt);
+<div class="popup-wrapper" style="display:none;">
 
-		?>
-		<div id="inline_content" class="popup-gallery" hidden>
-			<div class="popup-grid">
-				<?php foreach ($popupAds as $advert): ?>
+<div id="inline_content" class="popup-content">
 
-					<div class="popup-card">
-						<a
-							href="https://<?= htmlspecialchars($advert['website']); ?>"
-							target="_blank"
-							rel="noopener noreferrer">
-							<img
-								src="user/logo/<?= htmlspecialchars($advert['image']); ?>"
-								alt="Advertisement"
-								loading="lazy">
-							<a>
-					</div>
+<?php if (!empty($popupImages)): ?>
 
-				<?php endforeach; ?>
+<div class="popup-grid">
 
-			</div>
-		</div>
-		<?php
-		?>
+<?php foreach ($popupImages as $row): ?>
 
-		<footer class="site-footer">
+<?php
+$url = $row['website'];
 
-			<?php require_once __DIR__ . '/footer.php'; ?>
+if (!preg_match('#^https?://#', $url)) {
+    $url = 'https://' . $url;
+}
+?>
 
-		</footer>
+<?php if ($row['img'] !== '-'): ?>
 
-		<?php
-		?>
-		<a
-			href="<?= htmlspecialchars($path); ?>payment/subscribe.php"
-			class="demoTest"
-			aria-hidden="true">
-		</a>
-		</main>
-		<script src="js/index.js" defer></script>
+<div class="popup-card">
+
+<a
+href="<?= htmlspecialchars($url) ?>"
+target="_blank"
+rel="noopener noreferrer"
+>
+
+<img
+src="user/logo/<?= htmlspecialchars($row['img'], ENT_QUOTES, 'UTF-8'); ?>"
+alt="Advertisement"
+loading="lazy">
+
+</a>
+
+</div>
+
+<?php endif; ?>
+
+<?php endforeach; ?>
+
+</div>
+
+<?php else: ?>
+
+<p class="no-data">
+
+No advertisements available.
+
+</p>
+
+<?php endif; ?>
+
+</div>
+
+</div>
+
+
+<script>
+const slider = document.querySelector('.verified-slider');
+
+if(slider){
+let direction = 1;
+
+setInterval(()=>{
+slider.scrollLeft += direction;
+if(
+slider.scrollLeft + slider.clientWidth >= slider.scrollWidth
+){
+direction = -1;
+}
+if(slider.scrollLeft <= 0){
+direction = 1;
+}
+},30);
+}
+
+</script>
 </body>
 
 </html>

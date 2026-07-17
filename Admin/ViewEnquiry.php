@@ -105,21 +105,27 @@ if (!$result) {
 						<tr>
 							<td height="32" colspan="3" align="center">
 <?php
-$mid = isset($_POST['mid']) ? (int)$_POST['mid'] : (int)$_POST['mid0'];
+if (isset($_POST['submit']) || isset($_POST['submit0'])) {
 
-$st = "SELECT * FROM member WHERE mid=$mid";
+    $mid = isset($_POST['mid'])
+        ? (int)$_POST['mid']
+        : (isset($_POST['mid0']) ? (int)$_POST['mid0'] : 0);
 
-	$result=mysqli_query($con,$st);
-if (!$result) {
-    die(mysqli_error($con));
+    $st = "SELECT * FROM member WHERE mid=$mid";
+    $result = mysqli_query($con, $st);
+
+    if (!$result) {
+        die(mysqli_error($con));
+    }
+
+    if ($row = mysqli_fetch_assoc($result)) {
+        echo "<h3>"
+            . htmlspecialchars($row['mname'])
+            . " - "
+            . htmlspecialchars($row['compname'])
+            . "</h3>";
+    }
 }
-
-	if($row=mysqli_fetch_assoc($result))
-	echo "<h3>"
-    . htmlspecialchars($row['mname'])
-    . " - "
-    . htmlspecialchars($row['compname'])
-    . "</h3>";
 ?>
 	
 &nbsp;</td>
