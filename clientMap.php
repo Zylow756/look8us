@@ -117,7 +117,7 @@ function e(?string $value): string
 												<tr>
 													<td width="21%" align="center" height="105">
 														<a href="http://<?php echo e($row["website"] ?? ""); ?>" target="_blank" class="a5">
-															<img border="0" src="user/logo/<?php echo e($row["logo"] ?? ""); ?>" width="82" height="91">
+															<img border="0" src="User/logo//<?php echo e($row["logo"] ?? ""); ?>" width="82" height="91">
 														</a>
 													</td>
 
@@ -242,7 +242,7 @@ function e(?string $value): string
 
 																			while ($row2 = mysqli_fetch_assoc($result2)) {
 																			?>
-																				<img border="0" src="user/logo/<?php echo e($row2["img"] ?? ""); ?>" width="156" height="169"> &nbsp;&nbsp;&nbsp;
+																				<img border="0" src="User/logo//<?php echo e($row2["img"] ?? ""); ?>" width="156" height="169"> &nbsp;&nbsp;&nbsp;
 																			<?php
 																			}
 

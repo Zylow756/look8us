@@ -114,7 +114,7 @@ if (!$result) {
 							<?php  echo htmlspecialchars($row["mobile"]) ; ?> <br>
 							</td>
 							<td width="53%" align="center">
-							<img border="1" src="<?php echo "../user/logo/" . htmlspecialchars($row['img']); ?>"  width="243" height="246"></td>
+							<img border="1" src="<?php echo "../User/logo//" . htmlspecialchars($row['img']); ?>"  width="243" height="246"></td>
 							<td width="13%" align="center">
 							<?php
 				echo "<br>";

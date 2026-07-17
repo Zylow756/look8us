@@ -82,7 +82,7 @@ $txt = pathinfo($name, PATHINFO_FILENAME);
 
 			//	$fp=date('d')."_".date('M')."_".date('Y')."_".date('h')."_".date('i')."_".date('s')."_".substr(str_replace(" ", "_", $txt),0,5).".".$ext;                    
 				
-				if(move_uploaded_file($_FILES['photoimg']['tmp_name'], "../user/logo/".$fp))
+				if(move_uploaded_file($_FILES['photoimg']['tmp_name'], "../User/logo//".$fp))
 {
 				
 				$st="update ecate set cateimg='". $fp. "' where ecateid=". $_POST["id"] ;
@@ -184,7 +184,7 @@ if (!$result) {
 </tr>
 <tr>
 	<td width="116" height="189">&nbsp;</td><td width="385" height="189">
-		&nbsp;&nbsp;<img border="0" src="../user/logo/<?php echo htmlspecialchars($row['cateimg']); ?>" width="149" height="148"></td>
+		&nbsp;&nbsp;<img border="0" src="../User/logo//<?php echo htmlspecialchars($row['cateimg']); ?>" width="149" height="148"></td>
 </tr>
 <tr>
 	<td width="116" height="34"><b>Select New&nbsp; Images</b></td>

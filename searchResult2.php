@@ -246,7 +246,7 @@ $isPremium =
    target="_blank"
    rel="noopener noreferrer">
 <img
-src="user/logo/<?= e($row['logo']) ?>"
+src="User/logo//<?= e($row['logo']) ?>"
 alt="<?= e($row['compname'] ?? 'Company Logo') ?>"
 loading="lazy"
 >
@@ -271,7 +271,7 @@ endif; ?>
 <?php
  if ($isPremium): ?>
 <?php
-$image = "user/logo/no-images.jpg";
+$image = "User/logo//no-images.jpg";
 $imageQuery = "
 SELECT img
 FROM memberimage
@@ -300,7 +300,7 @@ mysqli_stmt_get_result(
         !empty($imageRow['img']) &&
         $imageRow['img'] !== "-"
     ) {        $image =
-        "user/logo/" .
+        "User/logo//" .
         $imageRow['img'];    }}
 mysqli_stmt_close($imageStmt);
 ?><div class="company-gallery">

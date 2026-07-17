@@ -469,7 +469,7 @@ body {
                     <?php foreach ($chunk as $row): ?>
                         <li>
                             <a href="<?= h(externalUrl($row['website'])) ?>" target="_blank" rel="noopener noreferrer">
-                                <img loading="lazy" src="user/logo/<?= h($row['img']) ?>"
+                                <img loading="lazy" src="User/logo//<?= h($row['img']) ?>"
                                      width="180" height="145" alt="<?= h($row['aname']) ?>">
                                 <span><?= h($row['aname']) ?></span>
                             </a>
@@ -560,7 +560,7 @@ body {
     <div class="promo-dialog__grid">
         <?php foreach (array_slice($homeImages, 0, 4) as $img): ?>
             <a href="<?= h(externalUrl($img['website'])) ?>" target="_blank" rel="noopener noreferrer">
-                <img loading="lazy" src="user/logo/<?= h($img['img']) ?>" width="250" height="250"
+                <img loading="lazy" src="User/logo//<?= h($img['img']) ?>" width="250" height="250"
                      alt="Promoted listing">
             </a>
         <?php endforeach; ?>

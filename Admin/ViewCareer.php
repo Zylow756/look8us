@@ -33,7 +33,7 @@ if (isset($_GET['id'])) {
 
 if ($row = mysqli_fetch_assoc($result)) {
 
-    $file = "../user/logo/" . $row['cv'];
+    $file = "../User/logo//" . $row['cv'];
 
     if (is_file($file)) {
         unlink($file);
@@ -119,7 +119,7 @@ if (!$result) {
 									<td height="29" width="11%" style="text-align: center">&nbsp;<?php echo htmlspecialchars($row["expr"]); ?></td>
 									<td height="29" width="7%" style="text-align: center">&nbsp;<?php echo htmlspecialchars($row["cdate"]); ?></td>
 									<td height="29" width="3%" style="text-align: center">&nbsp;
-									<a class="a2" href="../user/logo/<?php echo rawurlencode($row['cv']); ?>">
+									<a class="a2" href="../User/logo//<?php echo rawurlencode($row['cv']); ?>">
     CV
 </a>									</td>
 									<td height="29" width="3%" style="text-align: center">&nbsp;

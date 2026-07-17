@@ -68,7 +68,7 @@ $result = mysqli_stmt_get_result($stmt);
 
 if($row = mysqli_fetch_assoc($result))
 {
-    $file = "../user/logo/".$row['img'];
+    $file = "../User/logo//".$row['img'];
 
     if(is_file($file))
     {
@@ -165,7 +165,7 @@ if (!$result) {
 							
 							</td>
 							<td width="25%" align="center">
-							<img border="1" src="../user/logo/<?php echo rawurlencode($row['img']); ?>"  width="164" height="166"></td>
+							<img border="1" src="../User/logo//<?php echo rawurlencode($row['img']); ?>"  width="164" height="166"></td>
 							<td width="13%" align="center">
 							<form method="post">
     <input type="hidden" name="id" value="<?php echo $row['aid']; ?>">

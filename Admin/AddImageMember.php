@@ -71,7 +71,7 @@ $txt = pathinfo($name, PATHINFO_FILENAME);
 									//$fp=date('d')."_".date('M')."_".date('Y')."_".date('h')."_".date('i')."_".date('s')."_".$_FILES["photoimg"]["name"];
 									$fp = date('d')."_".date('M')."_".date('Y')."_".time()."_".substr(str_replace(" ", "_", $txt),0,5).".jpg";
 	
-												if (move_uploaded_file($_FILES["photoimg"]["tmp_name"], "../user/logo/" . $fp)) {
+												if (move_uploaded_file($_FILES["photoimg"]["tmp_name"], "../User/logo//" . $fp)) {
 
     // Insert into database
 
@@ -222,7 +222,7 @@ if (!$result) {
 			if ($row['img']<>"-")
 			{
 			?>
-				<img border="1" src="<?php echo "../user/logo/".$row['img']; ?>"  width="164" height="166">
+				<img border="1" src="<?php echo "../User/logo//".$row['img']; ?>"  width="164" height="166">
 		
 			<?php
 			}

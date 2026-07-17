@@ -51,7 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["submit"])) {
 
                 $fp = date("d_M_Y_h_i_s") . "_" . $safeBaseName . "." . $extension;
 
-                $uploadDir = __DIR__ . "/user/logo/";
+                $uploadDir = __DIR__ . "/User/logo//";
                 $uploadPath = $uploadDir . $fp;
 
                 if (move_uploaded_file($fileTmpPath, $uploadPath)) {

@@ -79,10 +79,10 @@ $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
 
 //$fp=date('d')."_".date('M')."_".date('Y')."_".date('h')."_".date('i')."_".date('s')."_".substr(str_replace(" ", "_", $txt),0,5).".".$ext;                    
 $fp = uniqid().".".$ext;
-if (!is_dir("../user/logo")) {
-    mkdir("../user/logo", 0755, true);
+if (!is_dir("../User/logo/")) {
+    mkdir("../User/logo/", 0755, true);
 }
-if (!move_uploaded_file($_FILES["photoimg"]["tmp_name"],"../user/logo/".$fp)) {
+if (!move_uploaded_file($_FILES["photoimg"]["tmp_name"],"../User/logo//".$fp)) {
     die("Image upload failed.");
 }
 

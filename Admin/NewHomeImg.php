@@ -89,7 +89,7 @@ if(isset($_POST['submit']))
 
             $fp = uniqid('img_',true).".".$ext;
 
-            if(move_uploaded_file($_FILES['photoimg']['tmp_name'], "../user/logo/".$fp))
+            if(move_uploaded_file($_FILES['photoimg']['tmp_name'], "../User/logo//".$fp))
             {
                 $stmt = mysqli_prepare(
                     $con,

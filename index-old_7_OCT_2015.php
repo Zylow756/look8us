@@ -819,7 +819,7 @@ href="https://<?= htmlspecialchars($row['website']); ?>"
 target="_blank"
 rel="noopener noreferrer">
 <img
-src="user/logo/<?= rawurlencode($row['img']); ?>"
+src="User/logo//<?= rawurlencode($row['img']); ?>"
 alt="<?= htmlspecialchars($row['aname']); ?>">
 <h4>
 <?= htmlspecialchars($row['aname']); ?>
@@ -985,7 +985,7 @@ target="_blank"
 rel="noopener noreferrer">
 
 <img
-src="user/logo/<?= rawurlencode($row['img']) ?>"
+src="User/logo//<?= rawurlencode($row['img']) ?>"
 alt="Advertisement">
 
 </a>

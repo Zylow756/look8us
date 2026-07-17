@@ -965,7 +965,7 @@ try {
     rel="noopener noreferrer">
 
 <img
-    src="user/logo/<?= htmlspecialchars($row['img'], ENT_QUOTES, 'UTF-8'); ?>"
+    src="User/logo//<?= htmlspecialchars($row['img'], ENT_QUOTES, 'UTF-8'); ?>"
     alt="<?= htmlspecialchars($row['aname'], ENT_QUOTES, 'UTF-8'); ?>"
     loading="lazy"
     width="240"
@@ -1233,7 +1233,7 @@ foreach (array_slice($homeImages, 0, 4) as $image) {
 <?php endif; ?>
 
 <img
-    src="user/logo/<?= htmlspecialchars($image['img'], ENT_QUOTES, 'UTF-8'); ?>"
+    src="User/logo//<?= htmlspecialchars($image['img'], ENT_QUOTES, 'UTF-8'); ?>"
     alt="Advertisement"
     loading="lazy">
 

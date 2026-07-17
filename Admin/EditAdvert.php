@@ -176,7 +176,7 @@ if (!$r) {
 							</td>
 							<td valign="top" width="24%">
 							<img border="1"
-     src="<?php echo "../user/logo/" . htmlspecialchars($row['img']); ?>"
+     src="<?php echo "../User/logo//" . htmlspecialchars($row['img']); ?>"
      width="164"
      height="166"></td>
 						</tr>

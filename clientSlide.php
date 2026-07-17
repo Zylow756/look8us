@@ -63,7 +63,7 @@ function e(?string $value): string
 												<td width="127" align="center">
 													<?php if (($row["logo"] ?? "-") !== "-"): ?>
 														<a href="http://<?php echo e($row["website"] ?? ""); ?>" target="_blank" class="a5">
-															<img border="0" src="user/logo/<?php echo e($row["logo"] ?? ""); ?>" width="82" height="91">
+															<img border="0" src="User/logo//<?php echo e($row["logo"] ?? ""); ?>" width="82" height="91">
 														</a>
 													<?php endif; ?>
 												</td>
@@ -233,7 +233,7 @@ function e(?string $value): string
 																				<div class="article">
 																					<div class="right">
 																						<a href="#" target="_parent">
-																							<img src="user/logo/<?php echo e($row2["img"] ?? ""); ?>" alt="Slider Image" />
+																							<img src="User/logo//<?php echo e($row2["img"] ?? ""); ?>" alt="Slider Image" />
 																						</a>
 																					</div>
 																				</div>

@@ -917,7 +917,7 @@ ORDER BY RAND()
 								target="_blank"
 								rel="noopener noreferrer">
 								<img
-									src="user/logo/<?= htmlspecialchars($advert['image']); ?>"
+									src="User/logo//<?= htmlspecialchars($advert['image']); ?>"
 									alt="<?= htmlspecialchars($advert['name']); ?>"
 									loading="lazy">
 								<h4>
@@ -935,7 +935,7 @@ ORDER BY RAND()
 								target="_blank"
 								rel="noopener noreferrer">
 								<img
-									src="user/logo/<?= htmlspecialchars($advert['image']); ?>"
+									src="User/logo//<?= htmlspecialchars($advert['image']); ?>"
 									alt="<?= htmlspecialchars($advert['name']); ?>"
 									loading="lazy">
 								<h4>
@@ -989,7 +989,7 @@ ORDER BY catename
 
 							<div class="estore-image">
 								<img
-									src="user/logo/<?= htmlspecialchars($category['image']); ?>"
+									src="User/logo//<?= htmlspecialchars($category['image']); ?>"
 									alt="<?= htmlspecialchars($category['name']); ?>"
 									loading="lazy">
 							</div>
@@ -1047,7 +1047,7 @@ LIMIT 4
 							target="_blank"
 							rel="noopener noreferrer">
 							<img
-								src="user/logo/<?= htmlspecialchars($advert['image']); ?>"
+								src="User/logo//<?= htmlspecialchars($advert['image']); ?>"
 								alt="Advertisement"
 								loading="lazy">
 							<a>

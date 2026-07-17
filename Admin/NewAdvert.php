@@ -65,8 +65,8 @@ $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
       time() . "_" .
       substr(str_replace(" ", "_", $txt),0,5) .
       "." . $ext;
-		if (!is_dir("../user/logo")) {
-    mkdir("../user/logo",0755,true);
+		if (!is_dir("../User/logo/")) {
+    mkdir("../User/logo/",0755,true);
 }
 
 		$st = $con->prepare(

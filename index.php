@@ -948,7 +948,7 @@ if(!preg_match('#^https?://#',$url)){
 >
 
 <img
-    src="user/logo/<?= htmlspecialchars($row['img'], ENT_QUOTES, 'UTF-8'); ?>"
+    src="User/logo//<?= htmlspecialchars($row['img'], ENT_QUOTES, 'UTF-8'); ?>"
     alt="<?= htmlspecialchars($row['aname'], ENT_QUOTES, 'UTF-8'); ?>"
 	loading="lazy"
 >
@@ -1031,7 +1031,7 @@ $ecategories = mysqli_fetch_all($result, MYSQLI_ASSOC);
 >
 
 <img
-    src="user/logo/<?= htmlspecialchars($row['cateimg'], ENT_QUOTES, 'UTF-8'); ?>"
+    src="User/logo//<?= htmlspecialchars($row['cateimg'], ENT_QUOTES, 'UTF-8'); ?>"
     alt="<?= htmlspecialchars($row['catename'], ENT_QUOTES, 'UTF-8'); ?>"
 	loading="lazy"
 >
@@ -1117,7 +1117,7 @@ rel="noopener noreferrer"
 >
 
 <img
-src="user/logo/<?= htmlspecialchars($row['img'], ENT_QUOTES, 'UTF-8'); ?>"
+src="User/logo//<?= htmlspecialchars($row['img'], ENT_QUOTES, 'UTF-8'); ?>"
 alt="Advertisement"
 loading="lazy">
 

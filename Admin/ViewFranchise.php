@@ -85,7 +85,7 @@ if ($msg == 2) {
 			<?php						
 
 $st="SELECT *
-FROM FRANCH
+FROM franch
 ORDER BY FID DESC";
 
 //echo $st;

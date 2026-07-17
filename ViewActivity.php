@@ -236,7 +236,7 @@ if (
         )
     ) {        $imagePath = 
             __DIR__ .
-            "/User/logo/" .
+            "/User/logo//" .
             $imageName;
 
         /*
@@ -246,7 +246,7 @@ if (
         */        if (file_exists($imagePath)) {?>
 
 <img
-    src="User/logo/<?= htmlspecialchars(
+    src="User/logo//<?= htmlspecialchars(
         $imageName,
         ENT_QUOTES | ENT_SUBSTITUTE,
         'UTF-8'

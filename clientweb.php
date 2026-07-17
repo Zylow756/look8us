@@ -94,7 +94,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["submit"]) && $id > 0) {
 									<td width="599" align="center" valign="top" style="border-left-width: 1px; border-right-style: dotted; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px">
 										<font size="6">&nbsp;</font><br>
 										<a href="http://<?php echo e($row["web"] ?? ""); ?>" target="_blank" class="a5">
-											<img border="0" src="user/logo/<?php echo (($row["catelog"] ?? "-") !== "-") ? e($row["catelog"]) : "noimages.jpg"; ?>" width="566" height="730">
+											<img border="0" src="User/logo//<?php echo (($row["catelog"] ?? "-") !== "-") ? e($row["catelog"]) : "noimages.jpg"; ?>" width="566" height="730">
 										</a>
 									</td>
 									<td width="410" valign="top">
@@ -104,7 +104,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["submit"]) && $id > 0) {
 													<td width="21%" align="center" height="105">
 														<?php if (($row["logo"] ?? "-") !== "-"): ?>
 															<a href="http://<?php echo e($row["website"] ?? ""); ?>" target="_blank" class="a5">
-																<img border="0" src="user/logo/<?php echo e($row["logo"] ?? ""); ?>" width="82" height="91">
+																<img border="0" src="User/logo//<?php echo e($row["logo"] ?? ""); ?>" width="82" height="91">
 															</a>
 														<?php endif; ?>
 													</td>
@@ -304,7 +304,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["submit"]) && $id > 0) {
 
 																			while ($row2 = mysqli_fetch_assoc($result2)) {
 																			?>
-																				<img border="0" src="user/logo/<?php echo e($row2["img"] ?? ""); ?>" width="156" height="169"> &nbsp;&nbsp;&nbsp;
+																				<img border="0" src="User/logo//<?php echo e($row2["img"] ?? ""); ?>" width="156" height="169"> &nbsp;&nbsp;&nbsp;
 																			<?php
 																			}
 																			mysqli_stmt_close($imageStmt);

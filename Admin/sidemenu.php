@@ -76,7 +76,7 @@ if (empty($_SESSION['admin'])) {
 			Member</a></td>
 		</tr>
 		<tr>
-			<td style="border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-style: dotted; border-bottom-width: 1px">&nbsp;<a class="a" href="viewMemberStatus.php">Change Status</a></td>
+			<td style="border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-style: dotted; border-bottom-width: 1px">&nbsp;<a class="a" href="ViewMemberStatus.php">Change Status</a></td>
 		</tr>
 		<tr>
 			<td style="border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-style: dotted; border-bottom-width: 1px" bordercolor="#D3D3D3">&nbsp;<a class="a" href="AddCateMember.php">Add Category to Member </a></td>
@@ -140,7 +140,7 @@ if (empty($_SESSION['admin'])) {
 			<td style="border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-style: dotted; border-bottom-width: 1px" bordercolor="#D3D3D3" height="25">&nbsp;<a class="a" href="ViewFeedback.php">View Feedback</a></td>
 		</tr>
 		<tr>
-			<td style="border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-style: dotted; border-bottom-width: 1px" height="25">&nbsp;<a class="a" href="Password.php">Change Password</a></td>
+			<td style="border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-style: dotted; border-bottom-width: 1px" height="25">&nbsp;<a class="a" href="password.php">Change Password</a></td>
 		</tr>
 		<tr>
 			<td height="25" style="border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-style: dotted; border-bottom-width: 1px">&nbsp;<a class="a" href="../logout.php">Logout</a></td>

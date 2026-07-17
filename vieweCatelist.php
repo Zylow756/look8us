@@ -150,7 +150,7 @@ Buy Product Now..
                     $category['cateimg']
                 );
                 $imagePath =
-                "user/logo/" .
+                "User/logo//" .
                 $imageName;
             ?>                <img
                     src="<?= escapeHtml($imagePath); ?>"

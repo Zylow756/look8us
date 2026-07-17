@@ -196,7 +196,7 @@ href="https://<?= e($row['web']) ?>"
 target="_blank"
 rel="noopener noreferrer"
 >
-<imgsrc="user/logo/<?= e($row['logo']) ?>"alt="<?= e($row['compname']) ?> Logo"loading="lazy"/>
+<imgsrc="User/logo//<?= e($row['logo']) ?>"alt="<?= e($row['compname']) ?> Logo"loading="lazy"/>
 </a>
 </div>
 <?php 
@@ -251,14 +251,14 @@ if ($isPremium) {
         );
     }
 }$imagePath =
-    "user/logo/no-images.jpg";
+    "User/logo//no-images.jpg";
 if (
     $memberImage
     &&
     !empty($memberImage['img'])
 ) {
     $imagePath =
-        "user/logo/" .
+        "User/logo//" .
         $memberImage['img'];}?><div class="details-grid"><?php if ($isPremium): ?>
 <div class="member-image">
 <a href="clientSlide.php?id=<?= e((string)$row['mid']) ?>">
