@@ -11,15 +11,16 @@
 // mysqli_select_db("onlndir", $con) or die ("error in select : akc");
 
 
-/*$con = mysqli_connect("localhost","biagklvj_websoftguest","@Akc12345#") or die ("error Q akc");
-mysqli_select_db($con, "biagklvj_websofts_look8us") or die ("error in select : akc");*/
+$con = mysqli_connect("localhost","biagklvj_websoftguest","@Akc12345#") or die ("error Q akc");
+mysqli_select_db($con, "biagklvj_websofts_look8us") or die ("error in select : akc");
 
-$host = "localhost";
+/*$host = "localhost";
 $user = "root";
 $password = "";
 $database = "biagklvj_websoftguest";
 $con = mysqli_connect($host, $user, $password, $database);
-mysqli_select_db($con, $database) or die ("error in select : akc");
+mysqli_select_db($con, $database) or die ("error in select : akc");*/
+
 if (!$con) {
     die("Connection failed: " . mysqli_connect_error());
 }
