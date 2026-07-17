@@ -428,7 +428,7 @@ body {
         <!-- Feedback & Enquiry -->
         <section class="panel feedback-panel" aria-labelledby="feedback-h">
             <h2 id="feedback-h" class="panel-title">Feedback &amp; Enquiry</h2>
-            <form method="post" action="index.php" class="feedback-form" novalidate>
+            <form method="post" action="home.php" class="feedback-form" novalidate>
                 <input type="hidden" name="csrf_token" value="<?= h($csrfToken) ?>">
 
                 <label for="city">City</label>

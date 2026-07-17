@@ -208,7 +208,7 @@ main{
         </p>
 
         <a
-            href="index.php"
+            href="home.php"
             class="home-btn"
         >
             Go to Home →
