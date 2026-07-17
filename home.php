@@ -463,7 +463,7 @@ if( $num_rows>0)
 
 <td align="center" width="200">
 <a href="http://<?php  echo htmlspecialchars($row['website']); ?>" target="_blank" class="a5">
-	<img border="1" src="user/logo/<?php  echo htmlspecialchars($row['img']); ?>" width="180" height="145">
+	<img border="1" src="User/logo/<?php  echo htmlspecialchars($row['img']); ?>" width="180" height="145">
 	</a>
 
     </td>
@@ -589,7 +589,7 @@ if (!$result) {
 										
 										<a href="http://www.ebydeal.com/" class="a2" >
 
-										<img  class="imgshad1" src="user/logo/<?php echo htmlspecialchars($row['cateimg']); ?>" width="165" height="172" >
+										<img  class="imgshad1" src="User/logo/<?php echo htmlspecialchars($row['cateimg']); ?>" width="165" height="172" >
 										</a>
 										</td>
 						<?php
@@ -654,7 +654,7 @@ if (!$result) {
 			?>
 
 <a href="http://<?php  echo htmlspecialchars($row['website']); ?>" target="_blank" class="a5">
-	<img border="1" src="user/logo/<?php  echo htmlspecialchars($row['img']); ?>" width="250" height="250"></a>
+	<img border="1" src="User/logo/<?php  echo htmlspecialchars($row['img']); ?>" width="250" height="250"></a>
 <?php
 
 }
@@ -673,7 +673,7 @@ if (!$result) {
 			?>
 
 <a href="http://<?php  echo htmlspecialchars($row['website']); ?>" target="_blank" class="a5">
-	<img border="1" src="user/logo/<?php  echo htmlspecialchars($row['img']); ?>" width="250" height="250"></a>
+	<img border="1" src="User/logo/<?php  echo htmlspecialchars($row['img']); ?>" width="250" height="250"></a>
 <?php
 
 }
@@ -702,7 +702,7 @@ if (!$result) {
 			?>
 
 <a href="http://<?php  echo htmlspecialchars($row['website']); ?>" target="_blank" class="a5">
-	<img border="1" src="user/logo/<?php  echo htmlspecialchars($row['img']); ?>" width="250" height="250"></a>
+	<img border="1" src="User/logo/<?php  echo htmlspecialchars($row['img']); ?>" width="250" height="250"></a>
 <?php
 
 }
@@ -719,7 +719,7 @@ if (!$result) {
 			?>
 
 <a href="http://<?php  echo htmlspecialchars($row['website']); ?>" target="_blank" class="a5">
-	<img border="1" src="user/logo/<?php  echo htmlspecialchars($row['img']); ?>" width="250" height="250"></a>
+	<img border="1" src="User/logo/<?php  echo htmlspecialchars($row['img']); ?>" width="250" height="250"></a>
 <?php
 
 }
