@@ -26,18 +26,19 @@ background-color: #70828F;;
 </head>
 <?php
 $msg=0;
-if ( isset($_GET['id']))
-{
-$id = (int)$_GET['id'];
+if (isset($_GET['id'])) {
 
-$s = "DELETE FROM FRANCH WHERE fid=$id";
+    $id = (int)$_GET['id'];
 
-if (mysqli_query($con, $s)) {
-    $msg = 2;
-} else {
-    die(mysqli_error($con));
-}
-$msg=2;
+    $stmt = mysqli_prepare($con, "DELETE FROM franch WHERE fid = ?");
+
+    mysqli_stmt_bind_param($stmt, "i", $id);
+
+    if (mysqli_stmt_execute($stmt)) {
+        $msg = 2;
+    }
+
+    mysqli_stmt_close($stmt);
 }
 ?>
 <body >
@@ -84,9 +85,15 @@ if ($msg == 2) {
 								</tr>
 			<?php						
 
-$st="SELECT *
+$st="SELECT fid,
+       fname,
+       mobile,
+       email,
+       city,
+       remark,
+       fdate
 FROM franch
-ORDER BY FID DESC";
+ORDER BY fid DESC";
 
 //echo $st;
 $i=1;

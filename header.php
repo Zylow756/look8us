@@ -87,7 +87,7 @@ Welcome<font color="#CCCCCC">,</font><font color="#0000FF">&nbsp;<b><?php echo u
 	
 <a href="<?php echo $path; ?>user/index.php">
 	
-<img border="0" src="<?php echo $path; ?>Users.png" width="26" height="26"></a>
+<img border="0" src="<?php echo $path; ?>users.png" width="26" height="26"></a>
 </td><?php
 }
 ?>
